@@ -1,0 +1,144 @@
+=== Test Run [2026-03-04 20:15:01 to 2026-03-04 20:15:07] ===
+01 Clone Repos           : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-04 20:15:57 to 2026-03-04 20:16:00] ===
+01 Clone Repos           : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-04 20:16:58 to 2026-03-04 20:19:08] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-04 20:19:55 to 2026-03-04 20:23:26] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : PASS
+02c Scrape jsdoc         : PASS
+02d Core Packages        : PASS
+02e Example Packages     : PASS
+03 Add Links             : PASS
+04 AI Summaries          : SKIPPED
+05 Finalize Publish      : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-04 20:23:49 to 2026-03-04 20:26:53] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : PASS
+02c Scrape jsdoc         : PASS
+02d Core Packages        : PASS
+02e Example Packages     : PASS
+03 Add Links             : PASS
+04 AI Summaries          : SKIPPED
+05 Finalize Publish      : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-04 20:27:26 to 2026-03-04 20:30:36] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : PASS
+02c Scrape jsdoc         : PASS
+02d Core Packages        : PASS
+02e Example Packages     : PASS
+03 Add Links             : PASS
+04 AI Summaries          : SKIPPED
+05 Finalize Publish      : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:31:14 UTC to 2026-03-05 00:31:14 UTC] ===
+01 Clone Repos           : FAIL-EX: name 'subprocess' is not defined
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:31:29 UTC to 2026-03-05 00:34:29 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : PASS
+02c Scrape jsdoc         : PASS
+02d Core Packages        : PASS
+02e Example Packages     : PASS
+03 Add Links             : PASS
+04 AI Summaries          : SKIPPED
+05 Finalize Publish      : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:37:01 UTC to 2026-03-05 00:39:39 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:40:05 UTC to 2026-03-05 00:42:42 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:43:20 UTC to 2026-03-05 00:43:23 UTC] ===
+01 Clone Repos           : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:42:53 UTC to 2026-03-05 00:45:32 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:43:36 UTC to 2026-03-05 00:46:18 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : FAIL
+STATUS: FAILED
+
+=== Test Run [2026-03-05 00:46:40 UTC to 2026-03-05 00:52:57 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : PASS
+02c Scrape jsdoc         : PASS
+02d Core Packages        : PASS
+02e Example Packages     : PASS
+03 Add Links             : PASS
+04 AI Summaries          : SKIPPED
+05 Finalize Publish      : PASS
+STATUS: SUCCESS
+
+=== Test Run [2026-03-05 00:57:50 UTC to 2026-03-05 01:02:54 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : PASS
+02c Scrape jsdoc         : PASS
+02d Core Packages        : PASS
+02e Example Packages     : PASS
+03 Add Links             : PASS
+04 AI Summaries          : SKIPPED
+05 Finalize Publish      : PASS
+STATUS: SUCCESS
+
+=== Test Run [2026-03-05 01:04:50 UTC to 2026-03-05 01:09:57 UTC] ===
+01 Clone Repos           : PASS
+02a Scrape Wiki          : PASS
+02b Scrape ucode         : PASS
+02c Scrape jsdoc         : PASS
+02d Core Packages        : PASS
+02e Example Packages     : PASS
+03 Add Links             : PASS
+04 AI Summaries          : SKIPPED
+05 Finalize Publish      : PASS
+STATUS: SUCCESS
+
+
+2026-03-05 01:23:08 | FAIL | 9P/1F/1S | 179s | FAILED: Validate
+
+2026-03-05 01:27:23 | FAIL | 9P/1F/1S | 155s | FAILED: Validate
+
+2026-03-05 01:32:06 | PASS | 10P/0F/1S | 173s
+
+2026-03-05 01:50:34 | PASS | 10P/0F/1S | 143s
+
+2026-03-05 02:12:07 | PASS | 10P/0F/1S | 184s
+
+2026-03-05 02:29:20 | PASS | 10P/0F/1S | 366s
+
+2026-03-05 02:44:12 | PASS | 10P/0F/1S | 365s

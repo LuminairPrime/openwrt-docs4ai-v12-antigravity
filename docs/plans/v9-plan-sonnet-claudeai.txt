@@ -1,0 +1,368 @@
+# openwrt-docs4ai — Final Improvement Plan (v8 → v9)
+
+> This is the actionable plan for implementation. All open questions resolved.
+
+---
+
+## 1. Repository Structure
+
+```
+openwrt-docs4ai/
+│
+├── .github/
+│   ├── workflows/
+│   │   └── pipeline.yml
+│   └── scripts/                         ← all pipeline scripts
+│       ├── openwrt-docs4ai-01-clone-repos.py
+│       ├── openwrt-docs4ai-02a-scrape-wiki.py
+│       ├── openwrt-docs4ai-02b-scrape-ucode.py
+│       ├── openwrt-docs4ai-02c-scrape-jsdoc.py
+│       ├── openwrt-docs4ai-02d-scrape-core-packages.py
+│       ├── openwrt-docs4ai-02e-scrape-example-packages.py
+│       ├── openwrt-docs4ai-03-add-links.py
+│       ├── openwrt-docs4ai-04-generate-summaries.py
+│       ├── openwrt-docs4ai-05a-assemble-references.py
+│       ├── openwrt-docs4ai-05b-generate-index.py
+│       ├── openwrt-docs4ai-05c-validate.py
+│       ├── openwrt-docs4ai-05d-commit.sh
+│       └── requirements.txt
+│
+├── tests/
+│   ├── openwrt-docs4ai-00-smoke-test.py
+│   ├── smoke-test-log.txt               ← appended per run
+│   └── smoke-test-last-output.txt       ← overwritten per run
+│
+├── openwrt-condensed-docs/              ← ALL committed output lives here
+│   ├── ucode-docs/                      ← individual ucode .md files
+│   ├── luci-docs/                       ← individual LuCI .md files
+│   ├── openwrt-wiki-docs/               ← individual wiki .md files
+│   ├── openwrt-buildroot-docs/          ← individual buildroot .md files
+│   ├── openwrt-examples/                ← curated source files
+│   ├── ucode-complete-reference.md
+│   ├── luci-jsapi-complete-reference.md
+│   ├── openwrt-wiki-complete-reference.md
+│   ├── openwrt-buildroot-complete-reference.md
+│   ├── openwrt-examples-complete-reference.md
+│   ├── llms.txt                         ← root entry point for AI/humans
+│   ├── CHANGES.md
+│   └── index.md                         ← GitHub Pages single-page link library
+│
+├── README.md
+├── DEVELOPMENT.md
+├── PLAN.md
+└── .gitignore
+```
+
+**Folder name rationale:** `openwrt-condensed-docs/` is descriptive, unique, and signals intent to both human readers browsing GitHub and AI tools scraping the repo. It's easy to link directly (e.g. `github.com/user/repo/tree/main/openwrt-condensed-docs`).
+
+**.gitignore:**
+```
+tmp/
+repo-ucode/
+repo-luci/
+repo-openwrt/
+node_modules/
+.venv/
+*.err
+tests/smoke-test-last-output.txt
+```
+Note: `tests/smoke-test-log.txt` is kept in git as a persistent run history.
+
+---
+
+## 2. The `OUTDIR` Variable — Core v9 Enabler
+
+Every script reads one env var at startup:
+
+```python
+# pseudocode — top of every script
+OUTDIR = os.environ.get("OUTDIR") or os.path.join(os.getcwd(), "openwrt-condensed-docs")
+os.makedirs(OUTDIR, exist_ok=True)
+```
+
+- **Local dev:** defaults to `./openwrt-condensed-docs` — writes directly to the committed folder, same as v8 behavior
+- **CI staging (v9):** pipeline sets `OUTDIR=$RUNNER_TEMP/staging` — scripts write to temp, never touching the committed folder until validation passes
+
+This single change unlocks safe staging with almost no other script logic changes.
+
+---
+
+## 3. Bug Fixes
+
+### 3.1 Unsafe `git add --all`
+**In:** `05-finalize-publish.sh` (moving to `05d-commit.sh`)
+**Fix:** Replace with `git add openwrt-condensed-docs/` only. Add a pre-commit guard:
+```bash
+# pseudocode
+unexpected=$(git status --porcelain | grep -v "openwrt-condensed-docs/")
+if [ -n "$unexpected" ]; then exit 1; fi
+```
+
+### 3.2 `CHANGES.md` fails on first run
+**In:** `05-finalize-publish.sh` step 12a (moving to `05b`)
+**Fix:** Before running `git diff HEAD`, check if file is tracked:
+```python
+# pseudocode
+is_tracked = subprocess.run(["git", "ls-files", "--error-unmatch", target], ...).returncode == 0
+if not is_tracked:
+    section = f"## {target}\n\n*(new file — no previous version to diff)*\n"
+```
+
+### 3.3 `static-docs/` promotion — remove
+**In:** `05-finalize-publish.sh` step 11f
+**Fix:** Delete step entirely. Dead code with no creating counterpart.
+
+### 3.4 `shell=IS_WINDOWS` subprocess fragility
+**In:** `02b-scrape-ucode.py`, `02c-scrape-jsdoc.py`
+**Fix:** Use `shutil.which()` to locate binary explicitly:
+```python
+# pseudocode
+jsdoc2md = shutil.which("jsdoc2md") or shutil.which("jsdoc2md.cmd")
+if not jsdoc2md:
+    print("WARNING: jsdoc2md not found — skipping JSDoc steps")
+    sys.exit(0)
+cmd = [jsdoc2md, "--heading-depth", "2", ...]
+subprocess.run(cmd)  # no shell=True
+```
+Primary target is Linux CI. Windows is best-effort.
+
+### 3.5 `npm install` runs without checking for `package.json`
+**In:** `02b-scrape-ucode.py`
+**Fix:**
+```python
+# pseudocode
+if os.path.isfile(os.path.join(repo_ucode, "package.json")):
+    subprocess.run(["npm", "install", "--silent"], cwd=repo_ucode)
+else:
+    print("No package.json in repo-ucode — skipping npm install (using global jsdoc2md)")
+```
+
+### 3.6 Silent file skips in `02b/02c` with no log
+**Fix:** Log every skipped filename: `print(f"  SKIP (too short, {word_count} words): {mod}")`
+
+### 3.7 Wiki scrape has no page cap
+**In:** `02a-scrape-wiki.py`
+**Fix:**
+```python
+MAX_PAGES = int(os.environ.get("WIKI_MAX_PAGES", "300"))
+# ... in loop:
+if saved >= MAX_PAGES:
+    print(f"WARNING: Reached WIKI_MAX_PAGES={MAX_PAGES} cap. Stopping.")
+    break
+```
+
+### 3.8 Validate step only warns, never fails
+**In:** `05-finalize-publish.sh` step 13 (moving to `05c-validate.py`)
+**Fix:** Exit non-zero on validation failures so CI job actually fails:
+```python
+# pseudocode
+if warn_count > 0:
+    sys.exit(1)  # currently just prints a warning and continues
+```
+Add `--warn-only` flag for use in local dev where you want to see all output regardless.
+
+### 3.9 `05` GitHub Pages artifact uploads entire workspace
+**In:** `pipeline.yml`
+**Fix:** Change `path: '.'` to `path: 'openwrt-condensed-docs'` so Pages only serves the output folder.
+
+---
+
+## 4. Shell → Python Conversions
+
+| Script | Convert? | Reason |
+|---|---|---|
+| `01-clone-repos.sh` | Yes → `.py` | Env var writes, conditionals, path logic; cleaner in Python |
+| `02d-scrape-core-packages.sh` | Yes → `.py` | Already an embedded Python heredoc; just inline it |
+| `02e-scrape-example-packages.sh` | Yes → `.py` | Uses `cp --parents` (GNU only); `shutil.copytree` works everywhere |
+| `05-finalize-publish.sh` | Split → 4 files | See section 5 |
+| `05d-commit.sh` | Keep `.sh` | Pure git ops; only runs on Linux CI, never locally |
+
+---
+
+## 5. Script 05 Split
+
+The 250-line `05-finalize-publish.sh` becomes four focused files:
+
+**`05a-assemble-references.py`** — assembles the 5 `*-complete-reference.md` files
+- One function per reference file (ucode, luci, wiki, buildroot, examples)
+- Reads from `INDIR` (= `OUTDIR`), writes back to `OUTDIR`
+- Each function independently skippable via env flags
+- Testable by smoke test
+
+**`05b-generate-index.py`** — generates `llms.txt` and `CHANGES.md`
+- Collects per-folder `llms.txt` files into root index
+- Handles CHANGES.md first-run edge case (see bug 3.2)
+
+**`05c-validate.py`** — validation gate
+- Checks file existence and minimum line counts
+- Accepts `--out-dir` and `--warn-only` flags
+- Returns non-zero exit on failure (enforces the staging gate)
+- Called by both CI pipeline and smoke test
+
+**`05d-commit.sh`** — git operations only
+- Receives `PUBLISH_DIR` env var pointing to where validated output lives
+- Safe `git add $PUBLISH_DIR/` only
+- Pre-commit path guard
+- Direct push (no PR, no external action dependency — simpler, good enough for headless long-term operation)
+
+---
+
+## 6. AI Summarization (Script 04)
+
+No major changes. Minor improvements:
+- Make `MAX_FILES` a workflow dispatch input (default 40) so it can be bumped without a code change
+- Add a `SUMMARIZED_COUNT` counter written to a file in `OUTDIR` so subsequent runs can report cumulative progress
+- Summaries are idempotent (already skips files with `**Summary:**`) — pre-generated files uploaded manually are respected automatically; no special handling needed
+
+---
+
+## 7. v9 Staging Pipeline
+
+```yaml
+# pipeline.yml pseudocode
+
+env:
+  OUTDIR: ${{ runner.temp }}/staging
+  PUBLISH_DIR: ${{ github.workspace }}/openwrt-condensed-docs
+
+steps:
+  - checkout                          # PUBLISH_DIR has last-good committed output
+
+  - install tools (pandoc, jsdoc2md, pip, node)
+
+  - Phase 1: clone repos              # writes to runner.temp/work
+      python 01-clone-repos.py
+
+  - Phase 2: parallel scrapers        # all write to OUTDIR (runner.temp/staging)
+      python 02a-scrape-wiki.py &
+      python 02b-scrape-ucode.py &
+      python 02c-scrape-jsdoc.py &
+      python 02d-scrape-core-packages.py &
+      python 02e-scrape-example-packages.py &
+      wait
+
+  - Phase 3: enrich                   # mutates files in OUTDIR
+      python 03-add-links.py
+      python 04-generate-summaries.py
+
+  - Phase 4: assemble + index         # writes merged files to OUTDIR
+      python 05a-assemble-references.py
+      python 05b-generate-index.py
+
+  - Phase 5: VALIDATE STAGING         # gate — fails CI if output is bad
+      python 05c-validate.py --out-dir $OUTDIR
+      # non-zero exit blocks promotion; committed files untouched
+
+  - Phase 6: PROMOTE                  # only reached if validate passes
+      rsync -a --delete $OUTDIR/ $PUBLISH_DIR/
+
+  - Phase 7: COMMIT                   # safe add of known folder only
+      bash 05d-commit.sh
+
+  - on-failure: upload $OUTDIR as artifact
+      # lets you inspect what went wrong without losing good committed files
+      uses: actions/upload-artifact@v4
+      with:
+        name: failed-staging-${{ github.run_id }}
+        path: ${{ runner.temp }}/staging
+        retention-days: 7
+        if: failure()
+```
+
+---
+
+## 8. GitHub Pages
+
+Simple. One file: `openwrt-condensed-docs/index.md`
+
+Generated by `05b-generate-index.py` alongside `llms.txt`. Format:
+
+```markdown
+# OpenWrt Condensed Documentation — Link Library
+
+> Auto-generated monthly. Last updated: 2025-06-01 02:14 UTC
+> Source scripts: github.com/user/openwrt-docs4ai
+
+## Complete References (single large files)
+
+- [ucode-complete-reference.md](ucode-complete-reference.md) — Full ucode language + all module APIs, concatenated
+- [luci-jsapi-complete-reference.md](luci-jsapi-complete-reference.md) — Full LuCI client-side JS API
+- [openwrt-wiki-complete-reference.md](openwrt-wiki-complete-reference.md) — Developer wiki (techref + guide-developer)
+- [openwrt-buildroot-complete-reference.md](openwrt-buildroot-complete-reference.md) — Package metadata + build system includes
+- [openwrt-examples-complete-reference.md](openwrt-examples-complete-reference.md) — Four curated LuCI app examples with source
+
+## ucode Modules
+
+- [ucode-module-fs.md](ucode-docs/ucode-module-fs.md) — Filesystem access functions
+- [ucode-module-ubus.md](ucode-docs/ucode-module-ubus.md) — ubus IPC interface
+... (all files listed here with one-line descriptions)
+
+## LuCI JavaScript API
+
+... (same pattern)
+
+## OpenWrt Wiki
+
+... (same pattern)
+
+## Buildroot Packages
+
+... (same pattern)
+
+## LuCI Application Examples
+
+... (same pattern)
+```
+
+GitHub Pages config: a single `_config.yml` at repo root with `theme: minima` or equivalent. Pages serves `openwrt-condensed-docs/` as the site root. No custom HTML, no build step, no JS. Just markdown rendered by Jekyll.
+
+Alternatively — and even simpler — skip Jekyll entirely by adding an empty `.nojekyll` file and pointing Pages at the folder. GitHub will serve raw markdown. Links will still work. No config required.
+
+---
+
+## 9. In-Script Documentation Standards
+
+Every script gets a standard header block:
+
+```python
+"""
+openwrt-docs4ai-02a-scrape-wiki.py
+Purpose  : Scrape OpenWrt developer wiki to markdown files.
+Inputs   : OUTDIR env var (default: ./openwrt-condensed-docs)
+           SKIP_WIKI env var (set "true" to skip entirely)
+           WIKI_MAX_PAGES env var (default: 300)
+Outputs  : $OUTDIR/openwrt-wiki-docs/*.md
+           $OUTDIR/openwrt-wiki-docs/llms.txt
+Deps     : requests, pandoc (system binary), xml.etree (stdlib)
+Notes    : Incremental — pages unchanged since last run are preserved.
+           Rate-limited (DELAY=1.5s between requests) to respect openwrt.org.
+"""
+```
+
+Inline comments on non-obvious logic. No comments restating what the code clearly says.
+
+---
+
+## 10. New Documentation Files
+
+| File | Contents |
+|---|---|
+| `README.md` | What the repo is, how to use output files, link to `openwrt-condensed-docs/llms.txt` as the entry point, GitHub Actions badge |
+| `DEVELOPMENT.md` | Prerequisites (Python 3.11+, Node 20+, pandoc, git), local smoke test instructions, env vars reference table, Windows notes (best-effort), how to manually pre-generate AI summaries and commit them |
+| `PLAN.md` | This document |
+| `.gitignore` | See section 1 |
+
+---
+
+## 11. Implementation Order
+
+1. Rename output folder → `openwrt-condensed-docs/` and update all path references
+2. Add `OUTDIR` to all scripts (one-liner at top of each)
+3. Convert `.sh` scripts to `.py` (01, 02d, 02e)
+4. Split `05` into `05a/b/c/d`
+5. Apply all bug fixes (3.1–3.9)
+6. Update `pipeline.yml` with staging architecture
+7. Update smoke test to pass `OUTDIR` to subprocesses and call `05c-validate.py`
+8. Generate `index.md` in `05b`; configure GitHub Pages
+9. Write `README.md`, `DEVELOPMENT.md`
+10. Add header comment blocks to all scripts

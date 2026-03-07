@@ -1,0 +1,48 @@
+This improvement plan outlines the upgrade to version 9, focusing on GitHub Actions deployment, temporary staging, cross-platform compatibility, and an organized file structure. The goal is a highly reliable, low-maintenance pipeline that runs monthly without corrupting existing documentation.
+
+### Directory Structure Design
+To prevent the generated data from cluttering the scripts and documentation, a dedicated output folder is the cleanest approach. This separates the "source code" (scripts) from the "compiled application" (the documentation).
+
+- **`/scripts/`**: Move all `.py` and `.sh` files here to keep the root clean.
+- **`/docs_output/`**: The final destination for validated files.
+  - `/docs_output/merged/`: The single condensed file for LLMs.
+  - `/docs_output/individual/`: Folders containing individual files from various sources (wiki, core, ucode, etc.).
+- **`/.github/workflows/`**: The GitHub Actions pipeline YAML.
+- **`/README.md`**: Project and technical documentation.
+
+### Architecture & Pipeline Migration
+The GitHub Actions workflow should implement a safe staging environment to ensure data integrity before any files are overwritten.
+
+- **Staging in Runner Temp**: Configure the pipeline to use `${{ runner.temp }}/out` as the primary working directory (`OUTDIR`) during generation. 
+- **Validation Before Promotion**: The pipeline will run the generation scripts, immediately followed by the `00-smoke-test` against the `OUTDIR`. 
+- **Atomic Promotion**: Only if the smoke test exits with a code of `0` (success) will the pipeline copy the contents of `OUTDIR` into the repository's `docs_output` folder.
+- **Failure Handling**: If the smoke test fails, the pipeline will halt the commit process and upload `OUTDIR` as a GitHub Workflow Artifact for remote debugging.
+
+### Script Modifications & Bug Fixes
+To support the new architecture and cross-platform development (Windows local, Linux VM remote), all scripts require specific adjustments.
+
+- **Path Handling**: Update all Python scripts to use `pathlib` or `os.path.join` instead of hardcoded slashes. Update bash scripts to utilize environment variables safely.
+- **Target Directory Variable**: Modify every script to accept an `--out-dir` argument or read an `OUTDIR` environment variable. Scripts must never assume the current working directory is the output destination.
+- **Refactoring Script 05**: Break `05-finalize-publish.sh` into smaller, testable functions. Separate the file concatenation logic from the git commit/push logic, as the pipeline YAML should handle the actual git operations, not the script.
+- **Standardized Logging**: Implement simple but consistent logging (e.g., `[INFO]`, `[ERROR]`) across both Python and Bash scripts to make GitHub Actions logs easier to read when failures occur.
+
+### File Modifications
+Based on the plan, here is a summary of what needs to be changed and created.
+
+- **Create `requirements.txt`**: To ensure the GitHub Actions runner installs the exact Python dependencies required.
+- **Modify `00-pipeline.yml`**: Update the workflow to implement the `RUNNER_TEMP` staging and conditional commit logic.
+- **Modify `00-smoke-test.py`**: Update the script to take a target directory argument so it can test the temporary `OUTDIR` instead of the root repo.
+- **Modify Scripts `01` through `05`**: Implement the `OUTDIR` target logic. Remove git commit commands from `05`.
+
+### Documentation Improvements
+Documentation must serve both humans trying to use the scripts and LLMs trying to understand the repository structure.
+
+- **Repository README**: Add a "How It Works" section detailing the `RUNNER_TEMP` staging architecture. Include instructions on how to run the pipeline locally on Windows using PowerShell.
+- **In-Script Comments**: Add docstrings to all Python functions explaining their inputs, outputs, and scraping targets. Ensure Bash scripts have header comments explaining their role in the pipeline.
+
+### Future Plans (v9 and Beyond)
+Once the staging pipeline is stable, future improvements should focus on robustness and expanding the data pool.
+
+- **Expanded Remote Testing**: Add schema validation to the smoke test to ensure the merged text file conforms to a specific structure expected by LLMs.
+- **Conversion to Python**: Gradually convert the Bash scripts (`01`, `02d`, `02e`, `05`) into Python to eliminate OS-specific quirks entirely and streamline local Windows development.
+- **Delta Updates**: Implement logic to only update files that have actually changed on the source end, reducing pipeline run time and unnecessary git commits.

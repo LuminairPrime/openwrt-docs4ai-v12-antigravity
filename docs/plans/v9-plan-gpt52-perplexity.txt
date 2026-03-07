@@ -1,0 +1,121 @@
+## Plan (v9 and beyond)
+
+v9 turns the project into an unattended, monthly “generate → validate → promote” system where each dataset can fail independently without blocking updates to the others, and where a broken scrape cannot overwrite last known-good outputs.
+
+### 1) Goals and invariants
+- **Primary goal:** Keep a long-lived monthly pipeline producing compact, LLM-friendly OpenWrt documentation in both modular form (many files) and merged form (one file per dataset), with minimal maintenance.
+- **Dataset independence:** Each lettered dataset (wiki, ucode, luci, buildroot, examples, etc.) is treated as an independent publish unit; failure in one must not prevent other datasets from being updated/published in the same run.
+- **Fail-safe publishing:** Never overwrite committed “good” outputs with unvalidated outputs; promotion happens only after dataset-specific validation passes.
+- **Windows-first development:** Scripts should be runnable locally on Windows (or at least via a single documented dev path), while deployment remains GitHub Actions on Linux.
+
+### 2) Repo layout and artifact contract
+Repository contains two things: (A) the generator scripts/docs, and (B) the generated documentation artifacts.
+
+**Recommended layout**
+- `.github/workflows/` — GitHub Actions workflows.
+- `.github/scripts/` — pipeline scripts (current location is fine).
+- `publish/` — the only directory intended to be served/consumed as outputs.
+  - `publish/modular/<dataset>/...` — modular files (many `.md` files + per-dataset `llms.txt` index).
+  - `publish/complete/<dataset>-complete-reference.md` — one merged file per dataset.
+  - `publish/index/llms.txt` — top-level index that links to all datasets + complete refs.
+  - `publish/status/<dataset>.json` — machine-readable metadata per dataset (last success timestamp, upstream commit hash if applicable, file counts, validation summary, last error brief).
+- `docs/` (or `design/`) — human documentation about how this repo works (not the generated OpenWrt docs).
+
+**Artifact contract**
+- All generated paths are under `publish/`.
+- Anything outside `publish/` is “the app” and should be stable and small.
+- Consumers can pin old versions by commit history (no PR review requirement).
+
+### 3) v9 pipeline design (staging + per-dataset promotion)
+v9 changes the workflow from “generate directly in the repo workspace” to “generate in staging, then selectively promote per dataset”.
+
+**Key directories**
+- `WORKDIR` — clones, tool caches, intermediate scratch.
+- `OUTDIR` — staged outputs for the current run (never committed directly).
+- `PUBLISHDIR` — checked-out repo `publish/` directory (committed only after promotion).
+
+Use the runner’s temporary directory for staging; GitHub documents `RUNNER_TEMP` as a temporary directory that is cleared at the beginning and end of each job. [docs.github](https://docs.github.com/en/actions/reference/workflows-and-actions/variables)
+
+**High-level workflow**
+1. Checkout repo.
+2. Initialize `WORKDIR/OUTDIR`.
+3. For each dataset, run a dataset pipeline that can succeed/fail independently:
+   - Seed: copy the dataset’s existing `publish/modular/<dataset>/` into `OUTDIR/modular/<dataset>/` (best-effort) so incremental logic and “already summarized” logic can work.
+   - Generate: run only that dataset’s scraper/extractor into `OUTDIR/...` (no writes to `PUBLISHDIR`).
+   - Enrich (optional per dataset): link injection and AI summaries run only on files produced/updated for that dataset in `OUTDIR` (never touching other datasets).
+   - Build merged output: generate that dataset’s `complete` reference file in `OUTDIR/complete/`.
+   - Validate: run dataset-specific validation rules (see section 4).
+   - Promote on success: copy/replace only that dataset’s subtree into `PUBLISHDIR`:
+     - `publish/modular/<dataset>/...`
+     - `publish/complete/<dataset>-complete-reference.md`
+     - `publish/status/<dataset>.json` (mark success + stats)
+   - On failure: do not promote; write/update `publish/status/<dataset>.json` in-memory for reporting (or keep last status), and upload `OUTDIR` logs/artifacts for inspection.
+4. After all datasets attempted:
+   - Regenerate `publish/index/llms.txt` **from the current `PUBLISHDIR` tree** (so it represents “what’s actually published”, including last-known-good for failed datasets).
+   - Optionally generate a repo-level `CHANGES.md` based on diffs under `publish/` only.
+5. Commit/push:
+   - Only commit if there are changes under `publish/` (and any intended small root metadata files, if you keep them).
+   - Never `git add --all .`; use an allowlist (`publish/**`, and optionally `CHANGES.md` if you keep it at root).
+
+**Concurrency and “don’t abort everything”**
+- Prefer a sequential dataset loop inside one job (simpler to reason about promotion) but with “soft-fail” per dataset: record failure, continue to next dataset.
+- If you later parallelize via a matrix, require each matrix job to upload an artifact + produce a dataset promotion bundle, then a final “aggregator/promoter” job merges only the validated bundles into `publish/` and commits once.
+
+### 4) Validation, smoke testing, and failure handling (unattended quality)
+The rule is: validation must be strong enough that you’re comfortable auto-pushing to `main` without review.
+
+**Two-tier validation**
+- **Hard failures (block promotion for that dataset):**
+  - Missing required outputs for that dataset (expected directories/files absent).
+  - Output files clearly malformed (empty, too small, missing required metadata headers).
+  - Parser/tool failures (pandoc/jsdoc failures) unless explicitly configured as “allowed to skip” for that dataset.
+- **Soft warnings (promotion allowed, but recorded in status):**
+  - Reduced file counts within a reasonable range.
+  - Non-critical extraction gaps (some modules missing) when upstream changed.
+  - Rate-limit/AI summarization skipped.
+
+**Dataset-specific invariants (examples)**
+- All datasets:
+  - Deterministic file encoding (UTF-8), newline normalization, no binary junk.
+  - No HTML error pages committed (detect common markers like `<!DOCTYPE html>`, “Access denied”, “captcha”, etc.).
+  - File/path allowlist: only `.md`, `llms.txt`, and `status/*.json` under `publish/`.
+- Wiki dataset:
+  - Each page includes required header fields (`Source`, `Last modified`, `Fetched`) and a minimum body length.
+  - Conversion sanity: markdown contains at least one heading and some non-trivial text.
+- JSDoc-derived datasets (ucode/luci):
+  - Per-dataset `llms.txt` exists and lists a minimum number of modules.
+  - A minimum number of generated module docs exceed a minimum token/line threshold (avoid “everything became empty because tool broke”).
+- Buildroot/package extraction dataset:
+  - Category outputs exist and include a minimum number of package entries.
+- Examples dataset:
+  - Expected curated apps present (or, if upstream moved, a clear failure that blocks promotion for this dataset only).
+
+**Remote smoke test**
+- Add a dedicated workflow step that runs a “remote smoke test” against the staged outputs:
+  - Runs validation for each dataset (and optionally a global “index integrity” check).
+  - Produces a compact report artifact (summary JSON + text report).
+- Local smoke test remains, but the remote one is authoritative for preventing bad commits.
+
+**Artifacts on failure**
+- Always upload:
+  - Dataset logs (stdout/stderr capture per script).
+  - The staged `OUTDIR` subtree for failed datasets (so you can diff against last-known-good).
+  - A single “run report” (which datasets succeeded/failed, key stats, what was promoted).
+
+### 5) Work plan and future roadmap
+**v9 must-do (reliability)**
+- Standardize path injection for every script (env/CLI): `WORKDIR`, `OUTDIR`, `PUBLISHDIR`; no script should assume repo root for outputs.
+- Split pipeline logic by dataset (even if implementation is still separate scripts), with “continue on dataset failure”.
+- Make validation gate promotion (warnings do not auto-commit unless explicitly allowed per dataset).
+- Restrict git commits to `publish/**` only (allowlist).
+- Change Pages (if used) to publish only `publish/` to avoid exposing repo internals.
+
+**v9 should-do (maintainability)**
+- Convert shell scripts to Python where it reduces Windows friction and makes path handling consistent; keep bash only if it’s truly simpler and reliably available in your Windows dev environment.
+- Refactor the large finalize/publish logic into smaller, testable units: assemble complete refs per dataset, generate indices, validate, promote, commit.
+- Add per-dataset `status/<dataset>.json` so unattended runs are diagnosable by reading one file.
+
+**v10+ (quality improvements)**
+- Add “format drift” guards: schema checks for headers, stable ordering, stable filenames, and “no unexpected mass deletions”.
+- Add a small “golden samples” test set: a tiny subset of known pages/modules that must always parse correctly (catch pandoc/jsdoc regressions early).
+- Add link-injection improvements that operate only on newly generated files (never rewriting old datasets when another dataset fails), preserving dataset independence.

@@ -1,0 +1,46 @@
+this new project is for scraping openwrt project documentation from its many sources around the internet and condensing it down into a couple different formats for easy use by people and ai llms. since different people and tools have different requirements, the goal is to create both a folder of individual files from the source, and a single merged file from the source. there are multiple sources, like the wiki for unofficial docs and the github docs generated directly from the live code. there is a local smoke test file that runs most of the scripts locally just to make sure they work. the objective of these scripts is to exist on a github repo plugged into the github action system running once a month to keep the docs roughly up to date. I want this repo and its files to have good documentation (both technical documentation about the operation and in script comment documentation). I want the scripts to be logical, functional, resistant to breakage, and maintainable. I want the technical documentation to include a plan for the next version, v9, which should be planned with improvements such as having remote testing on the github action, temporary staging of the downloaded files into the github action virtual machine, and running a remote smoke test just to make sure the files arent botched (by some website change or scraping incompatibility or file renaming or whatever random stuff that can happen when you're relying on scraping other peoples data) and would ruin the existing good files if they were overwritten, therefore we'd check that they're reasonably realistic files and THEN copy them to the repo... which shouldn't be that much of a change, because every script already works upon the default filesystem, so I think you should be able to simply give every script a global variable and then have the calling pipeline script tell every script where to save. however because I'm developing on windows and deploying to a linux vm there can be complications from local testing. many things can go wrong in scripts when trying to make them cross platform. so we really need to focus on the primary goals. some of the scripts are py and some are sh and if necessary the sh ones could be converted to py simply enough just to make cross platform development easier. the final script 05 is much larger than the rest can may be suitable for refactoring into smaller files, just note the descriptive filenames showing their operations. please develop a full plan for bug fixes, documentation improvements, what files need to be created, what files should be changed, future plans, etc. write no code unless pseudocode. make your improvement plan comprehensive but not excessively verbose; function matters more than form for this document which we want to be efficient to ingest and process. the ultimate goal is an app which runs long-term once a month without maintenance keeping updated documentation processed down into a compact form usable by human and ai developers. it should be developable on windows because that's what I use, but it will be deployed to github actions. the exact file system design like file folder names etc are up in the air right now; include your suggestions in your plan. for example, many people use linux software development practices when naming their folders on github and placing their files, but we aren't actually developing an app, we're just providing documentation files for people to use. it's possible that we dump the files into the root folder, or it's possible that we organize them in a novel way. unfortunately putting them in a "docs" folder wouldn't make sense because this repo will be doing double duty as the repo for the scripts themselves; for simplicity I will basically name this repo after the open source scripts and then also have their output stored there. as such, you might even justify having an "output" folder for the output of the run, with large files in the root of output and individual files packed in their respective folders in the root of the output folder. that would leave the rest of the github repo dedicated to the documentation and scripts and form of the scripts that generate the output, as if they were the star of the show haha. write your plan and ask questions afterward; I will clarify answer and then I will allow you to write another version of the plan. again be comprehensive and detailed but not TOO long and wordy because we do have time and token limits. write your own new plan file named appropriately to the docs folder.
+
+below is one developer's suggestion for the v9 migration to a staging remote data store on github actions, but you need not implement your plan in this way, I'm just sharing it as more information for you to process and consider. after you finish reading this you may begin your full plan development. you will find more plans for improving this project in the docs folder; read them all to learn new information and perspectives to allow you to craft the best practice project possible. I'm curious which help doc you think is the most useful.
+
+one developer's suggestion:
+
+A solid, low-risk pattern on GitHub Actions is: generate everything under $RUNNER_TEMP, run smoke tests, then copy only the verified outputs into $GITHUB_WORKSPACE (the checked-out repo) and commit/push.
+
+How Actions runner disk works
+GitHub-hosted runners give you an ephemeral machine for the job, and your repository is checked out under GITHUB_WORKSPACE (example path: /home/runner/work/<repo>/<repo>). GitHub also provides RUNNER_TEMP, “a temporary directory on the runner” that is emptied at the beginning and end of each job, which is exactly what you want for “don’t overwrite the good committed files until validated.” GitHub explicitly recommends using these variables rather than hardcoded paths, and notes you can’t override default GITHUB_*/RUNNER_* variables.
+
+What other people do
+A common approach is “generate into an output folder, then commit that folder at the end,” which shows up in GitHub Community examples. Another common approach is to commit only at the end using an action like stefanzweifel/git-auto-commit-action (or similar), so your workflow logic focuses on generate/test and the “commit plumbing” is standardized. If you don’t actually want to commit results yet, teams often stage outputs and upload them as workflow artifacts instead (so you can inspect/download them without touching the repo).
+
+Detailed migration plan
+Define three directories (don’t blur them together): WORKDIR=$RUNNER_TEMP/work, OUTDIR=$RUNNER_TEMP/out, REPO=$GITHUB_WORKSPACE.
+
+Refactor scripts so they never assume “repo root” for outputs; instead, each script takes --out-dir (or OUTDIR env var) and writes only under that directory.
+
+Run smoke tests against OUTDIR (existence checks, parse checks, invariants like “non-empty”, schema/required headings), and fail fast on any error (non-zero exit).
+
+Only after tests pass, “promote” by copying from OUTDIR into REPO (ideally into a dedicated publish folder like docs/ or public/ rather than repo root), then git add only those known paths and commit/push.
+
+On failure, upload OUTDIR as an artifact for debugging (so you can compare “bad output” vs “last good output” without ever overwriting the repo).
+​
+
+Pseudocode (workflow + scripts)
+Workflow skeleton (pseudocode-ish YAML):
+
+Set OUTDIR: ${{ runner.temp }}/out and WORKDIR: ${{ runner.temp }}/work so every step uses runner temp storage.
+
+Steps: checkout → generate to OUTDIR → smoke-test OUTDIR → promote to $GITHUB_WORKSPACE/<publish_dir> → commit/push (or open PR) → upload artifacts on failure.
+
+Script skeleton:
+
+text
+out_dir = arg("--out-dir") or env("OUTDIR")
+tmp_file = out_dir + "/file.ext.tmp"
+final_file = out_dir + "/file.ext"
+
+write(tmp_file)
+if not smoke_check(tmp_file): exit(1)
+atomic_rename(tmp_file, final_file)   # ensures partial writes don’t “look valid”
+exit(0)
+“Promotion” safety checks
+Before committing, run git diff --stat (or git status --porcelain) and abort if changes touch unexpected paths; this prevents accidental mass overwrites. If you do automated commits, prefer committing only after tests pass and avoid broad “sync-to-root” operations that can delete unrelated files (instead, copy only the known generated outputs into a known destination).
