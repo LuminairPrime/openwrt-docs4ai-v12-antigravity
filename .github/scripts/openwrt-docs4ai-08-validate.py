@@ -17,6 +17,7 @@ import glob
 import sys
 import subprocess
 import tempfile
+import shutil
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from lib import config
@@ -105,10 +106,9 @@ for fpath in all_md:
     with open(fpath, "r", encoding="utf-8") as f:
         content = f.read()
     
-    # Find relative markdown links: [text](../path/file.md)
-    links = re.findall(r'\[.*?\]\(((\.\.\/)+.*?\.md)\)', content)
-    for link_tuple in links:
-        link = link_tuple[0]
+    # Find relative markdown links: [text](../path/file.md) or [text](./file.md)
+    links = re.findall(r'\[.*?\]\(((?:\.\/|\.\.\/)+.*?\.md)\)', content)
+    for link in links:
         target_path = os.path.normpath(os.path.join(rel_dir, link))
         if not os.path.isfile(target_path):
             hard_fail(f"Broken relative link in {os.path.relpath(fpath, OUTDIR)}: {link}")
@@ -137,7 +137,6 @@ def check_ast(code, lang, rel_path):
         if res.returncode != 0:
             soft_warn(f"uCode Syntax Error in {rel_path}: {res.stderr.strip()}")
 
-import shutil
 # Only check small snippets in L1-raw/luci-examples/
 if JS_BINARY or UCODE_BINARY:
     example_files = glob.glob(os.path.join(OUTDIR, ".L1-raw", "luci-examples", "*.md"))

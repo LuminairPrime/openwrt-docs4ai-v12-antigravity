@@ -83,13 +83,13 @@ COMMON_WORDS = {
 def is_code_symbol(name):
     if name.lower() in COMMON_WORDS:
         return False
-    if len(name) < 5:
+    if len(name) < 4:
         return False
     if re.match(r'^[a-z][a-zA-Z0-9]+$', name) and any(c.isupper() for c in name):
         return True
-    if "." in name and len(name) >= 6:
+    if "." in name and len(name) >= 5:
         return True
-    if "_" in name and len(name) >= 7:
+    if "_" in name and len(name) >= 5:
         return True
     if re.match(r'^[A-Z]{3,6}$', name):
         return True
@@ -266,14 +266,15 @@ for file_info in l2_files_pass1:
         if target.endswith(this_rel): # Don't link to self
             continue
             
-        pat = re.compile(rf'\b{re.escape(symbol)}\b(?!\()')
+        pat = re.compile(rf'\b{re.escape(symbol)}\b(?:\(\))?')
         for m in pat.finditer(original):
             s, e = m.start(), m.end()
             if any(i in protected for i in range(s, e)):
                 continue
             if overlaps_existing(s, e):
                 continue
-            spans.append((s, e, f"[{symbol}]({target})"))
+            matched_text = m.group(0)
+            spans.append((s, e, f"[{matched_text}]({target})"))
 
     if spans:
         spans.sort(key=lambda x: x[0])

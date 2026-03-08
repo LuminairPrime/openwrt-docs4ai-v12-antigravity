@@ -10,6 +10,7 @@ Notes: Creates both the hierarchical entry point and the flat global catalog.
 """
 
 import os
+import re
 import glob
 import datetime
 import sys
@@ -70,9 +71,14 @@ for module in sorted(os.listdir(L2_DIR)):
             with open(fpath, "r", encoding="utf-8") as f:
                 content = f.read()
             
-            # Extract YAML
-            yaml_block = content.split("---")[1] if "---" in content else ""
-            fm = yaml.safe_load(yaml_block) or {}
+            # Extract YAML accurately
+            fm_match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n?(.*)', content, re.DOTALL)
+            if not fm_match:
+                print(f"[06a] WARN: Invalid L2 schema in {fpath}")
+                continue
+            
+            fm_text = fm_match.group(1)
+            fm = yaml.safe_load(fm_text) or {}
             
             tokens = fm.get("token_count", 0)
             desc = fm.get("description", "No description")

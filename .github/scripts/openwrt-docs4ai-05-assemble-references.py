@@ -76,7 +76,7 @@ for module in sorted(modules):
             continue
             
         # Extract and parse frontmatter
-        fm_match = re.match(r'^---\n(.*?)\n---\n(.*)', content, re.DOTALL)
+        fm_match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n?(.*)', content, re.DOTALL)
         if not fm_match:
             print(f"[05] WARN: Invalid L2 schema in {fpath}")
             continue

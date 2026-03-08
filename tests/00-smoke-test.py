@@ -4,6 +4,7 @@ import argparse
 import tempfile
 import subprocess
 import shutil
+import json
 
 # Add project root to PYTHONPATH so we can run scripts from anywhere
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -58,7 +59,10 @@ def main():
             env["SKIP_WIKI"] = "true"
             
         # Copy fixtures into expected L0 structure
-        os.makedirs(os.path.join(temp_dir, "repo-wiki"), exist_ok=True)
+        repos = ["repo-wiki", "repo-ucode", "repo-luci", "repo-openwrt"]
+        for r in repos:
+            os.makedirs(os.path.join(temp_dir, r), exist_ok=True)
+            
         os.makedirs(os.path.join(temp_dir, "repo-ucode", "lib"), exist_ok=True)
         os.makedirs(os.path.join(temp_dir, "repo-ucode", "jsdoc", "c-transpiler"), exist_ok=True)
         
@@ -75,7 +79,6 @@ def main():
         )
 
         scripts_dir = os.path.join(project_root, ".github", "scripts")
-        scripts_to_run = []
         
         if args.only:
             # Find the specific script
@@ -83,18 +86,52 @@ def main():
                 if args.only in script and script.endswith(".py"):
                     scripts_to_run.append(script)
         else:
-            # Run all scripts that end with .py in order, but we only have dummy fixtures so we can only run specific ones
-            # Actually for Checkpoint 0, we just need to verify the runner works
-            # Since extractors aren't refactored yet, we can't run them all.
-            # We will just log that the runner is ready.
-            print("Smoke test runner initialized. No scripts executed because full pipeline is not yet v12 compliant.")
-            with open(log_file, 'a') as f:
-                f.write("Smoke test runner initialized successfully.\n")
+            # v12 Default Sequence
+            scripts_to_run = [
+                "openwrt-docs4ai-02a-scrape-wiki.py",
+                "openwrt-docs4ai-02b-scrape-ucode.py",
+                "openwrt-docs4ai-02c-scrape-jsdoc.py",
+                "openwrt-docs4ai-02d-scrape-core-packages.py",
+                "openwrt-docs4ai-02e-scrape-example-packages.py",
+                "openwrt-docs4ai-02f-scrape-procd-api.py",
+                "openwrt-docs4ai-02g-scrape-uci-schemas.py",
+                "openwrt-docs4ai-02h-scrape-hotplug-events.py",
+                "openwrt-docs4ai-03-normalize-L2.py",
+                "openwrt-docs4ai-03b-promote-intermediates.py",
+                "openwrt-docs4ai-04-generate-summaries.py",
+                "openwrt-docs4ai-05-assemble-references.py",
+                "openwrt-docs4ai-06a-generate-llms-txt.py",
+                "openwrt-docs4ai-06b-generate-agents-md.py",
+                "openwrt-docs4ai-06c-generate-ide-schemas.py",
+                "openwrt-docs4ai-06d-generate-changelog.py",
+                "openwrt-docs4ai-07-generate-index-html.py",
+                "openwrt-docs4ai-08-validate.py"
+            ]
                 
-        for script in sorted(scripts_to_run):
-            if args.skip_wiki and "02a" in script:
+        # Seed L1 mocks manually for stable logic testing
+        l1_dir = os.path.join(temp_dir, ".L1-raw")
+        os.makedirs(os.path.join(l1_dir, "uci"), exist_ok=True)
+        os.makedirs(os.path.join(l1_dir, "procd"), exist_ok=True)
+        
+        with open(os.path.join(l1_dir, "uci", "api.md"), "w", encoding="utf-8") as f:
+            f.write("# UCI API\n\n## uci.get()\nReturns a config value.\n\n## uci.set()\nSets a value.")
+        with open(os.path.join(l1_dir, "uci", "api.meta.json"), "w", encoding="utf-8") as f:
+            json.dump({"module": "uci", "origin_type": "c_source", "language": "c", "slug": "api"}, f)
+            
+        with open(os.path.join(l1_dir, "procd", "init.md"), "w", encoding="utf-8") as f:
+            f.write("# Procd Init\n\n## procd.add_service()\nAdds a service. Also uses uci.get().")
+        with open(os.path.join(l1_dir, "procd", "init.meta.json"), "w", encoding="utf-8") as f:
+            json.dump({"module": "procd", "origin_type": "c_source", "language": "c", "slug": "init"}, f)
+
+        for script in scripts_to_run:
+            # Skip all extractors (02a-02h)
+            if any(x in script for x in ["02a", "02b", "02c", "02d", "02e", "02f", "02g", "02h"]):
                 continue
-            run_script(os.path.join(scripts_dir, script), env, log_file)
+            script_full_path = os.path.join(scripts_dir, script)
+            if os.path.isfile(script_full_path):
+                run_script(script_full_path, env, log_file)
+            else:
+                print(f"Skipping missing script: {script}")
 
         print("\nSmoke test completed successfully!")
         
