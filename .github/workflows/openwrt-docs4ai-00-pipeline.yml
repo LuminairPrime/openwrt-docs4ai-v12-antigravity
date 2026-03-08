@@ -141,8 +141,6 @@ jobs:
           fi
       - name: Normalize L2
         run: python .github/scripts/openwrt-docs4ai-03-normalize-L2.py
-      - name: Promote to Staging
-        run: python .github/scripts/openwrt-docs4ai-03b-promote-intermediates.py
       - name: "AI summaries (Optional)"
         env:
           SKIP_AI: ${{ inputs.skip_ai || 'true' }}

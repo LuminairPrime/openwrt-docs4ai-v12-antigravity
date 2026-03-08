@@ -13,26 +13,23 @@ We will *not* merge to `main` until the entire 6-checkpoint sequence is running 
 
 ### Checkpoint 0: Shared Lib & The Smoke Test Suite
 **Goal:** Establish the foundational utilities and a rapid local feedback loop before refactoring extractors.
-1.  **Create Mock Fixtures (`tests/fixtures/`):** Generate a tiny, frozen HTML wiki page and a localized `.c` file fixture. This guarantees the smoke test runs in milliseconds completely offline, bypassing production network dependencies and avoiding rate-limits.
-2.  **Create `tests/00-smoke-test.py`:** A local runner that executes the entire pipeline end-to-end within a `tempfile.TemporaryDirectory` against the local fixtures. It MUST support `--keep-temp` for inspection, `--skip-wiki` to bypass network calls entirely, and `--only SCRIPT` to isolate execution. Output MUST stream to a persistent `tests/smoke-test-log.txt`.
-3.  **Create Shared Library:** Build `lib/extractor.py` and `lib/config.py` handling `WORKDIR` (default `tmp/`), `OUTDIR` (default `openwrt-condensed-docs/`), and generic Markdown writing functions so extractors do not duplicate code.
+1.  **Create Mock Fixtures (`tests/fixtures/`):** Generate 100% frozen HTML and C-source mocks. This guarantees the smoke test is **deterministic, offline-capable, and independent** of upstream network or repository changes.
+2.  **Create `tests/00-smoke-test.py`:** A runner that executes the entire pipeline logic (L2-L5) using the seeded mocks. It MUST include a dedicated test case for **sibling link validation** and **balanced-bracket parameter parsing**.
+3.  **Mandatory Config Library:** Build `lib/config.py` as the **Single Source of Truth**. All scripts MUST import their paths and constants from this library.
 4.  **Manual Repositories:** Write `CONTRIBUTING.md` (instructions for adding new scrapers) and `docs/ARCHITECTURE.md` (layer definitions mapping).
 
 ### Checkpoint 1: The L1 Extractor Refactor (Scripts `02a` to `02h`)
 **Goal:** Strip all metadata injection from scrapers so they output pure markdown text to `$WORKDIR/.L1-raw/`.
-1.  **Refactor `02a` (Wiki Scraper) First:** Start with the hardest and most complex script. Ensure wiki logic implements network caching (`.cache/wiki-lastmod.json`) and outputs pure prose to `.L1-raw/wiki/`.
+1.  **Refactor `02a` (Wiki Scraper) First:** Start with the hardest and most complex script. Ensure wiki logic implements network caching (`.cache/wiki-lastmod.json`), maintains a `MANDATORY_PAGES` target list, and outputs pure prose to `.L1-raw/wiki/`.
 2.  **Refactor `02b` (ucode C API):** Implement the known `jsdoc2md` bug workaround. (The C transpiler plugin ignores explicit files and recursively scans directories, so each `.c` file must be physically copied into an isolated temporary directory before invoking `jsdoc2md`). Output to `.L1-raw/ucode/`.
 3.  **Refactor Remaining `02x`:** Update the rest in dependency order. Point outputs to `$WORKDIR/.L1-raw/{module}/`. Do NOT allow any script to inject YAML (enforce this via validation). Provide parallel validation outputs via `.meta.json` sidebar metadata files.
 
-### Checkpoint 2: The L2 Normalization Engine (Scripts `03` & `04`)
-**Goal:** Upgrade `03-add-links.py` into a two-pass `03-enrich-semantics.py` engine.
-1.  **Pass 1 (YAML & Registry):** Program `03` to iterate over `.L1-raw/`. Inject the **L2 Semantic Schema** and count tokens globally via the `tiktoken` library representing the `cl100k_base` model. Build an intermediate JSON registry of all module function signatures. 
-2.  **Mermaid Injection:** Recognize daemon architecture files and inject sequence diagram templates from `templates/mermaid/`. Ensure the rule matches explicitly (e.g., inject `templates/mermaid/procd-init-sequence.md` into L1 files where `module == 'procd'` and `title` contains `init`).
-3.  **Pass 2 (Cross-linking):** Run against the registry to safely resolve Markdown links across the text bodies (ignoring fenced ````code```` blocks). Write fully to `$WORKDIR/.L2-semantic/`.
-
-### Checkpoint 2.5: Promote Intermediate Layers to OUTDIR
-**Goal:** Explicitly move generated intermediate layers to the stable staging path before downstream steps read them.
-1.  **Copy Directories:** Copy `$WORKDIR/.L1-raw/` to `$OUTDIR/.L1-raw/`, and `$WORKDIR/.L2-semantic/` to `$OUTDIR/.L2-semantic/`. MUST ALSO explicitly copy `$WORKDIR/cross-link-registry.json` and `$WORKDIR/repo-manifest.json` to `$OUTDIR/` to guarantee data continuity for downstream L3 IDE schema generators and telemetry diffs.
+### Checkpoint 2: The L2 Normalization & Promotion Engine (Script `03`)
+**Goal:** Implement the three-phase modular transformation and natively integrated staging promotion logic.
+1.  **Phase 1 (YAML & Registry):** Program `03` to iterate over `.L1-raw/`. Inject the **L2 Semantic Schema**, count tokens globally (Fallback: word count * 1.35), and build the symbol registry. Ensure **fatal exits** on missing or malformed `.meta.json`.
+2.  **Phase 2 (Cross-linking):** Safely resolve Markdown links across text bodies. MUST protect headers (`#`), code blocks, and existing link/diagram syntax from mutation. 
+3.  **Phase 3 (Deprecation Warnings):** Scan API docs for `**Deprecated**` symbols and inject warning callouts into wiki pages that reference them.
+4.  **Phase 4 (Promotion):** Atomically promote intermediate layers (`.L1-raw`, `.L2-semantic`, `cross-link-registry.json`, `repo-manifest.json`) from ephemeral `WORKDIR` to the stable `OUTDIR` staging area.
 
 ### Checkpoint 2.7: The Optional AI Enricher (Script `04`)
 **Goal:** Run the cost-gated AI summarization against the stable `OUTDIR` files explicitly after promotion.
@@ -52,15 +49,15 @@ We will *not* merge to `main` until the entire 6-checkpoint sequence is running 
 
 ### Checkpoint 5: The Security & Quality Enforcer (Script `08`)
 **Goal:** Build the strict CI/CD gatekeeper `08-validate.py` before touching the workflow files.
-1.  **Two-Tier Design:** Build a validation tool that supports `hard_fail()` and `soft_warn()`.
-2.  **Hard Checks:** Block CI if `llms.txt` is missing, files are 0 bytes, YAML is corrupted, or wiki pages crawl Cloudflare/404 HTML text (a common previous bug).
+1.  **Two-Tier Design:** Build a validation tool that supports `hard_fail()` and `soft_warn()`. Support both `VALIDATE_MODE` and `--warn-only`.
+2.  **Hard Checks:** Block CI if `llms.txt` is missing, files are 0 bytes, **exceed 2MB**, YAML is corrupted, or wiki pages crawl Cloudflare/404 HTML text.
 3.  **Soft Checks:** Log non-fatal AST parsing warnings from embedded `c`/`javascript` subsets against `node --check` / `ucode -c`.
 
 ### Checkpoint 6: CI/CD Pipeline Configuration
 **Goal:** Update GitHub Actions (`00-pipeline.yml`) to correctly route our new layered output.
 1.  **Dependencies:** Cache pip (`tiktoken`, `pyyaml`, `requests`, `lxml`) and npm (`jsdoc2md`) via `actions/cache` to eliminate the 1-3 minute re-installation overhead.
 2.  **Matrix Extractors:** Configure GitHub Actions to execute `02a`-`02h` in parallel. Parallel jobs MUST upload their isolated `.L1-raw/` artifacts, and a subsequent synchronization job MUST download and merge them into a unified `$WORKDIR/.L1-raw/` directory to prevent runner filesystem isolation bugs.
-3.  **Workspace Promotion:** Build layers in the CI's staging path, zip `.L1-raw/` and `.L2-semantic/` as artifacts. Execute a safe promotion via `rsync -a --delete $OUTDIR/ $GITHUB_WORKSPACE/openwrt-condensed-docs/` back to the repository branch, pushing a commit only if tracked files possess logic diffs.
+3.  **Workspace Promotion & Concurrency:** Build layers in isolation. Utilize GitHub Actions `concurrency` groups to prevent simultaneous push collisions. Implement a retry-on-conflict logic for the final `git push`. Execute promotion back to the repository branch ONLY if validation (`08`) passes.
 4.  **Failure Artifact Flow:** On validation failure (`08-validate.py`), strictly upload `$OUTDIR` (staging) as a downloadable artifact (`actions/upload-artifact`) with 7-day retention for debugging.
 5.  **Targeted Parallel Indexes:** Ensure generators `06a, 06b, 06c, 06d` run in parallel. Ensure `07-generate-index-html.py` waits for `06a` to complete, as it mathematically consumes the L3 Map.
 6.  **Pages Deployment:** Assemble an `$OUTDIR/public/` directory containing exclusively the generated L3, L4, and L5 files, and push *only* this directory to GitHub Pages to prevent leaking L1/L2 intermediate layers.

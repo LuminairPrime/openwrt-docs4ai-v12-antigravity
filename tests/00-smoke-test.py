@@ -79,6 +79,7 @@ def main():
         )
 
         scripts_dir = os.path.join(project_root, ".github", "scripts")
+        scripts_to_run = []
         
         if args.only:
             # Find the specific script
@@ -97,7 +98,6 @@ def main():
                 "openwrt-docs4ai-02g-scrape-uci-schemas.py",
                 "openwrt-docs4ai-02h-scrape-hotplug-events.py",
                 "openwrt-docs4ai-03-normalize-L2.py",
-                "openwrt-docs4ai-03b-promote-intermediates.py",
                 "openwrt-docs4ai-04-generate-summaries.py",
                 "openwrt-docs4ai-05-assemble-references.py",
                 "openwrt-docs4ai-06a-generate-llms-txt.py",
@@ -129,13 +129,8 @@ def main():
         with open(os.path.join(l1_dir, "ucode", "api-fs.meta.json"), "w", encoding="utf-8") as f:
             json.dump({"module": "ucode", "origin_type": "c_source", "language": "c", "slug": "api-fs"}, f)
 
-        with open(os.path.join(l1_dir, "ucode", "complex.md"), "w", encoding="utf-8") as f:
-            f.write("# Complex ucode module\n\n## complex.foo(a = [1, 2], b = {x: 1})\nComplex function.\n\nSee [api-fs](api-fs.md) for more.")
-        with open(os.path.join(l1_dir, "ucode", "complex.meta.json"), "w", encoding="utf-8") as f:
-            json.dump({"module": "ucode", "origin_type": "c_source", "language": "c", "slug": "complex"}, f)
-
         for script in scripts_to_run:
-            # Skip all extractors (02a-02h)
+            # Skip all extractors (02a-02h) in mockup-only mode
             if any(x in script for x in ["02a", "02b", "02c", "02d", "02e", "02f", "02g", "02h"]):
                 continue
             script_full_path = os.path.join(scripts_dir, script)

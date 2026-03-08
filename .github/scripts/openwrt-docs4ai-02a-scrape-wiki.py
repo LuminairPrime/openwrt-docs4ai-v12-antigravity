@@ -45,6 +45,11 @@ NAMESPACES = [
     ("/docs/guide-user/base-system/uci/", "docs%3Aguide-user%3Abase-system%3Auci"),
 ]
 
+# Explicit pages that MUST be scraped regardless of age or index presence.
+MANDATORY_PAGES = [
+    "/docs/techref/ubus",
+]
+
 SKIP_PATTERNS = [
     "/toh/", "/inbox/", "/meta/", "/playground/", "changelog", "release_notes"
 ]
@@ -95,7 +100,7 @@ def fetch_page_lastmod(url):
     return None
 
 cache = load_cache()
-discovered_pages = set()
+discovered_pages = set(MANDATORY_PAGES)
 
 for prefix, idx_param in NAMESPACES:
     index_url = f"https://openwrt.org{prefix}start?do=index&idx={idx_param}"
@@ -146,7 +151,7 @@ for path in sorted(discovered_pages):
     time.sleep(DELAY)
     last_mod = fetch_page_lastmod(url)
 
-    if last_mod and last_mod < CUTOFF:
+    if last_mod and last_mod < CUTOFF and path not in MANDATORY_PAGES:
         skipped_old += 1
         continue
 
@@ -171,10 +176,10 @@ for path in sorted(discovered_pages):
     html_error_signatures = [
         "404 Not Found", "Cloudflare", "Access Denied", "<!DOCTYPE", "<html", 
         "Just a moment...", "Checking your browser", "Service Temporarily Unavailable",
-        "Rate limit exceeded"
+        "Rate limit exceeded", "captcha", "This topic does not exist"
     ]
     if any(sig in raw_content for sig in html_error_signatures) or not raw_content.strip():
-        print(f"[02a] WARN: HTML error signature detected or empty content for {path}. Skipping.")
+        print(f"[02a] WARN: HTML error signature or ghost page detected for {path}. Skipping.")
         failed += 1
         continue
 

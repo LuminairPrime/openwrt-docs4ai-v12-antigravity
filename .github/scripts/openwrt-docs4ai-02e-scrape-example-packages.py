@@ -63,7 +63,8 @@ for app, desc in APPS.items():
                 
             src_file = os.path.join(root, fname)
             try:
-                content = open(src_file, encoding="utf-8", errors="replace").read()
+                with open(src_file, encoding="utf-8", errors="replace") as f:
+                    content = f.read()
             except Exception:
                 continue
             

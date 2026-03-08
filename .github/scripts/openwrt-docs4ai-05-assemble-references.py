@@ -70,7 +70,8 @@ for module in sorted(modules):
     # Process each L2 file
     for fpath in md_files:
         try:
-            content = open(fpath, encoding="utf-8").read().strip()
+            with open(fpath, encoding="utf-8") as f:
+                content = f.read().strip()
         except Exception as e:
             print(f"[05] WARN: Could not read {fpath}: {e}")
             continue

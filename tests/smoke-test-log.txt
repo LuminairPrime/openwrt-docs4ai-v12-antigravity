@@ -1,19 +1,9 @@
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-03-normalize-L2.py ---
-[03] L2 Normalization Engine
 [03] Pass 1: YAML Schema Injection & Link Registry Build
-[03] Pass 1 complete: 4 L2 files staged, 5 symbols registered.
 [03] Pass 2: Injecting Cross-Links
-[03] Pass 2 complete: 1 links injected across 1 files.
-[03] Engine run complete.
-
---- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-03b-promote-intermediates.py ---
-[03b] Promote intermediate layers to staging OUTDIR
-[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\.L1-raw -> C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\out\.L1-raw
-[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\.L2-semantic -> C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\out\.L2-semantic
-[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\cross-link-registry.json -> C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\out\cross-link-registry.json
-[03b] INFO: File C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\repo-manifest.json not found to promote (it may be optional).
-[03b] Complete.
+[03] Promoting to staging OUTDIR
+[03] Complete.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-04-generate-summaries.py ---
 [04] SKIP: AI summarization disabled (SKIP_AI=true)
@@ -21,7 +11,7 @@
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-05-assemble-references.py ---
 [05] Assemble L4 monolithic files and L3 skeletons
 [05] Processing module: procd (1 files)
-[05] OK: procd L4 (84 tokens) and L3 skeleton
+[05] OK: procd L4 (21 tokens) and L3 skeleton
 [05] Processing module: uci (1 files)
 [05] OK: uci L4 (24 tokens) and L3 skeleton
 [05] Processing module: ucode (2 files)
@@ -30,7 +20,7 @@
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06a-generate-llms-txt.py ---
 [06a] Generating L3 Navigational Maps (llms.txt)
-[06a] Indexed 4 files totaling ~170 tokens.
+[06a] Indexed 4 files totaling ~107 tokens.
 [06a] Complete: Generated llms.txt, llms-full.txt, and module-level indexes.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06b-generate-agents-md.py ---
@@ -39,7 +29,7 @@
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06c-generate-ide-schemas.py ---
 [06c] Generating ucode.d.ts IDE schemas
-[06c] OK: C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\out\ucode\ucode.d.ts (2 symbols)
+[06c] OK: C:\Users\MC\AppData\Local\Temp\tmphqeao03x\out\ucode\ucode.d.ts (2 symbols)
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06d-generate-changelog.py ---
 [06d] Generating L5 Changelog and Telemetry
@@ -51,7 +41,7 @@
 [07] OK: index.html generated successfully.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-08-validate.py ---
-[08] Security & Quality Validation (C:\Users\MC\AppData\Local\Temp\tmpyimnuy1m\out)
+[08] Security & Quality Validation (C:\Users\MC\AppData\Local\Temp\tmphqeao03x\out)
 
 [08] ----------------------------------------------
 [08] Validation Results

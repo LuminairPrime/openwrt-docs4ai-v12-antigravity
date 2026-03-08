@@ -26,8 +26,10 @@ sys.stdout.reconfigure(line_buffering=True)
 
 OUTDIR = os.environ.get("OUTDIR", config.OUTDIR)
 VALIDATE_MODE = os.environ.get("VALIDATE_MODE", "hard").lower()
+if "--warn-only" in sys.argv:
+    VALIDATE_MODE = "soft"
 
-print(f"[08] Security & Quality Validation ({OUTDIR})")
+print(f"[08] Security & Quality Validation ({OUTDIR}) [Mode: {VALIDATE_MODE}]")
 
 hard_failures = []
 soft_warnings = []
@@ -48,10 +50,27 @@ for f in CORE_FILES:
     if not os.path.isfile(os.path.join(OUTDIR, f)):
         hard_fail(f"Missing core L3 file: {f}")
 
+# Registry Schema Validation
+import json
+registry_path = os.path.join(OUTDIR, "cross-link-registry.json")
+if os.path.isfile(registry_path):
+    try:
+        with open(registry_path, "r", encoding="utf-8") as f:
+            reg = json.load(f)
+        if "symbols" not in reg or "pipeline_date" not in reg:
+            hard_fail("cross-link-registry.json missing core fields ('symbols', 'pipeline_date')")
+    except Exception as e:
+        hard_fail(f"Could not parse cross-link-registry.json: {e}")
+
 # ============================================================
-# Check 2: Content Validation (0-byte, HTML Leaks, UTF-8)
+# Check 2: Content Validation (0-byte, HTML Leaks, UTF-8, Size)
 # ============================================================
-HTML_ERROR_MARKERS = ["<!DOCTYPE", "<html", "404 Not Found", "Access Denied", "captcha"]
+HTML_ERROR_MARKERS = [
+    "<!DOCTYPE", "<html", "404 Not Found", "Access Denied", "captcha",
+    "cloudflare", "captcha-delivery", "Just a moment...", "Checking your browser",
+    "Rate limit exceeded", "Service Temporarily Unavailable"
+]
+MAX_FILE_SIZE_MB = 2.0
 
 all_md = glob.glob(os.path.join(OUTDIR, "**", "*.md"), recursive=True)
 checked_count = 0
@@ -60,9 +79,15 @@ for fpath in all_md:
     rel = os.path.relpath(fpath, OUTDIR)
     checked_count += 1
     
-    # Check 0-byte
-    if os.path.getsize(fpath) == 0:
+    # Check 0-byte & Size ceiling
+    f_size = os.path.getsize(fpath)
+    if f_size == 0:
         hard_fail(f"0-byte file detected: {rel}")
+        continue
+    
+    size_mb = f_size / (1024 * 1024)
+    if size_mb > MAX_FILE_SIZE_MB:
+        hard_fail(f"Oversized file ({size_mb:.1f}MB): {rel}")
         continue
 
     try:

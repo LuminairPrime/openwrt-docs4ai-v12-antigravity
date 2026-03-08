@@ -39,7 +39,8 @@ if not os.path.isdir(REPO):
 
 def extract_makefile_meta(path):
     try:
-        text = open(path, encoding="utf-8", errors="replace").read()
+        with open(path, encoding="utf-8", errors="replace") as f:
+            text = f.read()
     except Exception:
         return {}
     fields = {}
@@ -84,7 +85,8 @@ def extract_readme(pkg_dir):
         p = os.path.join(pkg_dir, name)
         if os.path.isfile(p):
             try:
-                content = open(p, encoding="utf-8", errors="replace").read().strip()
+                with open(p, encoding="utf-8", errors="replace") as f:
+                    content = f.read().strip()
                 if len(content) > 50:
                     return content
             except Exception:
@@ -165,7 +167,8 @@ for cat_path in sorted(glob.glob(os.path.join(REPO, "package", "*"))):
 mk_entries = []
 for mk_file in sorted(glob.glob(os.path.join(REPO, "include", "*.mk"))):
     try:
-        text = open(mk_file, encoding="utf-8", errors="replace").read()
+        with open(mk_file, encoding="utf-8", errors="replace") as f:
+            text = f.read()
     except Exception:
         continue
     fname_mk = os.path.basename(mk_file)

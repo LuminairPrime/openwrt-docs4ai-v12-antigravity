@@ -15,25 +15,37 @@ We are rebuilding the internal pipeline topology to produce strict, categorized 
 
 ## 2. Core Architectural Refactoring (The Supply Chain)
 
+### 2.0 Architectural Invariants (Mandatory)
+- **Centralized Configuration**: All scripts MUST import constants (dirs, modules, regex patterns) from `lib/config.py`. Hardcoded paths in scripts are a hard failure.
+- **Staging-First Build**: Scripts MUST write to isolated `staging/` or `tmp/` directories. Atomic promotion to the repository branch occurs ONLY after the validation suite (`08`) passes.
+- **Resource Management**: Every file operation MUST use a context manager (`with open(...) as f:`). Bare `open().read()` calls are prohibited to prevent file handle exhaustion in high-concurrency environments.
+- **Cross-Platform Pathing**: All internal references (links, manifests) MUST use POSIX forward-slashes (`/`). Scripts running on Windows must normalize paths before storage.
+
 The pipeline scripts will be aggressively refactored to align with the explicit schema examples defined in `v12-documentation-topology-tech-spec.md`.
 
 ### 2.1 Standardizing the Extractors (L1 Target)
 - **Target Scripts:** `02a` through `02h` (The Scraper Suite).
-- **Implementation:** Strip all YAML frontmatter injection and metadata tracking from the extractors. The scripts fetch data, write to `$WORKDIR/.L1-raw/`, and emit a companion `.meta.json` sidebar containing origin context instead of injecting YAML. All file I/O must specify `encoding='utf-8'` to ensure cross-platform reproducibility.
-- **Wiki Rate Limiting:** The wiki scraper (`02a`) MUST enforce a hard 1.5-second delay between HTTP requests to `openwrt.org` to defend against IP bans.
+- **Implementation:** Strip all YAML frontmatter injection from extractors. The scripts fetch data, write to `$WORKDIR/.L1-raw/`, and emit a companion `.meta.json` sidebar containing origin context.
+- **Content Integrity:** Every L1 file MUST have a `content_hash` (truncated SHA256) calculated during the write process and stored in its `.meta.json`.
+- **Wiki Rate Limiting & Sniper Targets:** The wiki scraper (`02a`) MUST enforce a hard 1.5-second delay to defend against global bot rate-limits. Additionally, `02a` MUST maintain an internal `MANDATORY_PAGES` list (e.g., `/docs/techref/ubus`). These "sniper" targets MUST always be attempted and MUST bypass any age-based cutoff logic (`CUTOFF`) to ensure critical API context is never lost during pruning cycles.
+- **DokuWiki Ghost Pages:** Scrapers targeting DokuWiki MUST check for the "This topic does not exist" string in raw exports to catch 200 OK responses for non-existent pages.
 - **Extractor Failure Modes:** Individual file extraction failures (e.g. 404, bad markup) are handled as *soft warnings*—the script logs, skips the file, and proceeds. However, if a script processes the upstream target and yields **zero output files**, it must exit non-zero (hard fail), signaling that the upstream structure likely changed and the scraper is broken.
 - **Filename Collision Resolution:** If two independent source files resolve to the exact same `{origin_type}-{slug}.md` destination, the scraper MUST append a 4-character content hash to the filename base to guarantee uniqueness.
 - **The Code Wrapper Compliance Check:** Scripts fetching raw code must conform to the **L1 Raw Code Schema**. They will wrap the code in markdown fences (```` ```javascript ````) prepended with an `H1` denoting the file name.
 
-### 2.2 The Normalization Engine (L2 Target, Two-Pass)
-- **Target Script:** `03-enrich-semantics.py`.
-- **Reproducible Determinism:** Iterate over modules and files in sorted alphabetical order. Output YAML keys in identical deterministic sequences. 
-- **Implementation (Pass 1 - Stamping):** Ingest `.L1-raw/` and `.meta.json` files. Calculate tokens for the Markdown *body only* (excluding YAML). Apply the **L2 Semantic Schema** including recommended fields (`source_file`, `upstream_path`, `language`, `description`, `last_pipeline_run`). Also parses `repo-manifest.json` for origin version tracking. Extract signatures to a JSON registry array (`cross-link-registry.json`) for cross-linking. 
-- **Pass 1 Failure Boundary:** If the corresponding `.meta.json` is missing, malformed, or inconsistent with the paired Markdown file, `03-enrich-semantics.py` MUST log a fatal error and exit non-zero. Downstream tools depend strictly on this metadata.
-- **Implementation (Pass 2 - Linking):** Read the signature registry, scan body text, and inject relative Markdown links. Write fully enriched data to `$WORKDIR/.L2-semantic/`. An empty registry is a valid state (e.g., wiki pages with no linkable symbols); Pass 2 should log "0 symbols in registry" and gracefully skip cross-linking.
-- **Cross-Link Safety Constraints:** The linker MUST only inject links for fully-qualified symbols (e.g., `fs.open()`), never bare/ambiguous words like `open`. The linker MUST NEVER inject links inside fenced code blocks or inline `code spans`.
-- **Token Counting Standard:** Primary method uses `tiktoken` library with `cl100k_base` encoding. If unavailable, `lib/metadata.py`'s `count_tokens()` function gracefully falls back to `len(text.split()) * 4 // 3` (wrapped in a `try/except ImportError`) and appends the `token_count_approximate: true` field to the YAML headers.
-- **Optional AI Extractor (`04`):** If `SKIP_AI=false`, script `04` appends the `ai_summary`, `ai_when_to_use`, and `ai_related_topics` fields. *Important:* This optional step mutates the staged layer in-place. The post-04 directory state becomes the **authoritative normalized L2 layer** consumed by downstream steps and validation.
+### 2.2 The Normalization & Promotion Engine (L2 Target, Modular Three-Phase)
+- **Target Script:** `03-normalize-L2.py`.
+- **Integrated Pipeline Role:** This script functions as the primary state-machine for documentation enrichment. It natively handles metadata injection, cross-linking, and the final atomic promotion to the staging area to guarantee that only fully-processed artifacts reach the output directory.
+- **Modular Internal Structure:** The script MUST be partitioned into discrete, testable functions for (1) `pass_1_normalize_all`, (2) `pass_2_link_all`, and (3) `promote_to_staging`.
+- **Reproducible Determinism:** Iterate over modules and files in sorted alphabetical order. Output YAML keys in identical deterministic sequences via a robust YAML serializer (`pyyaml`). 
+- **Performance Constraints:** All regex patterns used for symbol replacement MUST be pre-compiled *once* outside the file processing loops.
+- **Implementation (Pass 1 - Stamping):** Ingest `.L1-raw/` and `.meta.json` files. Calculate tokens for the Markdown *body only*. Apply the **L2 Semantic Schema**. Extract signatures to a JSON registry (`cross-link-registry.json`). 
+- **Pass 1 Failure Boundary:** If the corresponding `.meta.json` is missing or malformed, `03-normalize-L2.py` MUST trigger a fatal error and exit non-zero immediately.
+- **Implementation (Pass 3 - Deprecation):** Scan `ucode` and `luci` API docs for symbols followed by "Deprecated" markers. Tag these in the registry. For wiki pages referencing these symbols, inject a `[!WARNING]` callout to alert the agent/user of upcoming API breakage.
+- **Implementation (Promotion):** Once the three passes are clean, atomically copy the stage layers from `WORKDIR` to `OUTDIR`. Clear existing `OUTDIR` staging subdirectories first to ensure build purity.
+- **Optional AI Extractor (`04`):** If `SKIP_AI=false`, script `04` appends the `ai_summary` field in-place within the staged layer. 
+- **Manual AI Override Pattern:** The script docstring MUST include a "Manual Override" prompt. This prompt is designed as an **operational mission plan** (pseudocode) that allows a human to paste the prompt and file content into a frontier LLM (Claude/GPT) to achieve a 1-to-1 functional replacement for the script when API credits are exhausted or the environment is isolated.
+- **Prompt Content Standards:** The prompt MUST specify the exact YAML tags to generate (`ai_summary`, `ai_when_to_use`, `ai_related_topics`), enforce "No Hallucination" rules (only naming symbols present in the text), and mandate a "Clean Copy" response format (Markdown block with modified content only).
 
 **Explicit Schema Example (Manifest - `repo-manifest.json`):**
 ```json
@@ -91,10 +103,11 @@ These features ensure that autonomous agents can grok the repository instantly w
 - **Two-Tier Validation Engine (`08-validate.py`):** Validation is split into Hard Fails and Soft Warns.
 - **Hard Checks (Fails CI):** 
   - Missing `llms.txt` or zero-byte files.
+  - Files exceeding a **2.0MB Size Ceiling** (indicates crawler loops or binary leak).
   - Malformed YAML frontmatter anywhere globally.
   - Strict JSON schema validation failures for the pipeline control files (`repo-manifest.json`, `cross-link-registry.json`, `signature-inventory.json`).
-  - Detection of broken or dead relative Markdown links across L2, L3, and L4 layers.
-  - HTML error pages crawled by wiki scraper. The script MUST check L1 files against this explicit HTML leak signature list: `404 Not Found`, `Cloudflare`, `Access Denied`, `<!DOCTYPE`, `<html`, `Just a moment...`, `Checking your browser`, `Service Temporarily Unavailable`, and `Rate limit exceeded`.
+  - **Broken Link Detection:** The validator MUST use a **negative-lookahead regex** to identify relative Markdown links while ignoring external protocols: `\[.*?\]\(((?!https?:\/\/|mailto:|[a-z0-9]+:).*?\.md)\)`. This ensures that sibling links without `./` or `../` prefixes are correctly validated.
+  - **HTML Leak Protection:** The script MUST check L1 files against this explicit signature list: `404 Not Found`, `Cloudflare`, `Access Denied`, `<!DOCTYPE`, `<html`, `Just a moment...`, `Checking your browser`, `captcha`, `Service Temporarily Unavailable`, and `Rate limit exceeded`.
 - **The AST Linter Guardrail (Soft Warn Mode):** Validates the code blocks embedded within the generated markdown syntactically against standard tools (e.g. `node --check`, `ucode -c`). Since code extracts are often partial expressions or isolated, this runs as a *soft warning* rather than a hard failure to avoid brittle CI pipelines.
 
 ---
@@ -114,7 +127,7 @@ These features ensure that autonomous agents can grok the repository instantly w
 | `SKIP_AI` | `true` | `04` | AI enrichment is opt-in (costs money). Set to false to run. |
 | `WIKI_MAX_PAGES` | `300` | `02a` | Breadth safety limit for scraper traversal graph. |
 | `MAX_AI_FILES` | `40` | `04` | Quota budget limit defining how many files to hit the LLM with. |
-| `VALIDATE_MODE` | `hard` | `08` | Strict validation enforcement mode. `warn` permits failures. |
+| `VALIDATE_MODE` | `hard` | `08` | Strict validation enforcement mode. `warn` permits failures. Supports `--warn-only` CLI flag. |
 | `MERMAID_INJECT`| `true` | `03` | Toggle curated template diagram injection. |
 | `GITHUB_TOKEN` | (Empty) | `06d` | Required to fetch previous Releases for signature baseline. |
 | `LOCAL_DEV_TOKEN` | (Empty) | `04` | Local dev override for querying the upstream LLM inference API. |
@@ -122,5 +135,6 @@ These features ensure that autonomous agents can grok the repository instantly w
 | `TOKENIZER` | `cl100k_base` | `03`, `04` | Specifies the tokenizer target for token cost sizing. |
 | `DTS_GENERATE` | `true` | `06c` | Kill-switch toggle for experimental TypeScript definitions. |
 | `BASELINE_SOURCE`| `github-release`| `06d` | Options: `github-release`, `local`, `none`. Drives diff tests. |
+| `AI_CACHE_PATH` | `ai-summaries-cache.json` | `04` | Path to the persistent JSON archive of generated AI metadata. |
 | `RUNNER_TEMP` | (CI Built-in) | CI YAML, `WORKDIR` | GitHub absolute path to runner temporary volume. |
 | `GITHUB_WORKSPACE` | (CI Built-in) | CI YAML | GitHub standard workspace path where repo is executed. |
