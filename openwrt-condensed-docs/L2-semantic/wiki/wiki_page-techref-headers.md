@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 1469
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-headers.md
-last_pipeline_run: '2026-03-08T11:43:24.421257+00:00'
+last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
 language: text
 ---
 # TRX vs. TRX2 vs. BIN

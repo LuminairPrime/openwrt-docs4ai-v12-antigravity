@@ -5,7 +5,7 @@ origin_type: js_source
 token_count: 982
 version: unknown
 source_file: L1-raw/luci/js_source-api-prng.md
-last_pipeline_run: '2026-03-08T11:43:24.421257+00:00'
+last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
 upstream_path: modules/luci-base/htdocs/luci-static/resources/tools/prng.js
 language: javascript
 ---
