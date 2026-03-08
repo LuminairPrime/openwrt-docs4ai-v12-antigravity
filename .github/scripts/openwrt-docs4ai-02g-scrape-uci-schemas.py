@@ -1,74 +1,82 @@
 """
-openwrt-docs4ai-02g-scrape-uci-schemas.py
-
-Purpose  : Scrape the openwrt UCI configuration schemas from package defaults.
-Env Vars : OUTDIR (default: ./openwrt-condensed-docs)
-           WORKDIR (default: ./tmp)
-Outputs  : $OUTDIR/openwrt-uci-docs/*.md
+Purpose: Scrape the openwrt UCI configuration schemas from package defaults.
+Phase: Extraction
+Layers: L0 -> L1
+Inputs: tmp/repo-openwrt/package/**/etc/config/*
+Outputs: tmp/.L1-raw/uci/*.md and .meta.json
+Environment Variables: WORKDIR
+Dependencies: lib.config, lib.extractor
+Notes: Parses default configuration files to serve as UCI schemas.
 """
 
 import os
 import glob
 import datetime
+import sys
 
-OUTDIR = os.environ.get("OUTDIR", os.path.join(os.getcwd(), "openwrt-condensed-docs"))
-WORKDIR = os.environ.get("WORKDIR", os.path.join(os.getcwd(), "tmp"))
-OUT_DIR = os.path.join(OUTDIR, "openwrt-uci-docs")
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+
+sys.stdout.reconfigure(line_buffering=True)
 
 print("[02g] Scrape UCI default configurations")
 
-package_dir = os.path.join(WORKDIR, "repo-openwrt", "package")
+package_dir = os.path.join(config.WORKDIR, "repo-openwrt", "package")
 if not os.path.isdir(package_dir):
     print(f"[02g] SKIP: repository not found at {package_dir}")
-    exit(0)
-
-os.makedirs(OUT_DIR, exist_ok=True)
+    sys.exit(0)
 
 schema_files = []
-# Find all etc/config/ files
 for root, dirs, files in os.walk(package_dir):
-    if "etc" in dirs and "config" in os.listdir(os.path.join(root, "etc")):
-        config_dir = os.path.join(root, "etc", "config")
-        for f in os.listdir(config_dir):
-            full_path = os.path.join(config_dir, f)
-            if os.path.isfile(full_path):
-                schema_files.append((f, full_path))
+    if "etc" in dirs:
+        etc_config_dir = os.path.join(root, "etc", "config")
+        if os.path.isdir(etc_config_dir):
+            for f in os.listdir(etc_config_dir):
+                full_path = os.path.join(etc_config_dir, f)
+                if os.path.isfile(full_path):
+                    schema_files.append((f, full_path))
 
 if not schema_files:
-    print("[02g] WARN: No UCI schema files found")
-    exit(1)
+    print("[02g] FAIL: No UCI schema files found")
+    sys.exit(1)
 
-ts = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
+ts = datetime.datetime.now(datetime.UTC).isoformat()
 saved = 0
 
 for schema_name, fpath in schema_files:
     try:
-        with open(fpath, "r", encoding="utf-8") as f:
+        with open(fpath, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
             
-        # Optional: Filter out pure bash logic, but for defaults, keeping it raw is generally fine
         if "config " not in content:
             continue
             
-        rel_path = os.path.relpath(fpath, os.path.join(WORKDIR, "repo-openwrt"))
-        out_file = os.path.join(OUT_DIR, f"uci-{schema_name}.md")
+        rel_path = os.path.relpath(fpath, os.path.join(config.WORKDIR, "repo-openwrt")).replace("\\", "/")
+        slug = f"schema-{schema_name}"
         
-        with open(out_file, "w", encoding="utf-8", newline="\n") as out:
-            out.write("---\n")
-            out.write(f"module: uci_{schema_name}\n")
-            out.write(f"title: UCI Schema: {schema_name}\n")
-            out.write(f"source: {rel_path}\n")
-            out.write(f"generated: {ts}\n")
-            out.write("---\n\n")
-            out.write(f"# UCI Default Schema: `{schema_name}`\n\n")
-            out.write(f"> **Source:** `{rel_path}`\n\n")
-            out.write("```uci\n")
-            out.write(content.strip())
-            out.write("\n```\n")
-            
+        final_content = f"# UCI Default Schema: {schema_name}\n\n"
+        final_content += f"> **Source:** `{rel_path}`\n\n"
+        final_content += extractor.wrap_code_block(schema_name, content.strip(), "uci")
+        
+        metadata = {
+            "extractor": "02g-scrape-uci-schemas.py",
+            "origin_type": "uci_schema",
+            "module": "uci",
+            "slug": slug,
+            "original_url": None,
+            "language": "uci",
+            "upstream_path": rel_path,
+            "fetch_status": "success",
+            "extraction_timestamp": ts
+        }
+
+        extractor.write_l1_markdown("uci", "uci_schema", slug, final_content, metadata)
         saved += 1
         
     except Exception as e:
         print(f"[02g] WARN: Could not process {fpath}: {e}")
 
-print(f"[02g] OK: Wrote {saved} UCI default schemas")
+print(f"[02g] Complete: Wrote {saved} UCI default schemas")
+if saved == 0:
+    print("[02g] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)

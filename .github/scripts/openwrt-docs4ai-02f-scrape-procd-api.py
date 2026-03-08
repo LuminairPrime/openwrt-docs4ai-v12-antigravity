@@ -1,32 +1,37 @@
 """
-openwrt-docs4ai-02f-scrape-procd-api.py
-
-Purpose  : Scrape the openwrt procd shell API documentation from procd.sh comments.
-Env Vars : OUTDIR (default: ./openwrt-condensed-docs)
-           WORKDIR (default: ./tmp)
-Outputs  : $OUTDIR/openwrt-procd-docs/procd-api.md
+Purpose: Scrape the openwrt procd shell API documentation from procd.sh comments.
+Phase: Extraction
+Layers: L0 -> L1
+Inputs: tmp/repo-openwrt/package/system/procd/files/procd.sh
+Outputs: tmp/.L1-raw/procd/header_api-procd-api.md and .meta.json
+Environment Variables: WORKDIR
+Dependencies: lib.config, lib.extractor
+Notes: Extracts the header block comments from the procd setup script.
 """
 
 import os
-import re
 import datetime
+import sys
 
-OUTDIR = os.environ.get("OUTDIR", os.path.join(os.getcwd(), "openwrt-condensed-docs"))
-WORKDIR = os.environ.get("WORKDIR", os.path.join(os.getcwd(), "tmp"))
-OUT_DIR = os.path.join(OUTDIR, "openwrt-procd-docs")
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+
+sys.stdout.reconfigure(line_buffering=True)
 
 print("[02f] Scrape procd init.d API documentation")
 
-procd_sh_path = os.path.join(WORKDIR, "repo-openwrt", "package", "system", "procd", "files", "procd.sh")
+procd_sh_path = os.path.join(config.WORKDIR, "repo-openwrt", "package", "system", "procd", "files", "procd.sh")
 
 if not os.path.isfile(procd_sh_path):
     print(f"[02f] SKIP: procd.sh not found at {procd_sh_path}")
-    exit(0)
+    sys.exit(0)
 
-os.makedirs(OUT_DIR, exist_ok=True)
-
-with open(procd_sh_path, "r", encoding="utf-8") as f:
-    lines = f.readlines()
+try:
+    with open(procd_sh_path, "r", encoding="utf-8", errors="replace") as f:
+        lines = f.readlines()
+except Exception as e:
+    print(f"[02f] FAIL: Could not read {procd_sh_path}: {e}")
+    sys.exit(1)
 
 # Extract the header block comments
 doc_lines = []
@@ -41,23 +46,28 @@ for line in lines:
 
 markdown_content = "\n".join(doc_lines).strip()
 if not markdown_content:
-    print("[02f] WARN: Could not extract documentation from procd.sh")
-    exit(1)
+    print("[02f] FAIL: Could not extract documentation from procd.sh")
+    sys.exit(1)
 
-out_file = os.path.join(OUT_DIR, "procd-api.md")
-ts = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
+ts = datetime.datetime.now(datetime.UTC).isoformat()
+slug = "procd-api"
 
-with open(out_file, "w", encoding="utf-8", newline="\n") as f:
-    f.write("---\n")
-    f.write("module: procd\n")
-    f.write("title: procd init.d API\n")
-    f.write("source: package/system/procd/files/procd.sh\n")
-    f.write(f"generated: {ts}\n")
-    f.write("---\n\n")
-    f.write("# procd init.d API Reference\n\n")
-    f.write("> **Extracted from:** `procd.sh` block comments\n\n")
-    f.write("```shell\n")
-    f.write(markdown_content)
-    f.write("\n```\n")
+final_content = f"# procd init.d API Reference\n\n> **Extracted from:** `procd.sh` block comments\n\n"
+final_content += extractor.wrap_code_block("procd.sh", markdown_content, "bash")
 
-print(f"[02f] OK: Wrote procd-api.md ({len(doc_lines)} lines)")
+metadata = {
+    "extractor": "02f-scrape-procd-api.py",
+    "origin_type": "header_api",
+    "module": "procd",
+    "slug": slug,
+    "original_url": None,
+    "language": "bash",
+    "upstream_path": "package/system/procd/files/procd.sh",
+    "fetch_status": "success",
+    "extraction_timestamp": ts
+}
+
+extractor.write_l1_markdown("procd", "header_api", slug, final_content, metadata)
+
+print(f"[02f] OK: Wrote {slug} ({len(doc_lines)} lines)")
+print("[02f] Complete.")

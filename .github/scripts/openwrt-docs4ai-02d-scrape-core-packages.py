@@ -1,16 +1,12 @@
 """
-openwrt-docs4ai-02d-scrape-core-packages.py
-
-Purpose  : Extract package documentation from the OpenWrt buildroot source tree.
-Env Vars : OUTDIR (default: ./openwrt-condensed-docs) — generated output destination
-           WORKDIR (default: ./tmp) — where to find cloned source repos
-           SKIP_BUILDROOT ("true" to skip entirely)
-Outputs  : $OUTDIR/openwrt-buildroot-docs/openwrt-buildroot-*.md
-           $OUTDIR/openwrt-buildroot-docs/llms.txt
-Deps     : None (pure Python, reads Makefiles directly)
-Notes    : Extracts PKG_* fields from Makefiles, README content, and build
-           system .mk include file documentation. Previously a bash script
-           with an embedded Python heredoc — now pure Python for cross-platform.
+Purpose: Extract package documentation from the OpenWrt buildroot source tree.
+Phase: Extraction
+Layers: L0 -> L1
+Inputs: tmp/repo-openwrt/package/ and include/
+Outputs: tmp/.L1-raw/openwrt-core/*.md and .meta.json
+Environment Variables: WORKDIR, SKIP_BUILDROOT
+Dependencies: lib.config, lib.extractor
+Notes: Parses PKG_* variables from Makefiles and extracts READMEs.
 """
 
 import os
@@ -19,10 +15,11 @@ import glob
 import datetime
 import sys
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+
 sys.stdout.reconfigure(line_buffering=True)
 
-OUTDIR = os.environ.get("OUTDIR", os.path.join(os.getcwd(), "openwrt-condensed-docs"))
-WORKDIR = os.environ.get("WORKDIR", os.path.join(os.getcwd(), "tmp"))
 SKIP_BUILDROOT = os.environ.get("SKIP_BUILDROOT", "false").lower() == "true"
 
 if SKIP_BUILDROOT:
@@ -31,21 +28,16 @@ if SKIP_BUILDROOT:
 
 print("[02d] Extract OpenWrt core package documentation")
 
-REPO = os.path.join(WORKDIR, "repo-openwrt")
-OUT_DIR = os.path.join(OUTDIR, "openwrt-buildroot-docs")
-os.makedirs(OUT_DIR, exist_ok=True)
-
-TS = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
-COMMIT = os.environ.get("OPENWRT_COMMIT", "unknown")
+REPO = os.path.join(config.WORKDIR, "repo-openwrt")
+TS = datetime.datetime.now(datetime.UTC).isoformat()
 REPO_URL = "https://github.com/openwrt/openwrt"
 
 if not os.path.isdir(REPO):
-    print("[02d] SKIP: Buildroot repo not found (clone failed or skipped)")
-    sys.exit(0)
+    print("[02d] FAIL: Buildroot repo not found")
+    sys.exit(1)
 
 
 def extract_makefile_meta(path):
-    """Parse PKG_* fields and descriptions from an OpenWrt package Makefile."""
     try:
         text = open(path, encoding="utf-8", errors="replace").read()
     except Exception:
@@ -62,7 +54,6 @@ def extract_makefile_meta(path):
             if val and not val.startswith("$("):
                 fields[key] = val[:200]
 
-    # Try top-level PKG_DESCRIPTION
     m = re.search(
         r'^PKG_DESCRIPTION\s*[?:+]?=\s*(.+?)(?=\n[A-Z]|\Z)',
         text, re.MULTILINE | re.DOTALL
@@ -72,7 +63,6 @@ def extract_makefile_meta(path):
             r"\s+", " ", m.group(1).replace("\\\n", " ")
         ).strip()[:500]
 
-    # Try Package/*/DESCRIPTION block
     block_m = re.search(
         r'define Package/[^\n]+\n(.*?)^endef',
         text, re.MULTILINE | re.DOTALL
@@ -90,7 +80,6 @@ def extract_makefile_meta(path):
 
 
 def extract_readme(pkg_dir):
-    """Read a README from a package directory, if present and non-trivial."""
     for name in ["README.md", "README", "README.txt"]:
         p = os.path.join(pkg_dir, name)
         if os.path.isfile(p):
@@ -103,9 +92,8 @@ def extract_readme(pkg_dir):
     return None
 
 
-# --- Process package categories ---
-toc_lines = []
 total_pkgs = 0
+outputs_generated = 0
 
 for cat_path in sorted(glob.glob(os.path.join(REPO, "package", "*"))):
     if not os.path.isdir(cat_path):
@@ -128,42 +116,49 @@ for cat_path in sorted(glob.glob(os.path.join(REPO, "package", "*"))):
 
     total_pkgs += len(entries)
     cat_src_url = f"{REPO_URL}/tree/master/package/{category}"
-    outfile = os.path.join(OUT_DIR, f"openwrt-buildroot-{category}.md")
+    slug = f"category-{category}"
+    
+    content_lines = []
+    content_lines.append(f"# OpenWrt Buildroot: {category} packages\n")
+    content_lines.append(f"> **Source:** {cat_src_url}\n---\n")
 
-    with open(outfile, "w", encoding="utf-8", newline="\n") as f:
-        f.write(f"# OpenWrt Buildroot: `{category}` packages\n\n")
-        f.write(f"> **Source:** {cat_src_url}\n")
-        f.write(f"> **Generated:** {TS} from commit `{COMMIT}`\n\n---\n\n")
+    for e in entries:
+        m = e["meta"]
+        content_lines.append(f"## {e['name']}\n")
+        if m.get("DESCRIPTION"):
+            content_lines.append(f"{m['DESCRIPTION']}\n")
+        rows = []
+        if m.get("PKG_VERSION"):    rows.append(f"| Version | {m['PKG_VERSION']} |")
+        if m.get("PKG_LICENSE"):    rows.append(f"| License | {m['PKG_LICENSE']} |")
+        if m.get("PKG_MAINTAINER"): rows.append(f"| Maintainer | {m['PKG_MAINTAINER']} |")
+        if m.get("PKG_SOURCE_URL"): rows.append(f"| Source URL | {m['PKG_SOURCE_URL'][:120]} |")
+        if rows:
+            content_lines.append("| Field | Value |\n|---|---|\n" + "\n".join(rows) + "\n")
+        if e["readme"]:
+            content = e["readme"]
+            truncated = len(content) > 2000
+            content_lines.append("**README:**\n")
+            content_lines.append(extractor.wrap_code_block("README", content[:2000], "markdown"))
+            if truncated:
+                pkg_url = f"{REPO_URL}/tree/master/package/{category}/{e['name']}"
+                content_lines.append(f"\n> *(README truncated — [view full file]({pkg_url}))*\n")
+        pkg_url = f"{REPO_URL}/tree/master/package/{category}/{e['name']}"
+        content_lines.append(f"\n> Source: {pkg_url}\n---\n")
 
-        for e in entries:
-            m = e["meta"]
-            f.write(f"## `{e['name']}`\n\n")
-            if m.get("DESCRIPTION"):
-                f.write(f"{m['DESCRIPTION']}\n\n")
-            rows = []
-            if m.get("PKG_VERSION"):    rows.append(f"| Version | {m['PKG_VERSION']} |")
-            if m.get("PKG_LICENSE"):    rows.append(f"| License | {m['PKG_LICENSE']} |")
-            if m.get("PKG_MAINTAINER"): rows.append(f"| Maintainer | {m['PKG_MAINTAINER']} |")
-            if m.get("PKG_SOURCE_URL"): rows.append(f"| Source URL | {m['PKG_SOURCE_URL'][:120]} |")
-            if rows:
-                f.write("| Field | Value |\n|---|---|\n" + "\n".join(rows) + "\n\n")
-            if e["readme"]:
-                content = e["readme"]
-                truncated = len(content) > 2000
-                f.write("**README:**\n\n")
-                f.write(content[:2000])
-                if truncated:
-                    pkg_url = f"{REPO_URL}/tree/master/package/{category}/{e['name']}"
-                    f.write(f"\n\n> *(README truncated — [view full file]({pkg_url}))*")
-                f.write("\n\n")
-            pkg_url = f"{REPO_URL}/tree/master/package/{category}/{e['name']}"
-            f.write(f"> Source: {pkg_url}\n\n---\n\n")
+    metadata = {
+        "extractor": "02d-scrape-core-packages.py",
+        "origin_type": "makefile_meta",
+        "module": "openwrt-core",
+        "slug": slug,
+        "original_url": None,
+        "language": "makefile",
+        "upstream_path": f"package/{category}",
+        "fetch_status": "success",
+        "extraction_timestamp": TS
+    }
 
-    toc_lines.append(
-        f"- [openwrt-buildroot-{category}.md]"
-        f"(/openwrt-buildroot-docs/openwrt-buildroot-{category}.md): "
-        f"OpenWrt buildroot `{category}` — {len(entries)} packages"
-    )
+    extractor.write_l1_markdown("openwrt-core", "makefile_meta", slug, "\n".join(content_lines), metadata)
+    outputs_generated += 1
     print(f"[02d] OK: {category} ({len(entries)} packages)")
 
 # --- Process build system include files ---
@@ -186,29 +181,33 @@ for mk_file in sorted(glob.glob(os.path.join(REPO, "include", "*.mk"))):
         mk_entries.append((fname_mk, "\n".join(comments)))
 
 if mk_entries:
-    outfile = os.path.join(OUT_DIR, "openwrt-buildroot-include-mk.md")
-    with open(outfile, "w", encoding="utf-8", newline="\n") as f:
-        f.write("# OpenWrt Buildroot: Build System Include Files\n\n")
-        f.write(f"> **Source:** {REPO_URL}/tree/master/include\n")
-        f.write(f"> **Generated:** {TS} from commit `{COMMIT}`\n\n")
-        f.write("Core build system Makefile fragments.\n\n---\n\n")
-        for fname_mk, doc in mk_entries:
-            f.write(f"## `{fname_mk}`\n\n```\n{doc}\n```\n\n")
-            f.write(f"> Source: {REPO_URL}/blob/master/include/{fname_mk}\n\n---\n\n")
-    toc_lines.append(
-        f"- [openwrt-buildroot-include-mk.md]"
-        f"(/openwrt-buildroot-docs/openwrt-buildroot-include-mk.md): "
-        f"Build system .mk files — {len(mk_entries)} documented"
-    )
+    slug = "include-mk"
+    content_lines = []
+    content_lines.append("# OpenWrt Buildroot: Build System Include Files\n")
+    content_lines.append(f"> **Source:** {REPO_URL}/tree/master/include\n")
+    content_lines.append("Core build system Makefile fragments.\n\n---\n")
+    for fname_mk, doc in mk_entries:
+        content_lines.append(f"## {fname_mk}\n")
+        content_lines.append(extractor.wrap_code_block("Documentation", doc, "text"))
+        content_lines.append(f"\n> Source: {REPO_URL}/blob/master/include/{fname_mk}\n---\n")
+        
+    metadata = {
+        "extractor": "02d-scrape-core-packages.py",
+        "origin_type": "makefile_meta",
+        "module": "openwrt-core",
+        "slug": slug,
+        "original_url": None,
+        "language": "makefile",
+        "upstream_path": "include/",
+        "fetch_status": "success",
+        "extraction_timestamp": TS
+    }
 
-# --- Write per-folder index ---
-with open(os.path.join(OUT_DIR, "llms.txt"), "w", encoding="utf-8", newline="\n") as f:
-    f.write("# OpenWrt Buildroot Documentation Index\n")
-    f.write(f"# Source: {REPO_URL} (commit: {COMMIT})\n")
-    f.write(f"# Generated: {TS}\n#\n")
-    f.write("# Package metadata and README files from the OpenWrt buildroot.\n#\n")
-    f.write("## Files in this directory\n\n")
-    for line in toc_lines:
-        f.write(line + "\n")
+    extractor.write_l1_markdown("openwrt-core", "makefile_meta", slug, "\n".join(content_lines), metadata)
+    outputs_generated += 1
+    print(f"[02d] OK: include-mk ({len(mk_entries)} documented)")
 
-print(f"[02d] Complete: {total_pkgs} packages across {len(toc_lines)} outputs.")
+print(f"[02d] Complete: {total_pkgs} packages across {outputs_generated} outputs.")
+if outputs_generated == 0:
+    print("[02d] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
