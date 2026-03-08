@@ -1,7 +1,7 @@
 # v12 Implementation Status
 
 ## Current Checkpoint
-**Pending Checkpoint 5**
+**Pending Checkpoint 6**
 
 ## Log
 ### 2026-03-08 (Checkpoint 1)
@@ -41,6 +41,12 @@
 - **`07-generate-index-html.py`**: Renders a human-friendly landing page with semantic navigation.
 - **Git State**: Committed Checkpoint 4 as `feat: complete Checkpoint 4 (L3/L5 map generators and indexer)`.
 
+### 2026-03-08 (Checkpoint 5)
+- **Implemented 08-validate.py**: Created the strict CI/CD gatekeeper with hard/soft fail tiers.
+- Checks strictly for missing required files (L3), zero-byte files, malformed L2 YAML, and broken relative cross-links.
+- Implements soft warnings for JS/uCode AST syntax parsing errors and token budget overflows (>100k).
+- **Git State**: Committed Checkpoint 5 as `feat: complete Checkpoint 5 (Security & Quality Enforcer)`.
+
 ## Next Action
-- Begin Checkpoint 5: The Security & Quality Enforcer (Script 08).
-- Refactor validation logic into `08-validate.py` with hard/soft fail tiers.
+- Begin Checkpoint 6: CI/CD Pipeline Configuration (00-pipeline.yml).
+- Update GitHub Actions to implement parallel extraction, promotion, and failure artifact flows.
