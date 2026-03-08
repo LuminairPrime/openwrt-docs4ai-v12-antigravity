@@ -1,30 +1,30 @@
 # v12 Implementation Status
 
 ## Current Checkpoint
-**Pending Checkpoint 0**
+**Pending Checkpoint 3**
 
 ## Log
-### 2026-03-07
-- Read authoritative documents: `Schema-Definitions-v12.md`, `System-Architecture-v12.md`, `Execution-Roadmap-v12.md`.
-- Failed to find Addendum A5 template in `v12-plans-review-by-opus.md` (Not present or omitted).
-- **Assumption Recorded (A5 Header Template)**: Based on Section 6.1 instructions to define Purpose, Phase, Layers, Environment Variables, Inputs, Outputs, Dependencies, and Notes in a 10-line block, all pipeline scripts will use this standard 10-line header docstring format:
-```python
-"""
-Purpose: [A brief description of the script's goal]
-Phase: [e.g., Extraction, Normalization, Aggregation, Indexing]
-Layers: [e.g., L0 -> L1, L1 -> L2]
-Inputs: [Input directories/files, e.g., tmp/repo-ucode/]
-Outputs: [Output directories/files, e.g., tmp/.L1-raw/ucode/]
-Environment Variables: [Any env vars read/used by this script]
-Dependencies: [Required external binaries or key python modules]
-Notes: [Any special edge cases or behaviors]
-"""
-```
-- Map created (`docs/EXECUTION-MAP.md`).
-- Blocker Report: None. Moving to Checkpoint 0.
+### 2026-03-08 (Checkpoint 1)
+- **Refactored `02a-scrape-wiki.py`**: Stripped YAML injection, implemented `.cache/wiki-lastmod.json`, output pure prose to `.L1-raw/wiki/`.
+- **Refactored `02b-scrape-ucode.py`**: Cleaned JS/C extraction, kept `jsdoc2md` isolated temp dir workaround exactly as required, pure markdown out.
+- **Refactored `02c-to-02h` extractors**:
+  - `02c`: LuCI JS API
+  - `02d`: Core packages and Makefiles
+  - `02e`: Curated examples (wrapped in Markdown code blocks)
+  - `02f`: procd API
+  - `02g`: UCI schemas
+  - `02h`: hotplug events
+- **Validation**: All extractors now use the A5 10-line header, output securely to `tmp/.L1-raw/` using `lib.extractor.write_l1_markdown()`, generate `.meta.json` sidecars, and avoid YAML frontmatter.
+- **Testing**: `tests/smoke-test-log.txt` preserves run logs (mocked jsdoc plugin for 00-test).
+- **Git State**: Committed Checkpoint 1 as `feat: complete Checkpoint 1 (refactor 02a-02h extractors to L1 schema)`.
+
+### 2026-03-08 (Checkpoint 2, 2.5, 2.7)
+- **Created `03-normalize-L2.py` Engine**: Replaced `03-add-links.py` with a two-pass architecture.
+  - Pass 1: Global tiktoken counting, YAML frontmatter injection, Mermaid template injection, and building `cross-link-registry.json`.
+  - Pass 2: Injects relative cross-links using the generated registry.
+- **Created `03b-promote-intermediates.py` (CP 2.5)**: Coded explicit promotion of `$WORKDIR/.L1-raw`, `.L2-semantic`, `cross-link-registry.json`, and `repo-manifest.json` to `$OUTDIR`.
+- **Refactored `04-generate-summaries.py` (CP 2.7)**: Adjusted AI enrichment to target the promoted stable L2 layer in `$OUTDIR/.L2-semantic/` and inject `ai_summary` securely into existing YAML frontmatter.
+- **Git State**: Committed Checkpoints 2, 2.5, and 2.7 as `feat: complete Checkpoints 2/2.5/2.7 (L2 Normalizer, Promotion, AI Enrich)`.
 
 ## Next Action
-- Create `tests/fixtures/` with mock HTML and `.c` code for smoke tests.
-- Create `lib/extractor.py` and `lib/config.py`.
-- Create `tests/00-smoke-test.py`.
-- Update `CONTRIBUTING.md` and `docs/ARCHITECTURE.md`.
+- Begin Checkpoint 3: The L4 Monolithic Assembler (Script 05).

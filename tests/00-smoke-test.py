@@ -60,7 +60,11 @@ def main():
         # Copy fixtures into expected L0 structure
         os.makedirs(os.path.join(temp_dir, "repo-wiki"), exist_ok=True)
         os.makedirs(os.path.join(temp_dir, "repo-ucode", "lib"), exist_ok=True)
+        os.makedirs(os.path.join(temp_dir, "repo-ucode", "jsdoc", "c-transpiler"), exist_ok=True)
         
+        with open(os.path.join(temp_dir, "repo-ucode", "jsdoc", "c-transpiler", "index.js"), "w") as f:
+            f.write("module.exports = function() {};")
+            
         shutil.copy(
             os.path.join(project_root, "tests", "fixtures", "wiki-page.html"), 
             os.path.join(temp_dir, "repo-wiki", "wiki-page.html")

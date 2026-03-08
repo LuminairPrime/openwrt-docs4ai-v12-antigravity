@@ -1,1 +1,26 @@
-Smoke test runner initialized successfully.
+
+--- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-02b-scrape-ucode.py ---
+[02b] Generate ucode documentation (JSDoc)
+[02b] Processing tutorials...
+[02b] Processing modules...
+[02b] SKIP: source (too short, 0 words)
+
+=== jsdoc warnings/errors (ucode) ===
+Stderr for source:
+JSDOC_ERROR: ERROR: Unable to parse C:\Users\MC\AppData\Local\Temp\tmpzo13whcu\source.c: Private names are only allowed in property accesses (`obj.#include`) or in `in` expressions (`#include in obj`). (4:0)
+    at Explain._runJsdoc (file:///C:/Users/MC/AppData/Roaming/npm/node_modules/jsdoc-to-markdown/node_modules/jsdoc-api/lib/explain.js:61:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    ... 2 lines matching cause stack trace ...
+    at async JsdocToMarkdown.render (file:///C:/Users/MC/AppData/Roaming/npm/node_modules/jsdoc-to-markdown/index.js:54:28) {
+  cause: Error: jsdoc exited with non-zero code: 1
+      at Explain._runJsdoc (file:///C:/Users/MC/AppData/Roaming/npm/node_modules/jsdoc-to-markdown/node_modules/jsdoc-api/lib/explain.js:51:15)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Explain.execute (file:///C:/Users/MC/AppData/Roaming/npm/node_modules/jsdoc-to-markdown/node_modules/jsdoc-api/lib/jsdoc-command.js:56:16)
+      at async JsdocToMarkdown.getTemplateData (file:///C:/Users/MC/AppData/Roaming/npm/node_modules/jsdoc-to-markdown/index.js:68:23)
+      at async JsdocToMarkdown.render (file:///C:/Users/MC/AppData/Roaming/npm/node_modules/jsdoc-to-markdown/index.js:54:28)
+}
+
+
+=== end jsdoc warnings ===
+[02b] Complete.
+[02b] FAIL: Zero output files generated. Exiting with error.
