@@ -1,7 +1,7 @@
 # v12 Implementation Status
 
 ## Current Checkpoint
-**Pending Checkpoint 3**
+**Pending Checkpoint 5**
 
 ## Log
 ### 2026-03-08 (Checkpoint 1)
@@ -32,5 +32,15 @@
 - It concurrently generates the L3 `*-skeleton.md` files by extracting headers and function signatures during the iteration pass.
 - **Git State**: Committed Checkpoint 3 as `feat: complete Checkpoint 3 (L4 Monolithic Assembler)`.
 
+### 2026-03-08 (Checkpoint 4)
+- **Implemented L3 & L5 Map Generators**: Separated the monolith indexer into single-responsibility scripts.
+- **`06a-generate-llms-txt.py`**: Generates hierarchical `llms.txt` and flat `llms-full.txt`.
+- **`06b-generate-agents-md.py`**: Creates machine-readable `AGENTS.md` and human-readable `README.md`.
+- **`06c-generate-ide-schemas.py`**: Produces `.d.ts` TypeScript definitions for the `ucode` module.
+- **`06d-generate-changelog.py`**: Implements L5 telemetry by tracking signature drift against a baseline.
+- **`07-generate-index-html.py`**: Renders a human-friendly landing page with semantic navigation.
+- **Git State**: Committed Checkpoint 4 as `feat: complete Checkpoint 4 (L3/L5 map generators and indexer)`.
+
 ## Next Action
-- Begin Checkpoint 4: The L3 & L5 Map Generators (Scripts 06a-d & 07).
+- Begin Checkpoint 5: The Security & Quality Enforcer (Script 08).
+- Refactor validation logic into `08-validate.py` with hard/soft fail tiers.
