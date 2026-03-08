@@ -26,5 +26,11 @@
 - **Refactored `04-generate-summaries.py` (CP 2.7)**: Adjusted AI enrichment to target the promoted stable L2 layer in `$OUTDIR/.L2-semantic/` and inject `ai_summary` securely into existing YAML frontmatter.
 - **Git State**: Committed Checkpoints 2, 2.5, and 2.7 as `feat: complete Checkpoints 2/2.5/2.7 (L2 Normalizer, Promotion, AI Enrich)`.
 
+### 2026-03-08 (Checkpoint 3)
+- **Refactored `05-assemble-references.py`**: Rewrote the monolithic assembler to consume the stable `$OUTDIR/.L2-semantic/` directory instead of ad-hoc L1 paths.
+- It parses the L2 YAML schema, strips it, concatenates bodies, and wraps everything in the rigid L4 Monolith Schema YAML frontmatter.
+- It concurrently generates the L3 `*-skeleton.md` files by extracting headers and function signatures during the iteration pass.
+- **Git State**: Committed Checkpoint 3 as `feat: complete Checkpoint 3 (L4 Monolithic Assembler)`.
+
 ## Next Action
-- Begin Checkpoint 3: The L4 Monolithic Assembler (Script 05).
+- Begin Checkpoint 4: The L3 & L5 Map Generators (Scripts 06a-d & 07).

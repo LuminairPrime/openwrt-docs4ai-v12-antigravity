@@ -1,19 +1,13 @@
 """
-openwrt-docs4ai-05-assemble-references.py
-
-Purpose  : Assemble *-complete-reference.md files by concatenating individual docs.
-Env Vars : OUTDIR (default: ./openwrt-condensed-docs) — where to read/write
-           SKIP_WIKI ("true" to skip wiki reference assembly)
-           SKIP_BUILDROOT ("true" to skip buildroot/examples reference assembly)
-Outputs  : $OUTDIR/ucode-complete-reference.md
-           $OUTDIR/luci-jsapi-complete-reference.md
-           $OUTDIR/openwrt-wiki-complete-reference.md
-           $OUTDIR/openwrt-buildroot-complete-reference.md
-           $OUTDIR/openwrt-examples-complete-reference.md
-Deps     : None (pure Python)
-Notes    : Each reference file is a single concatenated document suitable for
-           feeding whole to an LLM as a complete knowledge source.
-           Split from the original monolithic 05-finalize-publish.sh.
+Purpose: Assemble L4 monolithic references and L3 skeletons from L2 semantics.
+Phase: Assembly
+Layers: L2 -> L3/L4
+Inputs: OUTDIR/.L2-semantic/
+Outputs: OUTDIR/{module}/{module}-complete-reference.md
+         OUTDIR/{module}/{module}-skeleton.md
+Environment Variables: OUTDIR
+Dependencies: pyyaml, lib.config
+Notes: Strips internal L2 YAML, injects L4 wrapper YAML, warns on >100k tokens.
 """
 
 import os
@@ -22,167 +16,139 @@ import datetime
 import sys
 import re
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+
 sys.stdout.reconfigure(line_buffering=True)
 
-OUTDIR = os.environ.get("OUTDIR", os.path.join(os.getcwd(), "openwrt-condensed-docs"))
-SKIP_WIKI = os.environ.get("SKIP_WIKI", "false").lower() == "true"
-SKIP_BUILDROOT = os.environ.get("SKIP_BUILDROOT", "false").lower() == "true"
+try:
+    import yaml
+except ImportError:
+    print("[05] FAIL: 'pyyaml' package not installed")
+    sys.exit(1)
 
-TS = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
+OUTDIR = config.OUTDIR
+L2_DIR = os.path.join(OUTDIR, ".L2-semantic")
 
-print("[05] Assemble complete reference files")
+if not os.path.isdir(L2_DIR):
+    print(f"[05] FAIL: L2 semantic directory not found: {L2_DIR}")
+    sys.exit(1)
 
+TS = datetime.datetime.now(datetime.UTC).isoformat()
 
-def assemble(label, subdir, out_name, pattern="*.md", header_title=None,
-             skip_flag=False, source_desc=""):
-    """Concatenate all matching .md files from subdir into a single reference file."""
-    if skip_flag:
-        print(f"[05] SKIP: {label} (skip flag set)")
-        return
+print("[05] Assemble L4 monolithic files and L3 skeletons")
 
-    src_dir = os.path.join(OUTDIR, subdir)
-    if not os.path.isdir(src_dir):
-        print(f"[05] SKIP: {label} (directory not found: {subdir})")
-        return
+modules = [d for d in os.listdir(L2_DIR) if os.path.isdir(os.path.join(L2_DIR, d))]
 
-    files = sorted(glob.glob(os.path.join(src_dir, pattern)))
-    # Exclude llms.txt from concatenation
-    files = [f for f in files if os.path.basename(f) != "llms.txt"]
+if not modules:
+    print("[05] FAIL: No modules found in L2 semantic directory.")
+    sys.exit(1)
 
-    if not files:
-        print(f"[05] SKIP: {label} (no .md files found)")
-        return
+warn_count = 0
+outputs_generated = 0
 
-    title = header_title or label
-    out_path = os.path.join(OUTDIR, out_name)
-    skeleton_name = out_name.replace("-complete-reference", "-skeleton")
-    skeleton_path = os.path.join(OUTDIR, skeleton_name)
-
-    total_lines = 0
-    with open(out_path, "w", encoding="utf-8", newline="\n") as out, \
-         open(skeleton_path, "w", encoding="utf-8", newline="\n") as skeleton:
-        out.write(f"# {title}\n\n")
-        out.write(f"> **Generated:** {TS}\n")
-        if source_desc:
-            out.write(f"> **Source:** {source_desc}\n")
-        out.write(f"> **Contains:** {len(files)} documents concatenated\n\n")
-        out.write("---\n\n")
-
-        skeleton.write(f"# {title} (Skeleton Semantic Map)\n\n")
-        skeleton.write(f"> **Contains:** Only headers and function signatures for {len(files)} files.\n\n")
-        skeleton.write("---\n\n")
-
-        for fpath in files:
-            try:
-                content = open(fpath, encoding="utf-8").read().strip()
-            except Exception as e:
-                print(f"[05] WARN: Could not read {fpath}: {e}")
-                continue
-                
-            # Strip YAML frontmatter
-            content = re.sub(r'(?s)^---.*?---\n+', '', content)
-            # Strip redundant Markdown blockquote metadata
-            content = re.sub(r'^> \*\*.*?\n+', '', content, flags=re.MULTILINE)
+for module in sorted(modules):
+    mod_dir = os.path.join(L2_DIR, module)
+    md_files = sorted(glob.glob(os.path.join(mod_dir, "*.md")))
+    
+    if not md_files:
+        continue
+        
+    print(f"[05] Processing module: {module} ({len(md_files)} files)")
+    
+    # We output to the top-level OUTDIR / module path for publishable layers
+    out_mod_dir = os.path.join(OUTDIR, module)
+    os.makedirs(out_mod_dir, exist_ok=True)
+    
+    l4_path = os.path.join(out_mod_dir, f"{module}-complete-reference.md")
+    l3_skeleton_path = os.path.join(out_mod_dir, f"{module}-skeleton.md")
+    
+    total_tokens = 0
+    concatenated_bodies = []
+    skeleton_lines = []
+    
+    # Process each L2 file
+    for fpath in md_files:
+        try:
+            content = open(fpath, encoding="utf-8").read().strip()
+        except Exception as e:
+            print(f"[05] WARN: Could not read {fpath}: {e}")
+            continue
             
-            # Extract skeleton lines (Headers only)
-            skeleton_lines = [line for line in content.split("\n") if line.startswith("#")]
-            skeleton_content = "\n".join(skeleton_lines)
+        # Extract and parse frontmatter
+        fm_match = re.match(r'^---\n(.*?)\n---\n(.*)', content, re.DOTALL)
+        if not fm_match:
+            print(f"[05] WARN: Invalid L2 schema in {fpath}")
+            continue
             
-            lines = content.count("\n") + 1
-            total_lines += lines
-            out.write(content.strip())
-            out.write("\n\n---\n\n")
+        fm_text = fm_match.group(1)
+        body_text = fm_match.group(2).strip()
+        
+        try:
+            fm = yaml.safe_load(fm_text) or {}
+        except Exception as e:
+            print(f"[05] WARN: YAML parse error in {fpath}: {e}")
+            continue
             
-            if skeleton_content.strip():
-                skeleton.write(skeleton_content.strip() + "\n\n")
+        # Accumulate metrics
+        total_tokens += fm.get("token_count", 0)
+        
+        # Prepare L4 section body
+        concatenated_bodies.append(body_text)
+        concatenated_bodies.append("\n\n---\n\n")
+        
+        # Extract skeleton lines (Headers and function signatures)
+        # We assume headers (#) and potentially list items starting with code (`foo()`)
+        for line in body_text.splitlines():
+            if line.startswith("#"):
+                skeleton_lines.append(line)
+            # Find function signatures in lists or bold
+            elif re.match(r'^[-*]\s+[`*_a-zA-Z0-9]', line):
+                # Filter to only lines that look like a signature definition
+                if "(" in line and ")" in line and len(line) < 150:
+                    # Strip any description after a colon/dash
+                    sig = re.split(r'[:|—\-]\s', line, maxsplit=1)[0].strip()
+                    skeleton_lines.append(sig)
+                    
+        skeleton_lines.append("") # Spacer between files in skeleton
+        
+    # Warn if L4 monolith exceeds 100k limit
+    if total_tokens > 100000:
+        print(f"[05] WARN: {module} monolith exceeds 100k tokens ({total_tokens})")
+        warn_count += 1
+        
+    # Write L4 Monolith
+    with open(l4_path, "w", encoding="utf-8", newline="\n") as l4:
+        # L4 Monolith YAML frontmatter
+        l4.write("---\n")
+        l4.write(f'module: "{module}"\n')
+        l4.write(f'total_token_count: {total_tokens}\n')
+        l4.write(f'section_count: {len(md_files)}\n')
+        l4.write(f'is_monolithic: true\n')
+        l4.write(f'generated: "{TS}"\n')
+        l4.write("---\n\n")
+        
+        l4.write(f"# {module} Complete Reference\n\n")
+        l4.write(f"> **Contains:** {len(md_files)} documents concatenated\n")
+        l4.write(f"> **Tokens:** ~{total_tokens} (cl100k_base)\n\n---\n\n")
+        
+        l4.write("".join(concatenated_bodies))
+        
+    outputs_generated += 1
+        
+    # Write L3 Skeleton
+    with open(l3_skeleton_path, "w", encoding="utf-8", newline="\n") as l3:
+        l3.write(f"# {module} (Skeleton Semantic Map)\n\n")
+        l3.write(f"> **Contains:** Headers and function signatures for {module}.\n")
+        l3.write(f"> **Generated:** {TS}\n\n---\n\n")
+        
+        l3.write("\n".join(skeleton_lines).strip())
+        l3.write("\n")
+        
+    outputs_generated += 1
+    
+    print(f"[05] OK: {module} L4 ({total_tokens} tokens) and L3 skeleton")
 
-    print(f"[05] OK: {out_name} & {skeleton_name} ({len(files)} files)")
-
-
-# --- Assemble each reference ---
-
-assemble(
-    label="ucode reference",
-    subdir="ucode-docs",
-    out_name="ucode-complete-reference.md",
-    header_title="ucode Complete Reference",
-    source_desc="https://github.com/jow-/ucode"
-)
-
-assemble(
-    label="LuCI JS API reference",
-    subdir="luci-docs",
-    out_name="luci-jsapi-complete-reference.md",
-    header_title="LuCI JavaScript API Complete Reference",
-    source_desc="https://github.com/openwrt/luci"
-)
-
-assemble(
-    label="Wiki reference",
-    subdir="openwrt-wiki-docs",
-    out_name="openwrt-wiki-complete-reference.md",
-    header_title="OpenWrt Wiki Developer Documentation Complete Reference",
-    source_desc="https://openwrt.org/docs/",
-    skip_flag=SKIP_WIKI
-)
-
-assemble(
-    label="Buildroot reference",
-    subdir="openwrt-buildroot-docs",
-    out_name="openwrt-buildroot-complete-reference.md",
-    header_title="OpenWrt Buildroot Package Documentation Complete Reference",
-    source_desc="https://github.com/openwrt/openwrt",
-    skip_flag=SKIP_BUILDROOT
-)
-
-assemble(
-    label="Examples reference",
-    subdir="openwrt-examples",
-    out_name="openwrt-examples-complete-reference.md",
-    pattern="**/*.uc",
-    header_title="OpenWrt LuCI Application Examples Complete Reference",
-    source_desc="https://github.com/openwrt/luci/tree/master/applications",
-    skip_flag=SKIP_BUILDROOT
-)
-
-# For examples: also include .js files since pattern only matches one type
-# Reassemble examples with both .uc and .js using a walkthrough approach
-if not SKIP_BUILDROOT:
-    examples_dir = os.path.join(OUTDIR, "openwrt-examples")
-    out_path = os.path.join(OUTDIR, "openwrt-examples-complete-reference.md")
-    if os.path.isdir(examples_dir):
-        all_files = []
-        for root, _, fnames in os.walk(examples_dir):
-            for fn in sorted(fnames):
-                if fn.endswith((".uc", ".js")):
-                    all_files.append(os.path.join(root, fn))
-                elif fn.endswith(".md") and fn != "llms.txt":
-                    all_files.append(os.path.join(root, fn))
-        all_files.sort()
-
-        if all_files:
-            with open(out_path, "w", encoding="utf-8", newline="\n") as out:
-                out.write("# OpenWrt LuCI Application Examples Complete Reference\n\n")
-                out.write(f"> **Generated:** {TS}\n")
-                out.write("> **Source:** https://github.com/openwrt/luci/tree/master/applications\n")
-                out.write(f"> **Contains:** {len(all_files)} source files\n\n")
-                out.write("---\n\n")
-                for fpath in all_files:
-                    rel = os.path.relpath(fpath, examples_dir).replace("\\", "/")
-                    ext = os.path.splitext(fpath)[1]
-                    lang = {"uc": "javascript", "js": "javascript"}.get(
-                        ext.lstrip("."), ""
-                    )
-                    try:
-                        content = open(fpath, encoding="utf-8").read().strip()
-                    except Exception:
-                        continue
-                    out.write(f"## `{rel}`\n\n")
-                    if ext in (".uc", ".js"):
-                        out.write(f"```{lang}\n{content}\n```\n\n")
-                    else:
-                        out.write(content + "\n\n")
-                    out.write("---\n\n")
-            print(f"[05] OK: openwrt-examples-complete-reference.md ({len(all_files)} source files)")
-
-print("[05] Complete.")
+print(f"[05] Complete: {outputs_generated} artifacts generated.")
+if warn_count > 0:
+    print(f"[05] Process finished with {warn_count} size warnings.")
