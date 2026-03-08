@@ -19,7 +19,7 @@ on:
       skip_ai:
         description: 'Skip AI summarization'
         type: boolean
-        default: true
+        default: false
       max_ai_files:
         description: 'Max files for AI summarization'
         type: number
@@ -158,7 +158,7 @@ jobs:
         run: python .github/scripts/openwrt-docs4ai-03-normalize-semantic.py
       - name: "AI summaries (Optional)"
         env:
-          SKIP_AI: ${{ inputs.skip_ai || 'true' }}
+          SKIP_AI: ${{ inputs.skip_ai || 'false' }}
           MAX_AI_FILES: ${{ inputs.max_ai_files || '40' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/scripts/openwrt-docs4ai-04-generate-ai-summaries.py

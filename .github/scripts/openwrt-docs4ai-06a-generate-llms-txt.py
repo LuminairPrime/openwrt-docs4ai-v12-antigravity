@@ -97,8 +97,8 @@ for module in sorted(os.listdir(L2_DIR)):
             mod_files.append(record)
             global_files.append(record)
             
-            # Use the first file's desc as the module desc roughly
-            if len(mod_files) == 1:
+            # Use the first encountered description as the module desc
+            if mod_desc == module and desc != "No description":
                 mod_desc = desc
                 
         except Exception as e:
