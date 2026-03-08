@@ -5,7 +5,7 @@ origin_type: example_app
 token_count: 18277
 version: unknown
 source_file: L1-raw/luci-examples/example_app-luci-app-dockerman-htdocs-luci-static-resources-view-dockerman-container-js.md
-last_pipeline_run: '2026-03-08T11:15:32.729395+00:00'
+last_pipeline_run: '2026-03-08T11:43:24.421257+00:00'
 upstream_path: applications/luci-app-dockerman/htdocs/luci-static/resources/view/dockerman/container.js
 language: javascript
 ---

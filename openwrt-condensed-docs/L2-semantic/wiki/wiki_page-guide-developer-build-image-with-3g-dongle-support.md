@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 1771
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-build-image-with-3g-dongle-support.md
-last_pipeline_run: '2026-03-08T11:15:32.729395+00:00'
+last_pipeline_run: '2026-03-08T11:43:24.421257+00:00'
 language: text
 ---
 # Building image with support for 3g/4g and usb tethering

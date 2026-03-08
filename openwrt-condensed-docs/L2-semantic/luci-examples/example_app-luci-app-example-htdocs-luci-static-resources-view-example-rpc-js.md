@@ -5,7 +5,7 @@ origin_type: example_app
 token_count: 1185
 version: unknown
 source_file: L1-raw/luci-examples/example_app-luci-app-example-htdocs-luci-static-resources-view-example-rpc-js.md
-last_pipeline_run: '2026-03-08T11:15:32.729395+00:00'
+last_pipeline_run: '2026-03-08T11:43:24.421257+00:00'
 upstream_path: applications/luci-app-example/htdocs/luci-static/resources/view/example/rpc.js
 language: javascript
 ---

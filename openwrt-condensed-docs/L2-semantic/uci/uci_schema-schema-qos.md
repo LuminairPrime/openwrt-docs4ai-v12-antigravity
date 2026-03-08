@@ -5,7 +5,7 @@ origin_type: uci_schema
 token_count: 420
 version: unknown
 source_file: L1-raw/uci/uci_schema-schema-qos.md
-last_pipeline_run: '2026-03-08T11:15:32.729395+00:00'
+last_pipeline_run: '2026-03-08T11:43:24.421257+00:00'
 upstream_path: package/network/config/qos-scripts/files/etc/config/qos
 language: uci
 ---
