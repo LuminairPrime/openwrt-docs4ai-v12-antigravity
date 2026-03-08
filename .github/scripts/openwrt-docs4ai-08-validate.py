@@ -106,8 +106,9 @@ for fpath in all_md:
     with open(fpath, "r", encoding="utf-8") as f:
         content = f.read()
     
-    # Find relative markdown links: [text](../path/file.md) or [text](./file.md)
-    links = re.findall(r'\[.*?\]\(((?:\.\/|\.\.\/)+.*?\.md)\)', content)
+    # Find relative markdown links: [text](path/file.md)
+    # This catches ../, ./ and sibling links (no prefix) while ignoring http, mailto, etc.
+    links = re.findall(r'\[.*?\]\(((?!https?:\/\/|mailto:|[a-z0-9]+:).*?\.md)\)', content)
     for link in links:
         target_path = os.path.normpath(os.path.join(rel_dir, link))
         if not os.path.isfile(target_path):

@@ -85,12 +85,25 @@ for mod_name, funcs in sorted(modules.items()):
             if "(" in sig and ")" in sig:
                 params_str = sig.split("(", 1)[1].rsplit(")", 1)[0]
                 if params_str.strip():
-                    # Handle parameters like 'a' or 'a = 1'
+                    # Handle parameters like 'a' or 'a = [1, 2]' (balanced splitting)
                     params = []
-                    for p in params_str.split(","):
-                        p_name = p.strip().split("=")[0].strip()
-                        params.append(f"{p_name}: any")
-                    sig_ts = f"{f['name']}({', '.join(params)})"
+                    current = []
+                    bracket_level = 0
+                    for char in params_str:
+                        if char == "," and bracket_level == 0:
+                            params.append("".join(current).strip())
+                            current = []
+                        else:
+                            if char in "[({": bracket_level += 1
+                            if char in "])}": bracket_level -= 1
+                            current.append(char)
+                    params.append("".join(current).strip())
+                    
+                    ts_params = []
+                    for p in params:
+                        p_name = p.split("=")[0].strip()
+                        ts_params.append(f"{p_name}: any")
+                    sig_ts = f"{f['name']}({', '.join(ts_params)})"
                 else:
                     sig_ts = f"{f['name']}()"
             else:

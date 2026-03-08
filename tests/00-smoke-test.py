@@ -129,6 +129,11 @@ def main():
         with open(os.path.join(l1_dir, "ucode", "api-fs.meta.json"), "w", encoding="utf-8") as f:
             json.dump({"module": "ucode", "origin_type": "c_source", "language": "c", "slug": "api-fs"}, f)
 
+        with open(os.path.join(l1_dir, "ucode", "complex.md"), "w", encoding="utf-8") as f:
+            f.write("# Complex ucode module\n\n## complex.foo(a = [1, 2], b = {x: 1})\nComplex function.\n\nSee [api-fs](api-fs.md) for more.")
+        with open(os.path.join(l1_dir, "ucode", "complex.meta.json"), "w", encoding="utf-8") as f:
+            json.dump({"module": "ucode", "origin_type": "c_source", "language": "c", "slug": "complex"}, f)
+
         for script in scripts_to_run:
             # Skip all extractors (02a-02h)
             if any(x in script for x in ["02a", "02b", "02c", "02d", "02e", "02f", "02g", "02h"]):

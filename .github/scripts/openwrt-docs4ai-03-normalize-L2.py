@@ -239,6 +239,14 @@ print("[03] Pass 2: Injecting Cross-Links")
 total_injected = 0
 files_modified = 0
 
+# Pre-compile patterns once for performance
+sorted_symbols = sorted(cross_link_registry["symbols"].items(), key=lambda x: -len(x[0]))
+compiled_patterns = []
+for symbol, meta in sorted_symbols:
+    target = meta["relative_target"]
+    pat = re.compile(rf'\b{re.escape(symbol)}\b(?:\(\))?')
+    compiled_patterns.append((symbol, target, pat))
+
 for file_info in l2_files_pass1:
     fpath = file_info["path"]
     this_mod = file_info["module"]
@@ -263,12 +271,10 @@ for file_info in l2_files_pass1:
                 return True
         return False
 
-    for symbol, meta in sorted(cross_link_registry["symbols"].items(), key=lambda x: -len(x[0])):
-        target = meta["relative_target"] # e.g. ../ucode/api-fs-module.md
+    for symbol, target, pat in compiled_patterns:
         if target.endswith(this_rel): # Don't link to self
             continue
             
-        pat = re.compile(rf'\b{re.escape(symbol)}\b(?:\(\))?')
         for m in pat.finditer(original):
             s, e = m.start(), m.end()
             if any(i in protected for i in range(s, e)):

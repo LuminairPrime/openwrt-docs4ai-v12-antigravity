@@ -121,22 +121,26 @@ for fpath in to_process[:MAX_FILES]:
         print(f"[04] FAIL: {fname} — no summary generated")
         continue
 
-    # Inject ai_summary before the closing --- of the yaml frontmatter
-    end_yaml_pos = content.find("\n---\n")
-    if end_yaml_pos != -1:
-        # Avoid breaking YAML formatting
+    # Inject ai_summary securely into the YAML frontmatter
+    fm_match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n?(.*)', content, re.DOTALL)
+    if fm_match:
+        fm_text = fm_match.group(1).strip()
+        body_text = fm_match.group(2)
+        
+        # Avoid duplicate injection
+        if "ai_summary:" in fm_text:
+            continue
+            
         safe_summary = summary.replace('"', '\\"')
-        summaried = (
-            content[:end_yaml_pos] +
-            f'\nai_summary: "{safe_summary}"' +
-            content[end_yaml_pos:]
-        )
+        new_fm = fm_text + f'\nai_summary: "{safe_summary}"'
+        new_content = f"---\n{new_fm}\n---\n{body_text}"
+        
         with open(fpath, "w", encoding="utf-8", newline="\n") as f:
-            f.write(summaried)
+            f.write(new_content)
         summarized += 1
         print(f"[04] OK: {fname}")
         time.sleep(2)
     else:
-        print(f"[04] WARN: Could not find YAML frontmatter in {fname}")
+        print(f"[04] WARN: Could not parse YAML frontmatter in {fname}")
 
 print(f"[04] Complete: {summarized} summaries generated.")
