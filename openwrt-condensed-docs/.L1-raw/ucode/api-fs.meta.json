@@ -1,8 +1,0 @@
-{
-    "module": "ucode",
-    "origin_type": "c_source",
-    "language": "c",
-    "slug": "api-fs",
-    "content_hash": "mock-hash-fs-789",
-    "upstream_path": "lib/fs.c"
-}

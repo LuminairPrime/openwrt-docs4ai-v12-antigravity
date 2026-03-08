@@ -1,0 +1,49 @@
+---
+title: commands.js
+module: luci-examples
+origin_type: example_app
+token_count: 247
+version: unknown
+source_file: L1-raw/luci-examples/example_app-luci-app-commands-htdocs-luci-static-resources-view-commands-js.md
+last_pipeline_run: '2026-03-08T11:15:32.729395+00:00'
+upstream_path: applications/luci-app-commands/htdocs/luci-static/resources/view/commands.js
+language: javascript
+---
+# commands.js
+```javascript
+'use strict';
+
+'require view';
+'require form';
+
+return view.extend({
+	render: function(data) {
+		let m, s, o;
+
+		m = new form.Map('luci', _('Custom Commands'),
+			_('This page allows you to configure custom shell commands which can be easily invoked from the web interface.'));
+
+		s = m.section(form.GridSection, 'command');
+		s.nodescriptions = true;
+		s.anonymous = true;
+		s.addremove = true;
+
+		o = s.option(form.Value, 'name', _('Description'),
+			_('A short textual description of the configured command'));
+
+		o = s.option(form.Value, 'command', _('Command'), _('Command line to execute'));
+		o.textvalue = function(section_id) {
+			return E('code', [ this.cfgvalue(section_id) ]);
+		};
+
+		o = s.option(form.Flag, 'param', _('Custom arguments'),
+			_('Allow the user to provide additional command line arguments'));
+
+		o = s.option(form.Flag, 'public', _('Public access'),
+			_('Allow executing the command and downloading its output without prior authentication'));
+
+		return m.render();
+	}
+});
+
+```

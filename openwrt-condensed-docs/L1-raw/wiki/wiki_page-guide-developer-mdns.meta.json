@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "guide-developer-mdns",
+  "original_url": "https://openwrt.org/docs/guide-developer/mdns",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:11:27.636180+00:00",
+  "content_hash": "d27850fd"
+}

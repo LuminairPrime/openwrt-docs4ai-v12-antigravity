@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "techref-block-mount",
+  "original_url": "https://openwrt.org/docs/techref/block_mount",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:12:46.052022+00:00",
+  "content_hash": "d695442f"
+}

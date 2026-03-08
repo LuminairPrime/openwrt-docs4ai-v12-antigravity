@@ -1,4 +1,13 @@
 # luci module
-> **Total Context:** ~52 tokens
+> **Total Context:** ~19723 tokens
 
-- [api-xhr.md](./api-xhr.md) (52 tokens) - Mock summary for LuCI XHR. It provides AJAX capabilities.
+- [js_source-api-cbi.md](./js_source-api-cbi.md) (3075 tokens) - No description
+- [js_source-api-firewall.md](./js_source-api-firewall.md) (262 tokens) - No description
+- [js_source-api-form.md](./js_source-api-form.md) (143 tokens) - No description
+- [js_source-api-fs.md](./js_source-api-fs.md) (140 tokens) - No description
+- [js_source-api-luci.md](./js_source-api-luci.md) (14614 tokens) - No description
+- [js_source-api-prng.md](./js_source-api-prng.md) (982 tokens) - No description
+- [js_source-api-static.md](./js_source-api-static.md) (217 tokens) - No description
+- [js_source-api-uci.md](./js_source-api-uci.md) (95 tokens) - No description
+- [js_source-api-ui.md](./js_source-api-ui.md) (69 tokens) - No description
+- [js_source-api-widgets.md](./js_source-api-widgets.md) (126 tokens) - No description

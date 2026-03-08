@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "techref-odhcpd",
+  "original_url": "https://openwrt.org/docs/techref/odhcpd",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:14:21.348479+00:00",
+  "content_hash": "ea7a6f43"
+}

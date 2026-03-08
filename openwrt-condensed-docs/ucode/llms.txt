@@ -1,4 +1,17 @@
 # ucode module
-> **Total Context:** ~55 tokens
+> **Total Context:** ~90880 tokens
 
-- [api-fs.md](./api-fs.md) (55 tokens) - Mock summary for ucode fs (UPDATED). This handles atomic writes.
+- [c_source-api-module-debug.md](./c_source-api-module-debug.md) (4397 tokens) - No description
+- [c_source-api-module-digest.md](./c_source-api-module-digest.md) (2040 tokens) - No description
+- [c_source-api-module-fs.md](./c_source-api-module-fs.md) (11943 tokens) - No description
+- [c_source-api-module-io.md](./c_source-api-module-io.md) (4766 tokens) - No description
+- [c_source-api-module-log.md](./c_source-api-module-log.md) (5577 tokens) - No description
+- [c_source-api-module-math.md](./c_source-api-module-math.md) (3156 tokens) - No description
+- [c_source-api-module-nl80211.md](./c_source-api-module-nl80211.md) (4244 tokens) - No description
+- [c_source-api-module-resolv.md](./c_source-api-module-resolv.md) (2586 tokens) - No description
+- [c_source-api-module-rtnl.md](./c_source-api-module-rtnl.md) (9218 tokens) - No description
+- [c_source-api-module-socket.md](./c_source-api-module-socket.md) (15013 tokens) - No description
+- [c_source-api-module-struct.md](./c_source-api-module-struct.md) (7885 tokens) - No description
+- [c_source-api-module-uci.md](./c_source-api-module-uci.md) (8826 tokens) - No description
+- [c_source-api-module-uloop.md](./c_source-api-module-uloop.md) (8838 tokens) - No description
+- [c_source-api-module-zlib.md](./c_source-api-module-zlib.md) (2391 tokens) - No description

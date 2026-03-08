@@ -3,7 +3,337 @@
  * Target: Language Server Protocol (LSP) IDE Autocomplete
  */
 
+declare module "buffer" {
+    export function end() ⇒ [`buffer`](#module_struct.buffer: any);
+    export function get(format: any);
+    export function length([length]) ⇒ `number` \| [`buffer`](#module_struct.buffer: any);
+    export function pos([position]) ⇒ `number` \| [`buffer`](#module_struct.buffer: any);
+    export function pull();
+    export function put(format: any, ...values) ⇒ [`buffer`](#module_struct.buffer: any);
+    export function set([value]: any, [start]: any, [end]) ⇒ [`buffer`](#module_struct.buffer: any);
+    export function slice([start]: any, [end]: any);
+    export function start() ⇒ [`buffer`](#module_struct.buffer: any);
+}
+
+declare module "cursor" {
+    export function ChangeRecord();
+    export function ParserFlags();
+    export function SectionCallback();
+    export function SectionObject();
+    export function add(config: any, type: any);
+    export function changes([config]: any);
+    export function commit([config]: any);
+    export function configs();
+    export function delete(config: any, section: any, [option]: any);
+    export function error();
+    export function foreach(config: any, type: any, callback: any);
+    export function get();
+    export function list();
+    export function load(config: any);
+    export function rename(config: any, section: any, option_or_name: any, [name]: any);
+    export function reorder(config: any, section: any, index: any);
+    export function revert([config]: any);
+    export function save([config]: any);
+    export function set(config: any, section: any, option_or_type: any, [value]: any);
+    export function unload(config: any);
+}
+
+declare module "debug" {
+    export function LocalInfo();
+    export function SourcePosition();
+    export function StackTraceEntry();
+    export function UpvalInfo();
+    export function UpvalRef();
+    export function ValueInformation();
+    export function getinfo(value) ⇒ [`ValueInformation`](#module_debug.ValueInformation: any);
+    export function getlocal([level]: any, variable) ⇒ [`LocalInfo`](#module_debug.LocalInfo: any);
+    export function getupval(target: any, variable) ⇒ [`UpvalInfo`](#module_debug.UpvalInfo: any);
+    export function memdump(file: any);
+    export function setlocal([level]: any, variable: any, [value]) ⇒ [`LocalInfo`](#module_debug.LocalInfo: any);
+    export function setupval(target: any, variable: any, value) ⇒ [`UpvalInfo`](#module_debug.UpvalInfo: any);
+    export function sourcepos() ⇒ [`SourcePosition`](#module_debug.SourcePosition: any);
+    export function traceback([level]) ⇒ [`Array.<StackTraceEntry>`](#module_debug.StackTraceEntry: any);
+}
+
+declare module "deflate" {
+    export function error();
+    export function read();
+    export function write(src: any, [flush]: any);
+}
+
+declare module "digest" {
+    export function md2();
+    export function md4();
+    export function md5();
+    export function sha1();
+    export function sha256();
+    export function sha384();
+    export function sha512();
+}
+
+declare module "dir" {
+    export function close();
+    export function error();
+    export function fileno();
+    export function read();
+    export function seek(offset: any);
+    export function tell();
+}
+
+declare module "file" {
+    export function close();
+    export function error();
+    export function fileno();
+    export function flush();
+    export function ioctl(direction: any, type: any, num: any, [value]: any);
+    export function isatty();
+    export function lock([op]: any);
+    export function read(length: any);
+    export function seek([offset]: any, [position]: any);
+    export function tell();
+    export function truncate([offset]: any);
+    export function write(data: any);
+}
+
 declare module "fs" {
-    export function readfile(path: any);
-    export function writefile(path: any, data: any);
+    export function FileStatResult();
+    export function access(path: any, [mode]: any);
+    export function basename(path: any);
+    export function chdir(path: any);
+    export function chmod(path: any, mode: any);
+    export function chown(path: any, [uid]: any, [gid]: any);
+    export function dir();
+    export function dirname(path: any);
+    export function dup2(oldfd: any, newfd: any);
+    export function error();
+    export function fdopen(fd: any, [mode]: any);
+    export function file();
+    export function getcwd();
+    export function lsdir(path: any);
+    export function lstat(path) ⇒ [`FileStatResult`](#module_fs.FileStatResult: any);
+    export function mkdir(path: any);
+    export function mkdtemp([template]: any);
+    export function mkstemp([template]) ⇒ [`file`](#module_fs.file: any);
+    export function open(path: any, [mode]: any, [perm]) ⇒ [`file`](#module_fs.file: any);
+    export function opendir(path) ⇒ [`dir`](#module_fs.dir: any);
+    export function pipe() ⇒ [`Array.<file>`](#module_fs.file: any);
+    export function popen(command: any, [mode]) ⇒ [`proc`](#module_fs.proc: any);
+    export function proc();
+    export function readfile(path: any, [limit]: any);
+    export function readlink(path: any);
+    export function realpath(path: any);
+    export function rename(oldPath: any, newPath: any);
+    export function rmdir(path: any);
+    export function stat(path) ⇒ [`FileStatResult`](#module_fs.FileStatResult: any);
+    export function symlink(target: any, path: any);
+    export function unlink(path: any);
+    export function writefile(path: any, data: any, [limit]: any);
+}
+
+declare module "handle" {
+    export function close();
+    export function delete();
+    export function dup() ⇒ [`handle`](#module_io.handle: any);
+    export function dup2(newfd: any);
+    export function error();
+    export function fcntl(cmd: any, [arg]) ⇒ `number` \| [`handle`](#module_io.handle: any);
+    export function fileno();
+    export function grantpt();
+    export function handle();
+    export function ioctl(direction: any, type: any, num: any, [value]: any);
+    export function isatty();
+    export function ptsname();
+    export function read(length: any);
+    export function seek([offset]: any, [whence]: any);
+    export function tcgetattr();
+    export function tcsetattr(attrs: any, [when]: any);
+    export function tell();
+    export function unlockpt();
+    export function write(data: any);
+}
+
+declare module "inflate" {
+    export function error();
+    export function read();
+    export function write(src: any, [flush]: any);
+}
+
+declare module "instance" {
+    export function pack(...values: any);
+    export function unpack(input: any, [offset]: any);
+}
+
+declare module "interval" {
+    export function cancel();
+    export function expirations();
+    export function remaining();
+    export function set([interval]: any);
+}
+
+declare module "io" {
+    export function error();
+    export function from(value) ⇒ [`handle`](#module_io.handle: any);
+    export function handle();
+    export function new(fd) ⇒ [`handle`](#module_io.handle: any);
+    export function open(path: any, [flags]: any, [mode]) ⇒ [`handle`](#module_io.handle: any);
+    export function pipe() ⇒ [`Array.<handle>`](#module_io.handle: any);
+}
+
+declare module "listener" {
+    export function close();
+    export function set();
+}
+
+declare module "log" {
+    export function ERR(format: any, [...args]: any);
+    export function INFO(format: any, [...args]: any);
+    export function LogFacility();
+    export function LogOption();
+    export function LogPriority();
+    export function NOTE(format: any, [...args]: any);
+    export function UlogChannel();
+    export function WARN(format: any, [...args]: any);
+    export function closelog();
+    export function openlog([ident]: any, [options]: any, [facility]: any);
+    export function syslog(priority: any, format: any, [...args]: any);
+    export function ulog();
+}
+
+declare module "math" {
+    export function abs(number: any);
+    export function atan2(y: any, x: any);
+    export function cos(x: any);
+    export function exp(x: any);
+    export function isnan(x: any);
+    export function log(x: any);
+    export function pow(x: any, y: any);
+    export function rand([a]: any, [b]: any);
+    export function sin(x: any);
+    export function sqrt(x: any);
+    export function srand(seed: any);
+}
+
+declare module "nl80211" {
+    export function listener();
+}
+
+declare module "pipe" {
+    export function receive();
+    export function receiving();
+    export function send(msg: any);
+    export function sending();
+}
+
+declare module "proc" {
+    export function close();
+    export function error();
+    export function fileno();
+    export function flush();
+    export function read(length: any);
+    export function write(data: any);
+}
+
+declare module "process" {
+    export function delete();
+    export function pid();
+}
+
+declare module "resolv" {
+    export function error();
+    export function query(names: any, [options]: any);
+}
+
+declare module "rtnl" {
+    export function error();
+    export function listener();
+    export function request(cmd: any, flags: any, payload: any);
+}
+
+declare module "signal" {
+    export function delete();
+    export function signo();
+}
+
+declare module "socket" {
+    export function AddressInfo();
+    export function ControlMessage();
+    export function PeerCredentials();
+    export function PollSpec();
+    export function ReceivedMessage();
+    export function SocketAddress();
+    export function accept([address]: any, [flags]) ⇒ [`socket`](#module_socket.socket: any);
+    export function addrinfo(hostname: any, [service]: any, [hints]) ⇒ [`Array.<AddressInfo>`](#module_socket.AddressInfo: any);
+    export function bind(address: any);
+    export function close();
+    export function connect(address: any, port: any);
+    export function create([domain]: any, [type]: any, [protocol]) ⇒ [`socket`](#module_socket.socket: any);
+    export function error([numeric]: any);
+    export function fileno();
+    export function getopt(level: any, option: any);
+    export function listen([backlog]: any);
+    export function nameinfo(address: any, [flags]: any);
+    export function open([fd]) ⇒ [`socket`](#module_socket.socket: any);
+    export function pair([type]: any);
+    export function peercred() ⇒ [`PeerCredentials`](#module_socket.socket.PeerCredentials: any);
+    export function peername() ⇒ [`SocketAddress`](#module_socket.socket.SocketAddress: any);
+    export function poll(timeout: any, ...sockets) ⇒ [`Array.<PollSpec>`](#module_socket.PollSpec: any);
+    export function recv([length]: any, [flags]: any, [address]: any);
+    export function recvmsg([sizes]: any, [ancillarySize]: any, [flags]) ⇒ [`ReceivedMessage`](#module_socket.socket.ReceivedMessage: any);
+    export function send(data: any, [flags]: any, [address]: any);
+    export function sendmsg([data]: any, [ancillaryData]: any, [address]: any, [flags]: any);
+    export function setopt(level: any, option: any, value: any);
+    export function shutdown(how: any);
+    export function sockaddr(address) ⇒ [`SocketAddress`](#module_socket.socket.SocketAddress: any);
+    export function socket();
+    export function sockname() ⇒ [`SocketAddress`](#module_socket.socket.SocketAddress: any);
+    export function strerror(code: any);
+}
+
+declare module "struct" {
+    export function buffer();
+    export function instance();
+    export function new(format) ⇒ [`instance`](#module_struct.instance: any);
+    export function pack(format: any, ...values: any);
+    export function unpack(format: any, input: any, [offset]: any);
+}
+
+declare module "task" {
+    export function finished();
+    export function kill();
+    export function pid();
+}
+
+declare module "timer" {
+    export function cancel();
+    export function remaining();
+    export function set([timeout]: any);
+}
+
+declare module "uci" {
+    export function cursor();
+    export function error();
+}
+
+declare module "uloop" {
+    export function cancelling();
+    export function done();
+    export function end();
+    export function error();
+    export function handle();
+    export function init();
+    export function interval();
+    export function pipe();
+    export function process();
+    export function run([timeout]: any);
+    export function running();
+    export function signal();
+    export function task();
+    export function timer();
+}
+
+declare module "zlib" {
+    export function deflate();
+    export function deflater([gzip]: any, [level]) ⇒ [`deflate`](#module_zlib.deflate: any);
+    export function inflate();
+    export function inflater() ⇒ [`inflate`](#module_zlib.inflate: any);
 }

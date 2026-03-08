@@ -1,0 +1,4 @@
+# openwrt-hotplug module
+> **Total Context:** ~1412 tokens
+
+- [hotplug_event-netifd-hotplug-events.md](./hotplug_event-netifd-hotplug-events.md) (1412 tokens) - No description

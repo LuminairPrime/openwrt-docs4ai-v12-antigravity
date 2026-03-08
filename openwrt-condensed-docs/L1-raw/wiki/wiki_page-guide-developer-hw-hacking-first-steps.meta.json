@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "guide-developer-hw-hacking-first-steps",
+  "original_url": "https://openwrt.org/docs/guide-developer/hw.hacking.first.steps",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:11:04.174035+00:00",
+  "content_hash": "21d23d29"
+}

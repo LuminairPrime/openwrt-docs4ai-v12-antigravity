@@ -2,14 +2,23 @@
 > For a flat file listing, see [llms-full.txt](./llms-full.txt)
 
 > **Version:** openwrt/openwrt@unknown, openwrt/luci@unknown
-> **Total Context Available:** ~5130 tokens
+> **Total Context Available:** ~432777 tokens
+
+## Core Daemons
+- [procd](./procd/llms.txt): No description (~352 tokens)
+- [uci](./uci/llms.txt): No description (~420 tokens)
+- [openwrt-hotplug](./openwrt-hotplug/llms.txt): No description (~1412 tokens)
 
 ## Scripting & Logic
-- [ucode](./ucode/llms.txt): Mock summary for ucode fs (UPDATED). This handles atomic writes. (~55 tokens)
-- [luci](./luci/llms.txt): Mock summary for LuCI XHR. It provides AJAX capabilities. (~52 tokens)
+- [ucode](./ucode/llms.txt): No description (~90880 tokens)
+- [luci](./luci/llms.txt): No description (~19723 tokens)
+
+## Ecosystem
+- [openwrt-core](./openwrt-core/llms.txt): No description (~19845 tokens)
+- [luci-examples](./luci-examples/llms.txt): No description (~100272 tokens)
 
 ## Manuals
-- [wiki](./wiki/llms.txt): No description (~5023 tokens)
+- [wiki](./wiki/llms.txt): No description (~199873 tokens)
 
 ## Complete Aggregation
 If your context window permits, you may fetch the flat URL index:

@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "techref-mountd",
+  "original_url": "https://openwrt.org/docs/techref/mountd",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:14:07.780035+00:00",
+  "content_hash": "b2359386"
+}

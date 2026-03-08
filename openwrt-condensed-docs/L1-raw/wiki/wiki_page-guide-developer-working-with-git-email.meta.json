@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "guide-developer-working-with-git-email",
+  "original_url": "https://openwrt.org/docs/guide-developer/working-with-git-email",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:12:32.639183+00:00",
+  "content_hash": "075496e2"
+}

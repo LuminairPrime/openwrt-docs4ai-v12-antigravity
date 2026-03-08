@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "guide-developer-creating-a-cmake-package-in-openwrt",
+  "original_url": "https://openwrt.org/docs/guide-developer/creating-a-cmake-package-in-openwrt",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:10:23.941430+00:00",
+  "content_hash": "61a2df1e"
+}

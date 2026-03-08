@@ -1,0 +1,11 @@
+{
+  "extractor": "02a-scrape-wiki.py",
+  "origin_type": "wiki_page",
+  "module": "wiki",
+  "slug": "guide-developer-device-support-policies",
+  "original_url": "https://openwrt.org/docs/guide-developer/device-support-policies",
+  "language": "text",
+  "fetch_status": "success",
+  "extraction_timestamp": "2026-03-08T11:10:40.871587+00:00",
+  "content_hash": "abfd8d93"
+}
