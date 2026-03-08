@@ -2,17 +2,17 @@
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-03-normalize-L2.py ---
 [03] L2 Normalization Engine
 [03] Pass 1: YAML Schema Injection & Link Registry Build
-[03] Pass 1 complete: 2 L2 files staged, 3 symbols registered.
+[03] Pass 1 complete: 3 L2 files staged, 4 symbols registered.
 [03] Pass 2: Injecting Cross-Links
 [03] Pass 2 complete: 1 links injected across 1 files.
 [03] Engine run complete.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-03b-promote-intermediates.py ---
 [03b] Promote intermediate layers to staging OUTDIR
-[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\.L1-raw -> C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\out\.L1-raw
-[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\.L2-semantic -> C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\out\.L2-semantic
-[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\cross-link-registry.json -> C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\out\cross-link-registry.json
-[03b] INFO: File C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\repo-manifest.json not found to promote (it may be optional).
+[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\.L1-raw -> C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\out\.L1-raw
+[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\.L2-semantic -> C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\out\.L2-semantic
+[03b] Promoted C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\cross-link-registry.json -> C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\out\cross-link-registry.json
+[03b] INFO: File C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\repo-manifest.json not found to promote (it may be optional).
 [03b] Complete.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-04-generate-summaries.py ---
@@ -21,14 +21,16 @@
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-05-assemble-references.py ---
 [05] Assemble L4 monolithic files and L3 skeletons
 [05] Processing module: procd (1 files)
-[05] OK: procd L4 (21 tokens) and L3 skeleton
+[05] OK: procd L4 (84 tokens) and L3 skeleton
 [05] Processing module: uci (1 files)
 [05] OK: uci L4 (24 tokens) and L3 skeleton
-[05] Complete: 4 artifacts generated.
+[05] Processing module: ucode (1 files)
+[05] OK: ucode L4 (20 tokens) and L3 skeleton
+[05] Complete: 6 artifacts generated.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06a-generate-llms-txt.py ---
 [06a] Generating L3 Navigational Maps (llms.txt)
-[06a] Indexed 2 files totaling ~45 tokens.
+[06a] Indexed 3 files totaling ~128 tokens.
 [06a] Complete: Generated llms.txt, llms-full.txt, and module-level indexes.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06b-generate-agents-md.py ---
@@ -37,7 +39,7 @@
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06c-generate-ide-schemas.py ---
 [06c] Generating ucode.d.ts IDE schemas
-[06c] INFO: No ucode symbols found in registry. Skipping .d.ts generation.
+[06c] OK: C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\out\ucode\ucode.d.ts (1 symbols)
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-06d-generate-changelog.py ---
 [06d] Generating L5 Changelog and Telemetry
@@ -49,11 +51,11 @@
 [07] OK: index.html generated successfully.
 
 --- Running C:\Users\MC\Documents\AirSentinel\openwrt-docs4ai-v12-antigravity\.github\scripts\openwrt-docs4ai-08-validate.py ---
-[08] Security & Quality Validation (C:\Users\MC\AppData\Local\Temp\tmpcre2kinm\out)
+[08] Security & Quality Validation (C:\Users\MC\AppData\Local\Temp\tmppp7u2km2\out)
 
 [08] ----------------------------------------------
 [08] Validation Results
-[08]   Files Checked: 7
+[08]   Files Checked: 9
 [08]   Hard Failures: 0
 [08]   Soft Warnings: 0
 [08] ----------------------------------------------

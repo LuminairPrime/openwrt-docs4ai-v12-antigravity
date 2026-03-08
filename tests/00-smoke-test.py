@@ -123,6 +123,12 @@ def main():
         with open(os.path.join(l1_dir, "procd", "init.meta.json"), "w", encoding="utf-8") as f:
             json.dump({"module": "procd", "origin_type": "c_source", "language": "c", "slug": "init"}, f)
 
+        os.makedirs(os.path.join(l1_dir, "ucode"), exist_ok=True)
+        with open(os.path.join(l1_dir, "ucode", "api-fs.md"), "w", encoding="utf-8") as f:
+            f.write("# ucode fs module\n\n## fs.open(path, mode = 'r')\nOpens a file.")
+        with open(os.path.join(l1_dir, "ucode", "api-fs.meta.json"), "w", encoding="utf-8") as f:
+            json.dump({"module": "ucode", "origin_type": "c_source", "language": "c", "slug": "api-fs"}, f)
+
         for script in scripts_to_run:
             # Skip all extractors (02a-02h)
             if any(x in script for x in ["02a", "02b", "02c", "02d", "02e", "02f", "02g", "02h"]):

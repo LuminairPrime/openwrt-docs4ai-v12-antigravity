@@ -196,33 +196,35 @@ for root, _, files in os.walk(L1_DIR):
         
         # Extract symbols for registry
         l2_rel = f"{module}/{f}"
-        for m in re.finditer(r'^#{2,4}\s+[`"]?([A-Za-z][A-Za-z0-9_.]+(?:\(\))?)[`"]?', content, re.MULTILINE):
-            symbol = m.group(1).rstrip("()")
+        # Matches: ## Symbol or ## Symbol(args)
+        for m in re.finditer(r'^#{2,4}\s+[`"]?([A-Za-z][A-Za-z0-9_.]+(?:\(.*\))?)[`"]?', content, re.MULTILINE):
+            raw_node = m.group(1)
+            symbol = re.split(r'\(', raw_node)[0].strip()
             if not is_code_symbol(symbol):
                 continue
             
-            # Use heuristic to build registry signature and relative target
+            # Signature is either the balanced paren block or just the symbol()
+            signature = raw_node
+            if "(" not in signature:
+                signature = f"{symbol}()"
+            
+            payload = {
+                "signature": signature,
+                "file": l1_rel,
+                "relative_target": f"../{l2_rel}",
+                "returns": "any",
+                "parameters": []
+            }
+            
             if symbol not in cross_link_registry["symbols"]:
-                cross_link_registry["symbols"][symbol] = {
-                    "signature": f"{symbol}()" if m.group(1).endswith("()") else symbol,
-                    "file": l1_rel,
-                    "relative_target": f"../{l2_rel}",
-                    "returns": "any",
-                    "parameters": []
-                }
+                cross_link_registry["symbols"][symbol] = payload
             else:
-                # Prefer API docs over others
+                # Prefer API docs (ucode/luci) over others for the linking target
                 current = cross_link_registry["symbols"][symbol]["file"]
-                this_is_api = "ucode" in l1_rel or "luci" in l1_rel
-                curr_is_api = "ucode" in current or "luci" in current
+                this_is_api = any(x in l1_rel for x in ["ucode", "luci"])
+                curr_is_api = any(x in current for x in ["ucode", "luci"])
                 if this_is_api and not curr_is_api:
-                    cross_link_registry["symbols"][symbol] = {
-                        "signature": f"{symbol}()" if m.group(1).endswith("()") else symbol,
-                        "file": l1_rel,
-                        "relative_target": f"../{l2_rel}",
-                        "returns": "any",
-                        "parameters": []
-                    }
+                    cross_link_registry["symbols"][symbol] = payload
 
 # Save cross-link registry
 registry_path = os.path.join(WORKDIR, "cross-link-registry.json")

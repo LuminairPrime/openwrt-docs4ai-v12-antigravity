@@ -85,10 +85,14 @@ for mod_name, funcs in sorted(modules.items()):
             if "(" in sig and ")" in sig:
                 params_str = sig.split("(", 1)[1].rsplit(")", 1)[0]
                 if params_str.strip():
-                    params = [p.strip() for p in params_str.split(",")]
-                    sig_ts = f"{f['name']}({', '.join([f'{p}: any' for p in params])})"
+                    # Handle parameters like 'a' or 'a = 1'
+                    params = []
+                    for p in params_str.split(","):
+                        p_name = p.strip().split("=")[0].strip()
+                        params.append(f"{p_name}: any")
+                    sig_ts = f"{f['name']}({', '.join(params)})"
                 else:
-                    sig_ts = f"export function {f['name']}(): {f['returns']};"
+                    sig_ts = f"{f['name']}()"
             else:
                 sig_ts = f"export function {f['name']}(...args: any[]): {f['returns']};"
             

@@ -130,6 +130,15 @@ jobs:
           pattern: L1-*
           path: ${{ env.WORKDIR }}/.L1-raw/
           merge-multiple: true
+      - name: Prepare Baseline
+        run: |
+          mkdir -p baseline
+          if [ -f "$PUBLISH_DIR/signature-inventory.json" ]; then
+            cp "$PUBLISH_DIR/signature-inventory.json" baseline/
+            echo "Baseline inventory found and staged."
+          else
+            echo "No baseline inventory found in $PUBLISH_DIR."
+          fi
       - name: Normalize L2
         run: python .github/scripts/openwrt-docs4ai-03-normalize-L2.py
       - name: Promote to Staging
