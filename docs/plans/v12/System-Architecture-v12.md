@@ -34,13 +34,13 @@ The pipeline scripts will be aggressively refactored to align with the explicit 
 - **The Code Wrapper Compliance Check:** Scripts fetching raw code must conform to the **L1 Raw Code Schema**. They will wrap the code in markdown fences (```` ```javascript ````) prepended with an `H1` denoting the file name.
 
 ### 2.2 The Normalization & Promotion Engine (L2 Target, Modular Three-Phase)
-- **Target Script:** `03-normalize-L2.py`.
+- **Target Script:** `03-normalize-semantic.py`.
 - **Integrated Pipeline Role:** This script functions as the primary state-machine for documentation enrichment. It natively handles metadata injection, cross-linking, and the final atomic promotion to the staging area to guarantee that only fully-processed artifacts reach the output directory.
 - **Modular Internal Structure:** The script MUST be partitioned into discrete, testable functions for (1) `pass_1_normalize_all`, (2) `pass_2_link_all`, and (3) `promote_to_staging`.
 - **Reproducible Determinism:** Iterate over modules and files in sorted alphabetical order. Output YAML keys in identical deterministic sequences via a robust YAML serializer (`pyyaml`). 
 - **Performance Constraints:** All regex patterns used for symbol replacement MUST be pre-compiled *once* outside the file processing loops.
 - **Implementation (Pass 1 - Stamping):** Ingest `.L1-raw/` and `.meta.json` files. Calculate tokens for the Markdown *body only*. Apply the **L2 Semantic Schema**. Extract signatures to a JSON registry (`cross-link-registry.json`). 
-- **Pass 1 Failure Boundary:** If the corresponding `.meta.json` is missing or malformed, `03-normalize-L2.py` MUST trigger a fatal error and exit non-zero immediately.
+- **Pass 1 Failure Boundary:** If the corresponding `.meta.json` is missing or malformed, `03-normalize-semantic.py` MUST trigger a fatal error and exit non-zero immediately.
 - **Implementation (Pass 3 - Deprecation):** Scan `ucode` and `luci` API docs for symbols followed by "Deprecated" markers. Tag these in the registry. For wiki pages referencing these symbols, inject a `[!WARNING]` callout to alert the agent/user of upcoming API breakage.
 - **Implementation (Promotion):** Once the three passes are clean, atomically copy the stage layers from `WORKDIR` to `OUTDIR`. Clear existing `OUTDIR` staging subdirectories first to ensure build purity.
 - **Optional AI Extractor (`04`):** If `SKIP_AI=false`, script `04` appends the `ai_summary` field in-place within the staged layer. 

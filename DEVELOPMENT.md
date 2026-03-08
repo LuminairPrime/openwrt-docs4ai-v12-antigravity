@@ -71,7 +71,7 @@ In CI, `OUTDIR` points to `$GITHUB_WORKSPACE/staging` so nothing touches the rep
 > requests per month, making automated summarization impractical for regular pipeline runs.
 > The `SKIP_AI` flag defaults to `true` and the pipeline produces fully valid output without
 > AI summaries. To manually generate summaries, see the copy-paste prompt in
-> `.github/scripts/openwrt-docs4ai-04-generate-summaries.py` — paste it into any AI chatbot
+> `.github/scripts/openwrt-docs4ai-04-generate-ai-summaries.py` — paste it into any AI chatbot
 > along with the `.md` file content you want summarized.
 
 ## Script Reference
@@ -86,8 +86,8 @@ In CI, `OUTDIR` points to `$GITHUB_WORKSPACE/staging` so nothing touches the rep
 | `02e-scrape-example-packages.py` | 2 | Copy curated LuCI examples |
 | `02f-scrape-procd-api.py` | 2 | Scrape `procd` init script blocks |
 | `02h-scrape-hotplug-events.py` | 2 | Extract network and subsystem hotplug env variables |
-| `03-add-links.py` | 3 | Inject cross-references between docs |
-| `04-generate-summaries.py` | 3 | AI-generated module summaries |
+| `03-normalize-semantic.py` | 3 | Inject cross-references between docs |
+| `04-generate-ai-summaries.py` | 3 | AI-generated module summaries |
 | `05-assemble-references.py` | 4 | Build complete reference mega-files & `*-skeleton.md` maps |
 | `06-generate-index.py` | 4 | Generate llms.txt, CHANGES.md, index.md |
 | `07-validate.py` | 5 | Validation gate (staging check + 2MB size cap) |

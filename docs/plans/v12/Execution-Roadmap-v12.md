@@ -33,7 +33,7 @@ We will *not* merge to `main` until the entire 6-checkpoint sequence is running 
 
 ### Checkpoint 2.7: The Optional AI Enricher (Script `04`)
 **Goal:** Run the cost-gated AI summarization against the stable `OUTDIR` files explicitly after promotion.
-1.  **Optional AI Ext (`04`):** Define `04-generate-summaries.py` to optionally append `ai_summary` tags to the new L2 schemas *in place* in `$OUTDIR/.L2-semantic/` if enabled via `SKIP_AI=false`.
+1.  **Optional AI Ext (`04`):** Define `04-generate-ai-summaries.py` to optionally append `ai_summary` tags to the new L2 schemas *in place* in `$OUTDIR/.L2-semantic/` if enabled via `SKIP_AI=false`.
 
 ### Checkpoint 3: The L4 Monolithic Assembler (Script `05`)
 **Goal:** Stitch the clean L2 arrays together into context-window files, and produce structural sketches.

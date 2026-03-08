@@ -28,9 +28,9 @@
 ## Script Handoffs & Dependencies
 - `01-clone-repos.py` -> Clones to L0 (`tmp/repo-*/`) and generates `tmp/repo-manifest.json`
 - `02a`-`02h` -> Reads L0, writes to L1 (`tmp/.L1-raw/{module}/`) with `.meta.json` sidecars mapping schema fields
-- `03-enrich-semantics.py` -> Reads L1 and `meta.json`, writes to L2 (`tmp/.L2-semantic/{module}/`) & generates `tmp/cross-link-registry.json`
+- `03-normalize-semantic.py` -> Reads L1 and `meta.json`, writes to L2 (`tmp/.L2-semantic/{module}/`) & generates `tmp/cross-link-registry.json`
 - (Promotion Phase) -> Copies `tmp/.L1-raw` and `tmp/.L2-semantic` to `openwrt-condensed-docs/` along with `repo-manifest.json` and `cross-link-registry.json`
-- `04-generate-summaries.py` (Optional) -> Mutates `openwrt-condensed-docs/.L2-semantic/` in-place
+- `04-generate-ai-summaries.py` (Optional) -> Mutates `openwrt-condensed-docs/.L2-semantic/` in-place
 - `05-assemble-references.py` -> Reads L2, generates L3 skeletons and L4 monoliths
 - `06a-generate-llms-txt.py` -> Reads L2, generates `llms.txt` and `llms-full.txt`
 - `06b-generate-agents-md.py` -> Generates `AGENTS.md` and root `README.md`

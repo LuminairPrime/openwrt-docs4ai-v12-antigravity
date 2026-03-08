@@ -1,0 +1,26 @@
+{
+    "mock-hash-fs-123": {
+        "summary": "Mock summary for ucode fs. It handles file reads and writes.",
+        "when_to_use": "Use this when your script needs direct filesystem access on OpenWrt.",
+        "related_topics": [
+            "fs.readfile",
+            "fs.writefile"
+        ]
+    },
+    "mock-hash-fs-789": {
+        "summary": "Mock summary for ucode fs (UPDATED). This handles atomic writes.",
+        "when_to_use": "Essential for reliable ucode filesystem operations.",
+        "related_topics": [
+            "fs.readfile",
+            "fs.writefile"
+        ]
+    },
+    "mock-hash-xhr-456": {
+        "summary": "Mock summary for LuCI XHR. It provides AJAX capabilities.",
+        "when_to_use": "Essential for creating dynamic web interfaces in LuCI.",
+        "related_topics": [
+            "LuCI.xhr.get",
+            "LuCI.xhr.post"
+        ]
+    }
+}

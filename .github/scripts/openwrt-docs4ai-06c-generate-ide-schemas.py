@@ -60,7 +60,8 @@ for sym, meta in ucode_symbols.items():
     modules[mod_name].append({
         "name": func_name,
         "sig": meta.get("signature", f"{func_name}()"),
-        "returns": meta.get("returns", "any")
+        "returns": meta.get("returns", "any"),
+        "desc": meta.get("ai_summary") or meta.get("description")
     })
 
 # Construct .d.ts content
@@ -113,6 +114,10 @@ for mod_name, funcs in sorted(modules.items()):
             if not sig_ts.startswith("export function"):
                 sig_ts = f"export function {sig_ts};"
             
+            if f.get("desc"):
+                dts_lines.append("    /**")
+                dts_lines.append(f"     * {f['desc']}")
+                dts_lines.append("     */")
             dts_lines.append(f"    {sig_ts}")
         dts_lines.append("}")
     dts_lines.append("")

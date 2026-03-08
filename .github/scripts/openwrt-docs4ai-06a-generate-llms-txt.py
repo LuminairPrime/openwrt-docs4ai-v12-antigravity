@@ -27,7 +27,7 @@ except ImportError:
     sys.exit(1)
 
 OUTDIR = config.OUTDIR
-L2_DIR = os.path.join(OUTDIR, ".L2-semantic")
+L2_DIR = os.path.join(OUTDIR, "L2-semantic")
 
 if not os.path.isdir(L2_DIR):
     print(f"[06a] FAIL: L2 directory not found: {L2_DIR}")
@@ -81,7 +81,8 @@ for module in sorted(os.listdir(L2_DIR)):
             fm = yaml.safe_load(fm_text) or {}
             
             tokens = fm.get("token_count", 0)
-            desc = fm.get("description", "No description")
+            # Prioritize AI summary for description
+            desc = fm.get("ai_summary") or fm.get("description", "No description")
             
             global_tokens += tokens
             mod_tokens += tokens

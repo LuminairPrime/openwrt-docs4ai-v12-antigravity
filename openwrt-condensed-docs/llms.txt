@@ -1,0 +1,16 @@
+# openwrt-docs4ai - LLM Routing Index
+> For a flat file listing, see [llms-full.txt](./llms-full.txt)
+
+> **Version:** openwrt/openwrt@unknown, openwrt/luci@unknown
+> **Total Context Available:** ~5130 tokens
+
+## Scripting & Logic
+- [ucode](./ucode/llms.txt): Mock summary for ucode fs (UPDATED). This handles atomic writes. (~55 tokens)
+- [luci](./luci/llms.txt): Mock summary for LuCI XHR. It provides AJAX capabilities. (~52 tokens)
+
+## Manuals
+- [wiki](./wiki/llms.txt): No description (~5023 tokens)
+
+## Complete Aggregation
+If your context window permits, you may fetch the flat URL index:
+- [llms-full.txt](./llms-full.txt)

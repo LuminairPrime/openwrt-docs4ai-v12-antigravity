@@ -1,0 +1,4 @@
+# luci module
+> **Total Context:** ~52 tokens
+
+- [api-xhr.md](./api-xhr.md) (52 tokens) - Mock summary for LuCI XHR. It provides AJAX capabilities.

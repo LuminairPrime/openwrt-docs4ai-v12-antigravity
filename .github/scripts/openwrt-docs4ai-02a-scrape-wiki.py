@@ -3,7 +3,7 @@ Purpose: Scrape OpenWrt wiki pages to pure markdown format (L1 target).
 Phase: Extraction
 Layers: L0 -> L1
 Inputs: https://openwrt.org/docs/
-Outputs: tmp/.L1-raw/wiki/*.md and tmp/.L1-raw/wiki/*.meta.json
+Outputs: tmp/L1-raw/wiki/*.md and tmp/L1-raw/wiki/*.meta.json
 Environment Variables: WORKDIR, SKIP_WIKI, WIKI_MAX_PAGES
 Dependencies: requests, pandoc (system binary), lib.config, lib.extractor
 Notes: Enforces 1.5s delay to prevent bot rate-limits. Uses cache logic.

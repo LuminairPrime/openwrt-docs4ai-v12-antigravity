@@ -105,7 +105,7 @@ for fpath in all_md:
             break
 
     # L2 YAML Validation
-    if ".L2-semantic" in rel:
+    if "L2-semantic" in rel:
         if not content.startswith("---"):
             hard_fail(f"Missing YAML frontmatter in L2: {rel}")
         else:
@@ -124,7 +124,7 @@ for fpath in all_md:
 # Check 3: Link Integrity (L2 Relative Links)
 # ============================================================
 for fpath in all_md:
-    if ".L2-semantic" not in fpath:
+    if "L2-semantic" not in fpath:
         continue
     
     rel_dir = os.path.dirname(fpath)
@@ -165,7 +165,7 @@ def check_ast(code, lang, rel_path):
 
 # Only check small snippets in L1-raw/luci-examples/
 if JS_BINARY or UCODE_BINARY:
-    example_files = glob.glob(os.path.join(OUTDIR, ".L1-raw", "luci-examples", "*.md"))
+    example_files = glob.glob(os.path.join(OUTDIR, "L1-raw", "luci-examples", "*.md"))
     for fpath in example_files:
         rel = os.path.relpath(fpath, OUTDIR)
         with open(fpath, "r", encoding="utf-8") as f:

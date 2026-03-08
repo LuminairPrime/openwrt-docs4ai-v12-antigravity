@@ -28,7 +28,7 @@ except ImportError:
     sys.exit(1)
 
 OUTDIR = config.OUTDIR
-L2_DIR = os.path.join(OUTDIR, ".L2-semantic")
+L2_DIR = os.path.join(OUTDIR, "L2-semantic")
 
 if not os.path.isdir(L2_DIR):
     print(f"[05] FAIL: L2 semantic directory not found: {L2_DIR}")
@@ -98,8 +98,12 @@ for module in sorted(modules):
         concatenated_bodies.append(body_text)
         concatenated_bodies.append("\n\n---\n\n")
         
-        # Extract skeleton lines (Headers and function signatures)
-        # We assume headers (#) and potentially list items starting with code (`foo()`)
+        # Extract skeleton lines (Summary, Headers, and function signatures)
+        if fm.get("ai_summary"):
+            skeleton_lines.append(f"> **Summary:** {fm['ai_summary']}")
+        if fm.get("ai_when_to_use"):
+            skeleton_lines.append(f"> **Use Case:** {fm['ai_when_to_use']}")
+            
         for line in body_text.splitlines():
             if line.startswith("#"):
                 skeleton_lines.append(line)

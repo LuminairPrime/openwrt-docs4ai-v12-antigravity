@@ -1,0 +1,7 @@
+# openwrt-docs4ai - Complete Flat Catalog
+> **Total Context:** ~5130 tokens
+
+- [luci/api-xhr.md](./luci/api-xhr.md) (52 tokens) - Mock summary for LuCI XHR. It provides AJAX capabilities.
+- [ucode/api-fs.md](./ucode/api-fs.md) (55 tokens) - Mock summary for ucode fs (UPDATED). This handles atomic writes.
+- [wiki/wiki_page-guide-developer-20-xx-major-changes.md](./wiki/wiki_page-guide-developer-20-xx-major-changes.md) (2106 tokens) - No description
+- [wiki/wiki_page-guide-developer-add-new-device.md](./wiki/wiki_page-guide-developer-add-new-device.md) (2917 tokens) - No description

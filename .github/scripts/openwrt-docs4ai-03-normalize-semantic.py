@@ -1,9 +1,9 @@
 """
-Purpose: Two-pass L2 Normalization Engine & Staging Promotion.
+Purpose: Parallel L2 Semantic Normalization & Staging Promotion.
 Phase: Process
 Layers: L1 -> L2 (Normalization) -> Staging (Promotion)
-Inputs: tmp/.L1-raw/
-Outputs: staging/.L1-raw/, staging/.L2-semantic/, staging/cross-link-registry.json
+Inputs: tmp/L1-raw/
+Outputs: staging/L1-raw/, staging/L2-semantic/, staging/cross-link-registry.json
 Environment Variables: WORKDIR, OUTDIR, OPENWRT_COMMIT, LUCI_COMMIT, UCODE_COMMIT
 Dependencies: tiktoken, lib.config, shutil
 Notes: Pass 1/2 handles normalization. Final block promotes intermediates to staging.
@@ -220,7 +220,7 @@ def promote_to_staging(registry_path):
     print("[03] Promoting to staging OUTDIR")
     dst_root = config.OUTDIR
     os.makedirs(dst_root, exist_ok=True)
-    for d in [(".L1-raw", L1_DIR), (".L2-semantic", L2_DIR)]:
+    for d in [("L1-raw", L1_DIR), ("L2-semantic", L2_DIR)]:
         dst = os.path.join(dst_root, d[0])
         if os.path.exists(dst): shutil.rmtree(dst)
         shutil.copytree(d[1], dst)

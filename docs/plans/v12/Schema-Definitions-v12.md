@@ -314,8 +314,8 @@ The `uloop` module provides the event loop implementation.
 | :--- | :--- | :--- | :--- |
 | `01-clone-repos.py` | Source Fetcher | **L0** | Remote Server to Local Disk |
 | `02*-scrape-*.py` | Domain Normalizers | **L1** | HTML/Code Block to Pure `.md` |
-| `03-enrich-semantics.py` | Semantic Enricher | **L2** | `L1 + YAML Frontmatter + Markdown Links` |
-| `04-generate-summaries.py` | AI Enricher (Opt) | **L2 (Meta)** | Augments L2 YAML with AI metadata |
+| `03-normalize-semantic.py` | Semantic Enricher | **L2** | `L1 + YAML Frontmatter + Markdown Links` |
+| `04-generate-ai-summaries.py` | AI Enricher (Opt) | **L2 (Meta)** | Augments L2 YAML with AI metadata |
 | `05-assemble-references.py`| The Aggregator | **L3, L4** | `L2` Concatenation → Monoliths (`L4`) & Skeletons (`L3`) |
 | `06a-generate-llms-txt.py` | Routing Indexes | **L3** | `L2 Metadata` → `llms.txt` / `llms-full.txt` |
 | `06b-generate-agents-md.py` | Routing Indexes | **L3** | Generates `AGENTS.md` & `README.md` |

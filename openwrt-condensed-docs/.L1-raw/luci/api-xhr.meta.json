@@ -1,0 +1,8 @@
+{
+    "module": "luci",
+    "origin_type": "js_source",
+    "language": "javascript",
+    "slug": "api-xhr",
+    "content_hash": "mock-hash-xhr-456",
+    "upstream_path": "modules/luci-base/htdocs/luci-static/resources/luci.js"
+}

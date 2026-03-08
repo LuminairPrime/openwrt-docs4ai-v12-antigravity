@@ -1,0 +1,53 @@
+{
+  "pipeline_date": "2026-03-08T10:52:48.001472+00:00",
+  "symbols": {
+    "LuCI.xhr.get": {
+      "signature": "LuCI.xhr.get(url, data, cb)",
+      "file": ".L1-raw/luci/api-xhr.md",
+      "relative_target": "../luci/api-xhr.md",
+      "returns": "any",
+      "parameters": [],
+      "deprecated": false
+    },
+    "LuCI.xhr.post": {
+      "signature": "LuCI.xhr.post(url, data, cb)",
+      "file": ".L1-raw/luci/api-xhr.md",
+      "relative_target": "../luci/api-xhr.md",
+      "returns": "any",
+      "parameters": [],
+      "deprecated": false
+    },
+    "fs.readfile": {
+      "signature": "fs.readfile(path)",
+      "file": ".L1-raw/ucode/api-fs.md",
+      "relative_target": "../ucode/api-fs.md",
+      "returns": "any",
+      "parameters": [],
+      "deprecated": false
+    },
+    "fs.writefile": {
+      "signature": "fs.writefile(path, data)",
+      "file": ".L1-raw/ucode/api-fs.md",
+      "relative_target": "../ucode/api-fs.md",
+      "returns": "any",
+      "parameters": [],
+      "deprecated": false
+    },
+    "DEVICE_TITLE": {
+      "signature": "DEVICE_TITLE()",
+      "file": ".L1-raw/wiki/wiki_page-guide-developer-20-xx-major-changes.md",
+      "relative_target": "../wiki/wiki_page-guide-developer-20-xx-major-changes.md",
+      "returns": "any",
+      "parameters": [],
+      "deprecated": false
+    },
+    "GPIO": {
+      "signature": "GPIO()",
+      "file": ".L1-raw/wiki/wiki_page-guide-developer-add-new-device.md",
+      "relative_target": "../wiki/wiki_page-guide-developer-add-new-device.md",
+      "returns": "any",
+      "parameters": [],
+      "deprecated": false
+    }
+  }
+}

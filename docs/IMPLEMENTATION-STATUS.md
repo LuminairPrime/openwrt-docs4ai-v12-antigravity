@@ -19,11 +19,11 @@
 - **Git State**: Committed Checkpoint 1 as `feat: complete Checkpoint 1 (refactor 02a-02h extractors to L1 schema)`.
 
 ### 2026-03-08 (Checkpoint 2, 2.5, 2.7)
-- **Created `03-normalize-L2.py` Engine**: Replaced `03-add-links.py` with a two-pass architecture.
+- **Created `03-normalize-semantic.py` Engine**: Replaced `03-normalize-semantic.py` with a two-pass architecture.
   - Pass 1: Global tiktoken counting, YAML frontmatter injection, Mermaid template injection, and building `cross-link-registry.json`.
   - Pass 2: Injects relative cross-links using the generated registry.
 - **Created `03b-promote-intermediates.py` (CP 2.5)**: Coded explicit promotion of `$WORKDIR/.L1-raw`, `.L2-semantic`, `cross-link-registry.json`, and `repo-manifest.json` to `$OUTDIR`.
-- **Refactored `04-generate-summaries.py` (CP 2.7)**: Adjusted AI enrichment to target the promoted stable L2 layer in `$OUTDIR/.L2-semantic/` and inject `ai_summary` securely into existing YAML frontmatter.
+- **Refactored `04-generate-ai-summaries.py` (CP 2.7)**: Adjusted AI enrichment to target the promoted stable L2 layer in `$OUTDIR/.L2-semantic/` and inject `ai_summary` securely into existing YAML frontmatter.
 - **Git State**: Committed Checkpoints 2, 2.5, and 2.7 as `feat: complete Checkpoints 2/2.5/2.7 (L2 Normalizer, Promotion, AI Enrich)`.
 
 ### 2026-03-08 (Checkpoint 3)

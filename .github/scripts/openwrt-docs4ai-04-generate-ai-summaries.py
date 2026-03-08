@@ -1,6 +1,6 @@
 """
-Purpose: Generate AI summaries for API documentation files using GitHub Models API.
-Phase: Enrichment (Optional)
+Purpose: Generate AI summaries for API documentation files using AI.
+Phase: AI Enrichment (Optional)
 Layers: L2 -> L2 (In-place modification)
 Inputs: OUTDIR/.L2-semantic/ucode/ and OUTDIR/.L2-semantic/luci/
 Outputs: OUTDIR/.L2-semantic/ucode/ and OUTDIR/.L2-semantic/luci/ (Mutated)
@@ -167,7 +167,7 @@ def summarize(content, fname):
             time.sleep(5)
     return None
 
-l2_dir = os.path.join(OUTDIR, ".L2-semantic")
+l2_dir = os.path.join(OUTDIR, "L2-semantic")
 l1_raw_dir = config.L1_RAW_WORKDIR # We need hashes from L1 meta
 
 targets = []

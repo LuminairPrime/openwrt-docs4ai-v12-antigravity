@@ -21,8 +21,8 @@ DTS_GENERATE = os.environ.get("DTS_GENERATE", "true").lower() == "true"
 BASELINE_SOURCE = os.environ.get("BASELINE_SOURCE", "github-release")
 
 # Computed Paths
-L1_RAW_WORKDIR = os.path.join(WORKDIR, ".L1-raw")
-L2_SEMANTIC_WORKDIR = os.path.join(WORKDIR, ".L2-semantic")
+L1_RAW_WORKDIR = os.path.join(WORKDIR, "L1-raw")
+L2_SEMANTIC_WORKDIR = os.path.join(WORKDIR, "L2-semantic")
 REPO_MANIFEST_PATH = os.path.join(WORKDIR, "repo-manifest.json")
 CROSS_LINK_REGISTRY = os.path.join(WORKDIR, "cross-link-registry.json")
 
