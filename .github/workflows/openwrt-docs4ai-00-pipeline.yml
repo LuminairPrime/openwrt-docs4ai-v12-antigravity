@@ -90,6 +90,14 @@ jobs:
           pip install -r .github/scripts/requirements.txt
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
           npm install -g jsdoc-to-markdown
+      - name: Cache Wiki Metadata
+        if: matrix.script == '02a-scrape-wiki.py'
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WORKDIR }}/.cache
+          key: wiki-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            wiki-cache-${{ runner.os }}-
       - name: Download L0
         uses: actions/download-artifact@v4
         with:
@@ -130,6 +138,13 @@ jobs:
           pattern: L1-*
           path: ${{ env.WORKDIR }}/L1-raw/
           merge-multiple: true
+      - name: Cache AI Summaries
+        uses: actions/cache@v4
+        with:
+          path: ai-summaries-cache.json
+          key: ai-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ai-cache-${{ runner.os }}-
       - name: Prepare Baseline
         run: |
           mkdir -p baseline
@@ -198,6 +213,8 @@ jobs:
           rsync -a --exclude="L1-raw" --exclude="L2-semantic" "$OUTDIR/" public/
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
