@@ -52,7 +52,12 @@ for schema_name, fpath in schema_files:
             continue
             
         rel_path = os.path.relpath(fpath, os.path.join(config.WORKDIR, "repo-openwrt")).replace("\\", "/")
-        slug = f"schema-{schema_name}"
+        
+        # FIX BUG-011: Slug collision protection (UCI)
+        # Identify package name from path
+        pkg_parts = rel_path.split("/")
+        pkg_name = pkg_parts[1] if len(pkg_parts) > 1 else "core"
+        slug = f"schema-{pkg_name}-{schema_name}"
         
         final_content = f"# UCI Default Schema: {schema_name}\n\n"
         final_content += f"> **Source:** `{rel_path}`\n\n"

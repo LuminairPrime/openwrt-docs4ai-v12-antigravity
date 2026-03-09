@@ -116,6 +116,13 @@ for src in srcs:
     stdout = res.stdout or ""
     stderr = res.stderr or ""
     
+    # FIX BUG-027: Check subprocess return code
+    if res.returncode != 0:
+        print(f"[02b] FAIL: jsdoc2md failed for {mod} (Exit {res.returncode})")
+        with open(os.path.join(config.WORKDIR, "jsdoc-ucode.err"), "a", encoding="utf-8") as err_f:
+            err_f.write(f"ERROR for {mod}:\n{stderr}\n")
+        continue
+
     if stderr:
         with open(os.path.join(config.WORKDIR, "jsdoc-ucode.err"), "a", encoding="utf-8") as err_f:
             err_f.write(f"Stderr for {mod}:\n{stderr}\n")

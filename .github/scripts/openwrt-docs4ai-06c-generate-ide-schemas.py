@@ -64,6 +64,47 @@ for sym, meta in ucode_symbols.items():
         "desc": meta.get("ai_summary") or meta.get("description")
     })
 
+def generate_ts_sig(f, is_global=False):
+    """Normalize signature for simple TS: foo(a, [b]) -> foo(a: any, b?: any)"""
+    sig = f['sig']
+    prefix = "declare function " if is_global else "export function "
+    
+    if "(" in sig and ")" in sig:
+        params_str = sig.split("(", 1)[1].rsplit(")", 1)[0]
+        ts_params = []
+        
+        if params_str.strip():
+            # Handle balanced splitting (BUG-016)
+            params = []
+            current = []
+            bracket_level = 0
+            for char in params_str:
+                if char == "," and bracket_level == 0:
+                    params.append("".join(current).strip())
+                    current = []
+                else:
+                    if char in "[({": bracket_level += 1
+                    if char in "])}": bracket_level -= 1
+                    current.append(char)
+            params.append("".join(current).strip())
+            
+            for p in params:
+                # FIX BUG-016: Handle optional [param] notation
+                is_optional = False
+                p_name = p.split("=")[0].strip()
+                if p_name.startswith("[") and p_name.endswith("]"):
+                    p_name = p_name[1:-1].strip()
+                    is_optional = True
+                
+                # Cleanup name (no special chars)
+                p_name = re.sub(r"[^a-zA-Z0-9_]", "_", p_name)
+                ts_params.append(f"{p_name}{'?' if is_optional else ''}: any")
+        
+        # FIX BUG-016: Append return type
+        return f"{prefix}{f['name']}({', '.join(ts_params)}): {f['returns']};"
+    else:
+        return f"{prefix}{f['name']}(...args: any[]): {f['returns']};"
+
 # Construct .d.ts content
 dts_lines = [
     "/**",
@@ -76,43 +117,18 @@ dts_lines = [
 for mod_name, funcs in sorted(modules.items()):
     if mod_name == "global":
         for f in sorted(funcs, key=lambda x: x["name"]):
-            dts_lines.append(f"declare function {f['name']}(...args: any[]): {f['returns']};")
+            if f.get("desc"):
+                dts_lines.append(f"/** {f['desc']} */")
+            dts_lines.append(generate_ts_sig(f, is_global=True))
     else:
         dts_lines.append(f'declare module "{mod_name}" {{')
         for f in sorted(funcs, key=lambda x: x["name"]):
-            # Normalize signature for simple TS: foo(a, b) -> foo(a: any, b: any)
-            # This is a very rough heuristic for v12
-            sig = f['sig']
-            if "(" in sig and ")" in sig:
-                params_str = sig.split("(", 1)[1].rsplit(")", 1)[0]
-                if params_str.strip():
-                    # Handle parameters like 'a' or 'a = [1, 2]' (balanced splitting)
-                    params = []
-                    current = []
-                    bracket_level = 0
-                    for char in params_str:
-                        if char == "," and bracket_level == 0:
-                            params.append("".join(current).strip())
-                            current = []
-                        else:
-                            if char in "[({": bracket_level += 1
-                            if char in "])}": bracket_level -= 1
-                            current.append(char)
-                    params.append("".join(current).strip())
-                    
-                    ts_params = []
-                    for p in params:
-                        p_name = p.split("=")[0].strip()
-                        ts_params.append(f"{p_name}: any")
-                    sig_ts = f"{f['name']}({', '.join(ts_params)})"
-                else:
-                    sig_ts = f"{f['name']}()"
-            else:
-                sig_ts = f"export function {f['name']}(...args: any[]): {f['returns']};"
-            
-            # If we didn't use the 'export function' prefix yet
-            if not sig_ts.startswith("export function"):
-                sig_ts = f"export function {sig_ts};"
+            if f.get("desc"):
+                dts_lines.append("    /**")
+                dts_lines.append(f"     * {f['desc']}")
+                dts_lines.append("     */")
+            dts_lines.append(f"    {generate_ts_sig(f, is_global=False)}")
+        dts_lines.append("}")
             
             if f.get("desc"):
                 dts_lines.append("    /**")

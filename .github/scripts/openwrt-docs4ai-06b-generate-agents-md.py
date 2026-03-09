@@ -59,6 +59,10 @@ agents_content = """# AGENTS.md — AI Agent Instructions for openwrt-docs4ai
 2. **Context Budgets:** Respect your context window limits. Prefer `*-skeleton.md` files for structural understanding before fetching monolithic references.
 3. **No Hallucination:** DO NOT hallucinate API parameters or functions outside of what is defined in the `*-skeleton.md` indexes or the text bodies.
 4. **Wiki Scraping:** DO NOT blindly scrape the live OpenWrt wiki. Use these pre-processed, deduplicated documents instead to save tokens and avoid 404s.
+
+## Current Context
+- **Module Count:** {module_count}
+- **Total Token Count:** ~{total_tokens}
 """
 
 readme_content = f"""# openwrt-docs4ai Generated Pipeline Output

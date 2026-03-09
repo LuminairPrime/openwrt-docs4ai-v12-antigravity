@@ -63,6 +63,14 @@ for src in luci_srcs:
     stdout = res.stdout or ""
     stderr = res.stderr or ""
 
+    # FIX BUG-027: Check subprocess return code
+    if res.returncode != 0:
+        print(f"[02c] FAIL: jsdoc2md failed for {mod} (Exit {res.returncode})")
+        failed_count += 1
+        with open(os.path.join(config.WORKDIR, "jsdoc-luci.err"), "a", encoding="utf-8") as err_f:
+            err_f.write(f"ERROR for {mod}:\n{stderr}\n")
+        continue
+
     if stderr:
         with open(os.path.join(config.WORKDIR, "jsdoc-luci.err"), "a", encoding="utf-8") as err_f:
             err_f.write(f"Stderr for {mod}:\n{stderr}\n")
@@ -85,9 +93,13 @@ for src in luci_srcs:
     output = re.sub(r'\n{3,}', '\n\n', output)
 
     live_url = f"{live_base}/LuCI.html" if mod == "luci" else f"{live_base}/LuCI.{mod}.html"
-    slug = f"api-{mod}"
-    title = f"LuCI API: {mod}"
     
+    # FIX BUG-011: Slug collision protection
+    # Use relpath components for uniqueness
+    sub_path = relpath.replace("modules/luci-base/htdocs/luci-static/resources/", "").replace(".js", "").replace("/", "-")
+    slug = f"api-{sub_path}"
+    
+    title = f"LuCI API: {mod}"
     final_content = f"# {title}\n\n> **Live docs:** {live_url}\n\n---\n\n{output}"
 
     metadata = {
