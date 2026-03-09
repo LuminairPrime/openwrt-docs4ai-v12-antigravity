@@ -41,7 +41,7 @@ We will *not* merge to `main` until the entire 6-checkpoint sequence is running 
 
 ### Checkpoint 4: The L3 & L5 Map Generators (Scripts `06a-d` & `07`)
 **Goal:** Split the overgrown indexer into a suite of single-responsibility generators directly outputting to `$OUTDIR`.
-1.  **`06a-generate-llms-txt.py`:** Generates both the decision tree `llms.txt` and the `llms-full.txt` lists.
+1.  **`06a-generate-llms-txt.py`:** Generates both the decision tree `llms.txt` and the `llms-full.txt` lists. **REQUIREMENT (BUG-031)**: These indexes MUST explicitly include the newly generated L3 skeletons and L4 monoliths as entry points.
 2.  **`06b-generate-agents-md.py`:** Synthesizes the machine-readable repository interaction map `AGENTS.md` and generates the human-readable `openwrt-condensed-docs/README.md` (output self-documentation).
 3.  **`06c-generate-ide-schemas.py`:** For v12, extracts signatures and generates `.d.ts` schemas strictly for the `ucode` module only. Outputs to `$OUTDIR/ucode/ucode.d.ts`.
 4.  **`06d-generate-changelog.py`:** Generates telemetry tracking API drift (`changelog.json`), failing safely on the "first run" missing baseline scenario.
@@ -51,7 +51,9 @@ We will *not* merge to `main` until the entire 6-checkpoint sequence is running 
 **Goal:** Build the strict CI/CD gatekeeper `08-validate.py` before touching the workflow files.
 1.  **Two-Tier Design:** Build a validation tool that supports `hard_fail()` and `soft_warn()`. Support both `VALIDATE_MODE` and `--warn-only`.
 2.  **Hard Checks:** Block CI if `llms.txt` is missing, files are 0 bytes, **exceed 2MB**, YAML is corrupted, or wiki pages crawl Cloudflare/404 HTML text.
-3.  **Soft Checks:** Log non-fatal AST parsing warnings from embedded `c`/`javascript` subsets against `node --check` / `ucode -c`.
+3.  **Index Reconciliation (BUG-008)**: The validator MUST verify that every unique Markdown file present in `L2-semantic/` is accounted for in the `llms-full.txt` flat catalog.
+4.  **Global Syntax Gate (BUG-023)**: AST validation MUST be applied to code blocks across ALL generated markdown files, not just example snippets.
+5.  **Soft Checks:** Log non-fatal AST parsing warnings from embedded `c`/`javascript` subsets against `node --check` / `ucode -c`.
 
 ### Checkpoint 6: CI/CD Pipeline Configuration
 **Goal:** Update GitHub Actions (`00-pipeline.yml`) to correctly route our new layered output.

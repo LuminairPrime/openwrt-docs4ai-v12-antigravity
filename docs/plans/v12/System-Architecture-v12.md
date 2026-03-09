@@ -30,7 +30,8 @@ The pipeline scripts will be aggressively refactored to align with the explicit 
 - **Wiki Rate Limiting & Sniper Targets:** The wiki scraper (`02a`) MUST enforce a hard 1.5-second delay to defend against global bot rate-limits. Additionally, `02a` MUST maintain an internal `MANDATORY_PAGES` list (e.g., `/docs/techref/ubus`). These "sniper" targets MUST always be attempted and MUST bypass any age-based cutoff logic (`CUTOFF`) to ensure critical API context is never lost during pruning cycles.
 - **DokuWiki Ghost Pages:** Scrapers targeting DokuWiki MUST check for the "This topic does not exist" string in raw exports to catch 200 OK responses for non-existent pages.
 - **Extractor Failure Modes:** Individual file extraction failures (e.g. 404, bad markup) are handled as *soft warnings*—the script logs, skips the file, and proceeds. However, if a script processes the upstream target and yields **zero output files**, it must exit non-zero (hard fail), signaling that the upstream structure likely changed and the scraper is broken.
-- **Filename Collision Resolution:** If two independent source files resolve to the exact same `{origin_type}-{slug}.md` destination, the scraper MUST append a 4-character content hash to the filename base to guarantee uniqueness.
+- **Subprocess Safety (BUG-043)**: All calls to external tools (Pandoc, JSDoc, Node) MUST use `subprocess.run` with a mandatory `timeout=120` and MUST check `res.returncode`. Silent failures are prohibited.
+- **Filename Collision Resolution (BUG-011)**: To prevent slug collisions when multiple subdirectories contain files with identical names (e.g., `main.js`), slugs MUST be derived from the relative path (e.g., `api-luci-base-main`) or include an unique identifier.
 - **The Code Wrapper Compliance Check:** Scripts fetching raw code must conform to the **L1 Raw Code Schema**. They will wrap the code in markdown fences (```` ```javascript ````) prepended with an `H1` denoting the file name.
 
 ### 2.2 The Normalization & Promotion Engine (L2 Target, Modular Three-Phase)
@@ -47,22 +48,16 @@ The pipeline scripts will be aggressively refactored to align with the explicit 
 - **Manual AI Override Pattern:** The script docstring MUST include a "Manual Override" prompt. This prompt is designed as an **operational mission plan** (pseudocode) that allows a human to paste the prompt and file content into a frontier LLM (Claude/GPT) to achieve a 1-to-1 functional replacement for the script when API credits are exhausted or the environment is isolated.
 - **Prompt Content Standards:** The prompt MUST specify the exact YAML tags to generate (`ai_summary`, `ai_when_to_use`, `ai_related_topics`), enforce "No Hallucination" rules (only naming symbols present in the text), and mandate a "Clean Copy" response format (Markdown block with modified content only).
 
-**Explicit Schema Example (Manifest - `repo-manifest.json`):**
+**Explicit Schema Example (Manifest - `repo-manifest.json` - BUG-035):**
 ```json
 {
-  "openwrt": { 
-    "url": "https://github.com/openwrt/openwrt",
-    "branch": "master",
-    "commit": "abcdef1", 
-    "timestamp": "2026-03-07T12Z",
-    "fetch_status": "success",
-    "error_state": null
-  },
-  "ucode": { "url": "https://github.com/jow-/ucode", "branch": "master", "commit": "e87be9d", "timestamp": "2026-03-07T12Z", "fetch_status": "success", "error_state": null },
-  "luci": { "url": "https://github.com/openwrt/luci", "branch": "master", "commit": "1a2b3c4", "timestamp": "2026-03-07T12Z", "fetch_status": "success", "error_state": null },
-  "procd": { "url": "https://git.openwrt.org/project/procd.git", "branch": "master", "commit": "9f8e7d6", "timestamp": "2026-03-07T12Z", "fetch_status": "success", "error_state": null }
+  "ucode": "e87be9d",
+  "luci": "1a2b3c4",
+  "openwrt": "abcdef1",
+  "timestamp": "2026-03-07T12:00:00Z"
 }
 ```
+*(Note: Manifest MUST be generated in Phase 1 and uploaded as a CI artifact to persist commit context across isolated matrix jobs)*
 
 ### 2.3 Formalizing the Indexes (L3 & L5 Targets)
 - **Target Scripts:** `06a` through `06d` (Parallel Generators), `07` (Sequential HTML generator).
@@ -109,7 +104,7 @@ These features ensure that autonomous agents can grok the repository instantly w
   - Malformed YAML frontmatter anywhere globally.
   - Strict JSON schema validation failures for the pipeline control files (`repo-manifest.json`, `cross-link-registry.json`, `signature-inventory.json`).
   - **Broken Link Detection:** The validator MUST use a **negative-lookahead regex** to identify relative Markdown links while ignoring external protocols: `\[.*?\]\(((?!https?:\/\/|mailto:|[a-z0-9]+:).*?\.md)\)`. This ensures that sibling links without `./` or `../` prefixes are correctly validated.
-  - **HTML Leak Protection:** The script MUST check L1 files against this explicit signature list: `404 Not Found`, `Cloudflare`, `Access Denied`, `<!DOCTYPE`, `<html`, `Just a moment...`, `Checking your browser`, `captcha`, `Service Temporarily Unavailable`, and `Rate limit exceeded`.
+  - **HTML Leak Protection (BUG-017):** The script MUST check L1 files against this explicit signature list: `404 Not Found`, `Cloudflare`, `Access Denied`, `Just a moment...`, `Checking your browser`, `captcha`, `Service Temporarily Unavailable`, and `Rate limit exceeded`. **CRITICAL:** To avoid false positives on documentation *about* these errors, a leak is only flagged if structural HTML tags (`<!DOCTYPE` or `<html>`) are also detected in the content.
 - **The AST Linter Guardrail (Soft Warn Mode):** Validates the code blocks embedded within the generated markdown syntactically against standard tools (e.g. `node --check`, `ucode -c`). Since code extracts are often partial expressions or isolated, this runs as a *soft warning* rather than a hard failure to avoid brittle CI pipelines.
 
 ---
