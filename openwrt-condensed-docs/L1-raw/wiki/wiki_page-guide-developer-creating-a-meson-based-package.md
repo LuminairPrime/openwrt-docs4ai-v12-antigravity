@@ -47,7 +47,7 @@ touch main.c  meson.build
 
 ### main.c
 
-To demonstrate a basic scenario, we will be populating the `main.c` file with a straightforward yet classic `"Hello World!"` message.
+To demonstrate a basic scenario, we will be populating the `main.c` file with a straightforward yet classic `“Hello World!”` message.
 
 ``` c
 // main.c
@@ -131,6 +131,6 @@ To finish building the package, we need to execute the build command. Running th
 make package/helloworld/compile
 ```
 
-If everything goes smoothly, the package that is built will be located in ''\<BIN_DIR\>/packages/\<target\>/mesonpackages/packages'. For instance:
+If everything goes smoothly, the package that is built will be located in ’‘\<BIN_DIR\>/packages/\<target\>/mesonpackages/packages’. For instance:
 
     helloworld_1.0-1_arm_cortex-a7_neon-vfpv4.ipk

@@ -2,10 +2,10 @@
 title: Procd system init and daemon management
 module: wiki
 origin_type: wiki_page
-token_count: 1965
+token_count: 1966
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-procd.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Procd system init and daemon management
@@ -14,13 +14,13 @@ language: text
 
 `procd` is the OpenWrt [process](https://en.wikipedia.org/wiki/Process (computing)) management daemon written in [C](https://en.wikipedia.org/wiki/C (programming language)). It keeps track of processes started from init scripts (via ubus calls), and can suppress redundant service start/restart requests when the config/environment has not changed.
 
-`procd` has replaced ... , e.g.
+`procd` has replaced … , e.g.
 
 - `hotplug2`, a dynamic device management subsystem for embedded systems. Hotplug2 is a trivial replacement of some of the UDev functionality in a tiny pack, intended for Linux early userspace: Init RAM FS and InitRD.
 - `busybox-klogd` and `busybox-syslogd`
 - `busybox-watchdog`
 
-`procd` is intended to stay compatible with the existing format of `/etc/config/`; exceptions ...
+`procd` is intended to stay compatible with the existing format of `/etc/config/`; exceptions …
 
 ## Help with the development of procd
 
@@ -43,9 +43,9 @@ Before the real procd runs, a small init process is started. This process has th
 
 - bring up basic mounts such as /proc /sys/{,fs/cgroup} /dev/{,shm,pts}
 - create some required folder, /tmp/{run,lock,state}
-- bring up /dev/console and map the processes stdin/out/err to the console (this is the "Console is alive" message)
+- bring up /dev/console and map the processes stdin/out/err to the console (this is the “Console is alive” message)
 - setup the PATH environment variable
-- check if "init_debug=" is set in the kernel command line and apply the debug level if set
+- check if “init_debug=” is set in the kernel command line and apply the debug level if set
 - initialise the watchdog
 - start kmodloader and load the modules listed in /etc/modules-boot.d/
 - start hotplug with the preinit rules (/etc/hotplug-preinit.json)
@@ -70,8 +70,8 @@ Procd supports four commands inside inittab
 
 - respawn - this works just like you expect it. It starts a process and will respawn it once it has completed.
 - respawnlate - this works like the respawn but will start the process only when the procd init is completed.
-- askfirst - this works just like respawn but will print the line "Please press Enter to activate this console." before starting the process
-- askconsole - this works like askfirst but, instead of running on the tty passed as a parameter, it will look for the tty defined in the kernel command line using "console="
+- askfirst - this works just like respawn but will print the line “Please press Enter to activate this console.” before starting the process
+- askconsole - this works like askfirst but, instead of running on the tty passed as a parameter, it will look for the tty defined in the kernel command line using “console=”
 - askconsolelate - this works like the askconsole but will start the process only when the procd init is completed.
 - sysinit - this will trigger procd to run the command, given as a parameter, only once. This is usually used to trigger execution of /etc/rc.d/
 

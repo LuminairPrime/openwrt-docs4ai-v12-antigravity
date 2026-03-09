@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 1397
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-working-with-github-pr.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Working with GitHub
@@ -14,7 +14,7 @@ There are GitHub mirrors of the source repository [here](https://github.com/open
 
 Fork the project to a public repo using GitHub web interface, clone the repo to your computer, create a branch for your changes, push these back to GitHub and submit a pull request.
 
-In case you don't know how to do that, keep reading.
+In case you don’t know how to do that, keep reading.
 
 Create a GitHub account, this will host your public fork of OpenWrt source, and will be used for all interaction on GitHub.
 
@@ -31,7 +31,7 @@ You might also want to set the default text editor to your favorite editor. If y
 git config --global core.editor "editor-name-here"
 ```
 
-Then follow GitHub's excellent documentation to [Fork A Repo](https://help.github.com/articles/fork-a-repo/) and [Create a local clone of your fork](https://help.github.com/articles/fork-a-repo/#step-2-create-a-local-clone-of-your-fork).
+Then follow GitHub’s excellent documentation to [Fork A Repo](https://help.github.com/articles/fork-a-repo/) and [Create a local clone of your fork](https://help.github.com/articles/fork-a-repo/#step-2-create-a-local-clone-of-your-fork).
 
 After you have set it up as described, write
 
@@ -39,7 +39,7 @@ After you have set it up as described, write
 git checkout -b my-new-branch-name
 ```
 
-to create a branch for your PR ("my-new-branch-name" is just an example name, use a more descriptive name in yours).
+to create a branch for your PR (“my-new-branch-name” is just an example name, use a more descriptive name in yours).
 
 All commits you do after this command will be grouped in this branch. This allows to have multiple branches, one for each PR. To switch between branches you already created, use
 
@@ -81,7 +81,7 @@ git push --all
 
 You will be asked your GitHub user and password in the process.
 
-After the code has been uploaded to your GitHub repo, you can submit pull request using GitHub web interface, see again GitHub's documentation about [Creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
+After the code has been uploaded to your GitHub repo, you can submit pull request using GitHub web interface, see again GitHub’s documentation about [Creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 
 ## Squashing commits
 
@@ -108,7 +108,7 @@ Switch to the your development branch for this PR with:
 git checkout best_code_update
 ```
 
-Look at the git log, so you can count the number of commits you want to squash ( the "X" below ) with:
+Look at the git log, so you can count the number of commits you want to squash ( the “X” below ) with:
 
 ``` bash
 git log
@@ -154,13 +154,13 @@ Where X is a number of commits to edit.
 
 ## Reopen closed PR
 
-GitHub will grey out "Reopen" and will not let you reopen a PR if you force-pushed anything to the relevant branch after the PR has been closed, or deleted the branch.
+GitHub will grey out “Reopen” and will not let you reopen a PR if you force-pushed anything to the relevant branch after the PR has been closed, or deleted the branch.
 
 However, reopening is still possible if you just set back the GitHub branch to the exact commit ID/hash it was at when you closed it. This even works when the branch or even the whole repository was deleted on GitHub. It just has to be recreated with the same name (for repo and branch) and the same commit hash at the branches HEAD.
 
 A possible way to do that would be (there might be others, even shorter ones):
 
-*We assume that the git remote referring to GitHub is called "origin", the branch of interest is called "testbranch", and the local and remote branch names are the same.*
+*We assume that the git remote referring to GitHub is called “origin”, the branch of interest is called “testbranch”, and the local and remote branch names are the same.*
 
 ``` bash
 # Get the hash yyyyyyyyyyyyyyy of the current state of "testbranch" (we will move the branch head later)
@@ -175,7 +175,7 @@ git checkout -b testbranch
 git push -f origin testbranch
 ```
 
-Now you got GitHub at the state it was at when closing the PR. It should now be possible to "reopen" the PR. Note that this will only be possible if *you* closed it. If it was closed by an admin, you will have to ask an admin to reopen it (though they will also only be able to do that when the branch is at the proper hash). If the PR is reopened, you can update as usual, e.g.
+Now you got GitHub at the state it was at when closing the PR. It should now be possible to “reopen” the PR. Note that this will only be possible if *you* closed it. If it was closed by an admin, you will have to ask an admin to reopen it (though they will also only be able to do that when the branch is at the proper hash). If the PR is reopened, you can update as usual, e.g.
 
 ``` bash
 # Checkout the desired hash yyyyyyyyy (or branch)

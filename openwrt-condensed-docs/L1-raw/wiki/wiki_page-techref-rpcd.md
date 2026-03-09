@@ -72,17 +72,17 @@ $ echo $?
 2
 ```
 
-On startup rpcd will call all executables in `/usr/libexec/rpcd/` with `argv[1]` set to "list". For a plugin, which responds with a valid list of methods and signatures, ubus method with appropriate arguments will be created. When a method provided by the plugin is about to be invoked, `rpcd` calls the binary with `argv[1]` set to `call` and `argv[2]` set to the invoked method name.
+On startup rpcd will call all executables in `/usr/libexec/rpcd/` with `argv[1]` set to “list”. For a plugin, which responds with a valid list of methods and signatures, ubus method with appropriate arguments will be created. When a method provided by the plugin is about to be invoked, `rpcd` calls the binary with `argv[1]` set to `call` and `argv[2]` set to the invoked method name.
 
-**The actual data is then sent by the `ubus` client via `stdin`.** I.e. if you're testing the script itself, you need to use
+**The actual data is then sent by the `ubus` client via `stdin`.** I.e. if you’re testing the script itself, you need to use
 
 ``` bash
 echo '{"arg1": 42}' | yourscript call yourmethod
 ```
 
-You *cannot* simply use `yourscript call yourmethod '{"arg1": 42}`' as you might have expected.
+You *cannot* simply use `yourscript call yourmethod ‘{“arg1”: 42}’` as you might have expected.
 
-The method signature is a simple object containing `key:value` pairs. The argument type is inferred from the value. If the value is a string (regardless of the contents) it is registered as string, if the value is a bool true or false, its registered as bool, if the value is an integer, it is registered as either int8, int16, int32 or int64 depending on the value i.e. `"foo": 16` will be `INT16`, `"foo": 64` will be `INT64`, `"foo": 8` will be `INT8` and everything else will be `INT32`.
+The method signature is a simple object containing `key:value` pairs. The argument type is inferred from the value. If the value is a string (regardless of the contents) it is registered as string, if the value is a bool true or false, its registered as bool, if the value is an integer, it is registered as either int8, int16, int32 or int64 depending on the value i.e. `“foo”: 16` will be `INT16`, `“foo”: 64` will be `INT64`, `“foo”: 8` will be `INT8` and everything else will be `INT32`.
 
 It is enough to issue `service rpcd reload` to make it pick up new plugin executables, that way one does not lose active sessions.
 

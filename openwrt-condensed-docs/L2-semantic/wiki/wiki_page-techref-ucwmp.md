@@ -2,10 +2,10 @@
 title: EasyCwmp (CPE WAN Management Protocol daemon)
 module: wiki
 origin_type: wiki_page
-token_count: 942
+token_count: 964
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-ucwmp.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # EasyCwmp (CPE WAN Management Protocol daemon)
@@ -16,7 +16,7 @@ EasyCwmp is developed by PIVA Software.The aim of this project is to be fully co
 
 ## EasyCwmp Presentation in Broadban Worl Forum
 
-![](youtube>2dzLzk8I_So)
+<img src="youtube&gt;2dzLzk8I_So" data-query="?medium" alt="youtube&gt;2dzLzk8I_So" />
 
 ## Compliant Standards
 
@@ -32,7 +32,7 @@ EasyCwmp is developed by PIVA Software.The aim of this project is to be fully co
 The EasyCwmp design includes 2 parts:
 
 -  EasyCwmp core: it includes the TR069 CWMP engine and it is in charge of communication with ACS server. It is developed with C.
--  EasyCwmp DataModel: it includes the DATAModel of TR-06 and it is compliant to some DataModel standards such as TR-098, TR-181, TR-104, ...
+-  EasyCwmp DataModel: it includes the DATAModel of TR-06 and it is compliant to some DataModel standards such as TR-098, TR-181, TR-104, …
 
 The key design goal is to separate the CWMP method execution from the CWMP engine. That makes easy to add and test new features.
 
@@ -96,7 +96,7 @@ or run it with:
 
       /etc/init.d/easycwmpd boot
 
-Note: If you run easycwmpd with start command then it will send inform to the ACS containing "2 PERIODIC" event and send GetRPCMethods to the ACS. And if you run easycwmpd with boot command then it will send inform to the ACS containing "1 BOOT" event.
+Note: If you run easycwmpd with start command then it will send inform to the ACS containing “2 PERIODIC” event and send GetRPCMethods to the ACS. And if you run easycwmpd with boot command then it will send inform to the ACS containing “1 BOOT” event.
 
 Note: A third party application could trigger EasyCwmp daemon to send notify (inform with value change event) by calling the command:
 

@@ -2,10 +2,10 @@
 title: Internal Layout D-Link DIR-825
 module: wiki
 origin_type: wiki_page
-token_count: 732
+token_count: 738
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-internal-layout.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Internal Layout D-Link DIR-825
@@ -64,11 +64,10 @@ The default config provided looks something like below:
 
 Going through the configuration, step by step, provides the following information.
 
-- First there's the loopback interface `lo`.
-- Second, in this configuration, `eth0` is part of the bridged interface `lan`.
+- First there‘s the loopback interface ’‘lo’‘. \* Second, in this configuration, ’‘eth0’’ is part of the bridged interface `lan`.
 - Third, `eth1` is configured as the `wan` interface.
 - Fourth, is the switch configuration.
-- The 'config switch rtl8366s' options enable the switch, reset it and enable VLAN capability.
-- The 'config switch_vlan' options enable VLAN0 and assigns it to the 4 external LAN ports and internal `eth0` interface.
+- The ‘config switch rtl8366s’ options enable the switch, reset it and enable VLAN capability.
+- The ‘config switch_vlan’ options enable VLAN0 and assigns it to the 4 external LAN ports and internal `eth0` interface.
 
 **Note:** The `eth1` network interface is assigned to VLAN1 by default, which in turn is assigned to switch port 4 by default. Further, `eth1` is also configured to be part of the virtual interface `wan`. Configuring `wan` with a static ip address will provide another avenue to access the router using SSH. Finally, either of the wireless interfaces can be configured to enable wifi access as well.

@@ -5,14 +5,14 @@ origin_type: wiki_page
 token_count: 842
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-uefi-bootable-image.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # OpenWrt on UEFI based x86 systems
 
 ## Introduction
 
-UEFI boot has been required for years now, boards that only support UEFI are common, and Intel has stated back in 2017 that "legacy" BIOS will no longer be supported after 2020.[^1][^2]
+UEFI boot has been required for years now, boards that only support UEFI are common, and Intel has stated back in 2017 that “legacy” BIOS will no longer be supported after 2020.[^1][^2]
 
 To accommodate this, the OpenWrt build system generates UEFI bootable images.
 

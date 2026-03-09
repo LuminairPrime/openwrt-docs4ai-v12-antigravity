@@ -5,12 +5,12 @@ origin_type: wiki_page
 token_count: 430
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-gdb.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # GNU Debugger
 
-- **`Note:`** This guide is by no means a Howto, just some short instructions to use GDB on OpenWrt.  
+- **`Note:`** This guide is by no means a Howto, just some short instructions to use GDB on OpenWrt.\
   Please look upstream for multilingual instructions and manuals, like e.g. here: <https://sourceware.org/gdb/documentation/>
 
 ## Compiling Tools
@@ -61,7 +61,7 @@ now you have a gdb shell. Set breakpoints, start program, backtrace etc.
     (gdb) c
     (gdb) bt
 
-If you want to restart the program, you'll need to set the remote path and arguments
+If you want to restart the program, you’ll need to set the remote path and arguments
 
     (gdb) set remote exec-file /usr/bin/blah
     (gdb) set args -v -x -merry-fishing

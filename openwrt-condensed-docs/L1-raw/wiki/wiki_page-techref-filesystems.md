@@ -17,7 +17,7 @@ Used to merge two filesystems, one read-only and the other writable. [flash.layo
 - <https://dev.openwrt.org/browser/trunk/target/linux/generic/patches-2.6.38/209-overlayfs.patch?rev=26213>
 - [Debating overlayfs](http://lwn.net/Articles/447650/) on LWN.net
 - Was mainlined in Linux kernel 3.18
-- Overlayfs's support for inotify mechanisms is not complete yet. Events like IN_CLOSE_WRITE cannot be notified to listening process.
+- Overlayfs’s support for inotify mechanisms is not complete yet. Events like IN_CLOSE_WRITE cannot be notified to listening process.
 
 ### tmpfs
 
@@ -27,13 +27,13 @@ Used to merge two filesystems, one read-only and the other writable. [flash.layo
 
 <!-- -->
 
-- (+) doesn't directly use space on non-volatile storage
+- (+) doesn’t directly use space on non-volatile storage
 - (-) no wear leveling
-- (-) volatile (doesn't survive a reboot)
+- (-) volatile (doesn’t survive a reboot)
 
 ### SquashFS
 
-[SquashFS](https://en.wikipedia.org/wiki/SquashFS) is a *read only* compressed filesystem. While [gzip](https://en.wikipedia.org/wiki/gzip) is available, at OpenWrt it uses [LZMA](https://en.wikipedia.org/wiki/Lempel–Ziv–Markov chain algorithm) for the compression. Since SquashFS is a read only filesystem, it doesn't need to align the data, allowing it to pack the files tighter thus taking up significantly less space than JFFS2 (20-30% savings over a JFFS2 filesystem)!
+[SquashFS](https://en.wikipedia.org/wiki/SquashFS) is a *read only* compressed filesystem. While [gzip](https://en.wikipedia.org/wiki/gzip) is available, at OpenWrt it uses [LZMA](https://en.wikipedia.org/wiki/Lempel–Ziv–Markov chain algorithm) for the compression. Since SquashFS is a read only filesystem, it doesn’t need to align the data, allowing it to pack the files tighter thus taking up significantly less space than JFFS2 (20-30% savings over a JFFS2 filesystem)!
 
 - (+) taking up as little space as possible
 - (+) allowing the implementation of an idiot proof [FailSafe](/docs/guide-user/troubleshooting/failsafe_and_factory_reset) for recovery, since it is not possible to write to it
@@ -42,7 +42,7 @@ Used to merge two filesystems, one read-only and the other writable. [flash.layo
 - [Kernel documentation on SquashFS](https://www.kernel.org/doc/html/latest/filesystems/squashfs.html)
 - [SquashFs Performance Comparisons](https://elinux.org/Squash_Fs_Comparisons)
 
-There is a generic problem when running SquashFS on NAND: The issue is that SquashFS has no bad block management at all and requires all blocks on order; but for proper NAND bad block management you also need to be able to skip bad blocks and occasionally relocate blocks (see [squashfs and NAND flash](https://www.infradead.org/pipermail/linux-mtd/2006-April/015386.html)). That's why raw SquashFS is a bad idea on NAND (it works if you use a FTL like UBIFS).
+There is a generic problem when running SquashFS on NAND: The issue is that SquashFS has no bad block management at all and requires all blocks on order; but for proper NAND bad block management you also need to be able to skip bad blocks and occasionally relocate blocks (see [squashfs and NAND flash](https://www.infradead.org/pipermail/linux-mtd/2006-April/015386.html)). That’s why raw SquashFS is a bad idea on NAND (it works if you use a FTL like UBIFS).
 
 ### JFFS2
 
@@ -59,7 +59,7 @@ For NAND-flash targets, it was replaced with UBIFS.
 
 - [UBIFS](https://en.wikipedia.org/wiki/UBIFS) is a file system for [raw flash](/docs/techref/flash.layout). It is used in OpenWrt NAND targets since :FIXME: around r40364
 - [Kernel documentation on UBIFS](https://www.kernel.org/doc/html/latest/filesystems/ubifs.html)
-- [UBIFS File Encryption](https://lwn.net/Articles/704261/) how does UBIFS understand what a "file" is? Isn't a file
+- [UBIFS File Encryption](https://lwn.net/Articles/704261/) how does UBIFS understand what a “file” is? Isn’t a file
 - [UBIFS File Encryption v1](https://lwn.net/Articles/706338/) on LWN.net
 - [UBIFS File Encryption v2](https://lwn.net/Articles/707900/) on LWN.net
 - [UBIFS Supports OverlayFS In Linux 4.9, Readying UBI For MLC Support](https://www.phoronix.com/scan.php?page=news_item&px=UBI-UBIFS-Linux-4.9)
@@ -70,7 +70,7 @@ For NAND-flash targets, it was replaced with UBIFS.
 - Ext2/3/4 is used on x86, x86-64 and for some arch with SD-card rootfs
 - [Kernel documentation on ext2](https://www.kernel.org/doc/html/latest/filesystems/ext2.html)
 - (+) a program (`opkg` in particularly) knows how much space is left!
-- (+) good ol' veteran FOSS file system
+- (+) good ol’ veteran FOSS file system
 - (-) no journaling (ext3, ext4 support journaling)
 - (-) no wear leveling
 - (-) no transparent compression
@@ -109,17 +109,17 @@ System bootup is as follows: -\>[process.boot](process.boot)
 
 #### Explanations 1
 
-Both SquashFS and JFFS2 are compressed filesystems using [LZMA](https://en.wikipedia.org/wiki/Lempel–Ziv–Markov chain algorithm) for the compression. SquashFS is a *read only* filesystem while JFFS2 is a writable filesystem with *journaling* and *wear leveling*.  
-Our job when writing the firmware is to put as much common functionality on SquashFS while not wasting space with unwanted features. Additional features can always be installed onto JFFS2 by the user. The use of `mini_fo`/`overlayfs` means that the filesystem is presented as one large writable filesystem to the user with no visible boundary between SquashFS and JFFS2 -- files are simply copied to JFFS2 when they're written.  
-It's not all without side effects however.  
-The fact that we pack things so tightly in flash means that if the firmware ever changes, the size and location of the JFFS2 partition also changes, potentially wiping out a large chunk of JFFS2 data and corrupting the filesystem. To deal with this, we've implemented a policy that after each reflash the JFFS2 data is reformatted. The trick to doing that is a special value, `0xdeadc0de`; when this value appears in a JFFS2 partition, everything from that point to the end of the partition is wiped. So, hidden at the end of the firmware images, is the value 0xdeadcode, positioned such that it becomes the start of the JFFS2 partition.  
-The fact that we use a combination of compressed and partially read only filesystems also has an interesting effect on package management:  
-In particular, you need to be careful what packages you update. While `opkg` is more than happy to install an updated package on JFFS2, it's unable to remove the original package from SquashFS; the end result is that you slowly start using more and more space until the JFFS2 partition is filled. The opkg util really has no idea how much space is available on the JFFS2 partition since it's compressed, and so it will blindly keep going until the opkg system crashes -- at that point you have so little space you probably can't even use opkg to remove anything.
+Both SquashFS and JFFS2 are compressed filesystems using [LZMA](https://en.wikipedia.org/wiki/Lempel–Ziv–Markov chain algorithm) for the compression. SquashFS is a *read only* filesystem while JFFS2 is a writable filesystem with *journaling* and *wear leveling*.\
+Our job when writing the firmware is to put as much common functionality on SquashFS while not wasting space with unwanted features. Additional features can always be installed onto JFFS2 by the user. The use of `mini_fo`/`overlayfs` means that the filesystem is presented as one large writable filesystem to the user with no visible boundary between SquashFS and JFFS2 – files are simply copied to JFFS2 when they‘re written.\
+It’s not all without side effects however.\
+The fact that we pack things so tightly in flash means that if the firmware ever changes, the size and location of the JFFS2 partition also changes, potentially wiping out a large chunk of JFFS2 data and corrupting the filesystem. To deal with this, we’ve implemented a policy that after each reflash the JFFS2 data is reformatted. The trick to doing that is a special value, ’‘0xdeadc0de’‘; when this value appears in a JFFS2 partition, everything from that point to the end of the partition is wiped. So, hidden at the end of the firmware images, is the value 0xdeadcode, positioned such that it becomes the start of the JFFS2 partition.\
+The fact that we use a combination of compressed and partially read only filesystems also has an interesting effect on package management:\
+In particular, you need to be careful what packages you update. While ’‘[opkg](/docs/guide-user/additional-software/opkg)’’ is more than happy to install an updated package on JFFS2, it’s unable to remove the original package from SquashFS; the end result is that you slowly start using more and more space until the JFFS2 partition is filled. The opkg util really has no idea how much space is available on the JFFS2 partition since it’s compressed, and so it will blindly keep going until the opkg system crashes – at that point you have so little space you probably can’t even use opkg to remove anything.
 
 #### Explanation 2
 
-On many embedded targets that use [NOR flash](https://en.wikipedia.org/wiki/Flash_memory#NOR_flash) for the root filesystem, OpenWrt implements a clever trick to get the most out of the limited flash memory capacity while retaining flexibility for the end-user:  
-Basically, during the image creation, all of the rootfs contents is packed up in a SquashFS filesystem -- a highly efficient filesystem with compression support. There's one important detail about it though: it is a read-only filesystem. To overcome this limitation OpenWrt uses the remaining portion of the NOR rootfs partition to store an additional read/write jffs2 filesystem which is "overlayed" on top of the rootfs (that is, allowing to read unchanged files from the SquashFS but storing all the modifications made to the jffs2 part).  
+On many embedded targets that use [NOR flash](https://en.wikipedia.org/wiki/Flash_memory#NOR_flash) for the root filesystem, OpenWrt implements a clever trick to get the most out of the limited flash memory capacity while retaining flexibility for the end-user:\
+Basically, during the image creation, all of the rootfs contents is packed up in a SquashFS filesystem – a highly efficient filesystem with compression support. There’s one important detail about it though: it is a read-only filesystem. To overcome this limitation OpenWrt uses the remaining portion of the NOR rootfs partition to store an additional read/write jffs2 filesystem which is “overlayed” on top of the rootfs (that is, allowing to read unchanged files from the SquashFS but storing all the modifications made to the jffs2 part).\
 This design has another important advantage for the end-user: even when the read/write partition is in total mess, he can always boot to the failsafe mode (which mounts only the squashfs part) and proceed from there.
 
 ### Technical Details
@@ -142,9 +142,9 @@ For overlaying a special `mini_fo` filesystem is used, the `README` is available
 
 ***`Note:`***: It is possible to contain the entire root filesystem on a JFFS2-Partition only, instead of a combination of both. The advantage is that changes to included files no longer leaves behind an old copy on the read only filesystem. So you could end up saving space. The disadvantage of this would be, that you have no failsafe any longer and also, JFFS2 takes significantly more space then SquashFS.
 
-Yes, it's technically possible, but a bit of a mess to actually pull off. The firmware has to be loaded as a trx file, which means that you have to put the JFFS2 data inside of the trx. But, as I said above, the trx has a checksum, meaning that if you ever change that data, you invalidate the checksum. The solution is that you install with the JFFS2 data contained within the trx, and then change the trx-boundaries at runtime. The end result is a single JFFS2 partition for the root filesystem. Why someone would want to do it is beyond me; it takes more space, and while it would allow you to upgrade the contents of the filesystem you would still be unable to replace the kernel (outside of the filesystem), meaning that a seamless upgrade between releases is still not possible! Having SquashFS gives you a failsafe mechanism where you can always ignore the JFFS2 partition and boot directly off SquashFS, or restore files to their original SquashFS versions.
+Yes, it’s technically possible, but a bit of a mess to actually pull off. The firmware has to be loaded as a trx file, which means that you have to put the JFFS2 data inside of the trx. But, as I said above, the trx has a checksum, meaning that if you ever change that data, you invalidate the checksum. The solution is that you install with the JFFS2 data contained within the trx, and then change the trx-boundaries at runtime. The end result is a single JFFS2 partition for the root filesystem. Why someone would want to do it is beyond me; it takes more space, and while it would allow you to upgrade the contents of the filesystem you would still be unable to replace the kernel (outside of the filesystem), meaning that a seamless upgrade between releases is still not possible! Having SquashFS gives you a failsafe mechanism where you can always ignore the JFFS2 partition and boot directly off SquashFS, or restore files to their original SquashFS versions.
 
-I used to have a trick where I could convert a SquashFS install to a JFFS2 install at runtime by copying all the data onto the SquashFS partition and changing the partition boundaries. I never really had much use for the util -- not to mention it required a rather large flash to store both SquashFS and JFFS2 copies of the root during transition -- so support for it was dropped.
+I used to have a trick where I could convert a SquashFS install to a JFFS2 install at runtime by copying all the data onto the SquashFS partition and changing the partition boundaries. I never really had much use for the util – not to mention it required a rather large flash to store both SquashFS and JFFS2 copies of the root during transition – so support for it was dropped.
 
 ## Notes
 

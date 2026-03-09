@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 335
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-lldpd.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # lldpd
@@ -18,7 +18,7 @@ The goal of LLDP is to provide an inter-vendor compatible mechanism to deliver L
 
 An implementation of IEEE 802.1ab
 
-lldpd (Link Layer Discovery Protocol daemon) daemon providing an industry standard protocol designed to supplant proprietary Link-Layer protocols such as Extreme's EDP (Extreme Discovery Protocol) and CDP (Cisco Discovery Protocol).
+lldpd (Link Layer Discovery Protocol daemon) daemon providing an industry standard protocol designed to supplant proprietary Link-Layer protocols such as Extreme’s EDP (Extreme Discovery Protocol) and CDP (Cisco Discovery Protocol).
 
 ## Configuration
 

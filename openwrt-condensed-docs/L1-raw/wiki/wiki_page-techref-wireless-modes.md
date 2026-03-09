@@ -12,7 +12,7 @@ has a section with `Supported interface modes`
 
 ## AP
 
-AP ... Access Point Also called "master" mode.
+AP … Access Point Also called “master” mode.
 
 ## AP/vlan
 
@@ -50,5 +50,5 @@ Alternative name: managed mode Mode when connected to an AP.
 
 ## Links
 
-     * Mode list taken from [[http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/nl80211.h|include/uapi/linux/nl80211.h]]
-     * linux-wireless mailing list
+- Mode list taken from [include/uapi/linux/nl80211.h](http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/nl80211.h)
+- linux-wireless mailing list

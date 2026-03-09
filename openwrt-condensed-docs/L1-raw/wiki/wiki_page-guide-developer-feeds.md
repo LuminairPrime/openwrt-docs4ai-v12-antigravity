@@ -1,6 +1,6 @@
 # OpenWrt Feeds
 
-In OpenWrt, a "feed" is a collection of [packages](/docs/guide-developer/packages) which share a common location. Feeds may reside on a remote server, in a version control system, on the local filesystem, or in any other location addressable by a single name (path/URL) over a protocol with a supported feed method.
+In OpenWrt, a “feed” is a collection of [packages](/docs/guide-developer/packages) which share a common location. Feeds may reside on a remote server, in a version control system, on the local filesystem, or in any other location addressable by a single name (path/URL) over a protocol with a supported feed method.
 
 Feeds are additional predefined package build recipes for OpenWrt Buildroot. They may be configured to support custom feeds or non-default feed packages via a feed configuration file.
 
@@ -28,21 +28,21 @@ The git method can specify a specific branch or commit using the following forma
 
 As of this writing, the following feed methods are supported:
 
-| Method       | Function                                                                                                                  |
-|:-------------|---------------------------------------------------------------------------------------------------------------------------|
-| src-bzr      | Data is downloaded from the source path/URL using `bzr`                                                                   |
-| src-cpy      | Data is copied from the source path. The path can be specified as either relative to OpenWrt repository root or absolute. |
-| src-darcs    | Data is downloaded from the source path/URL using `darcs`                                                                 |
-| src-git      | Data is downloaded from the source path/URL using `git` as a shallow (depth of 1) clone                                   |
-| src-git-full | Data is downloaded from the source path/URL using `git` as a full clone                                                   |
-| src-gitsvn   | Bidirectional operation between a Subversion repository and git                                                           |
-| src-hg       | Data is downloaded from the source path/URL using `hg`                                                                    |
-| src-link     | A symlink to the source path is created. The path must be absolute.                                                       |
-| src-svn      | Data is downloaded from the source path/URL using `svn`                                                                   |
+| Method | Function |
+|:---|----|
+| src-bzr | Data is downloaded from the source path/URL using `bzr` |
+| src-cpy | Data is copied from the source path. The path can be specified as either relative to OpenWrt repository root or absolute. |
+| src-darcs | Data is downloaded from the source path/URL using `darcs` |
+| src-git | Data is downloaded from the source path/URL using `git` as a shallow (depth of 1) clone |
+| src-git-full | Data is downloaded from the source path/URL using `git` as a full clone |
+| src-gitsvn | Bidirectional operation between a Subversion repository and git |
+| src-hg | Data is downloaded from the source path/URL using `hg` |
+| src-link | A symlink to the source path is created. The path must be absolute. |
+| src-svn | Data is downloaded from the source path/URL using `svn` |
 
 Feed names are used to identify feeds and serve as the basis for several file and directory names that are created to hold information about the feeds. The feed source is the location from which the feed data is downloaded.
 
-For the methods listed above which rely on version control systems that support a "limited history" option (such as `--depth=1` for git and `--lightweight` for bzr) the smallest available history is downloaded. This is a good default, but developers who are actively committing to a feed and/or using the commit history may want to change this behavior. This can be done by editing `scripts/feeds` to use `src-git-full` or by checking out the feed without using `scripts/feeds`. A shallow git clone can be updated to a "full" clone through use of `git fetch --unshallow`
+For the methods listed above which rely on version control systems that support a “limited history” option (such as `--depth=1` for git and `--lightweight` for bzr) the smallest available history is downloaded. This is a good default, but developers who are actively committing to a feed and/or using the commit history may want to change this behavior. This can be done by editing `scripts/feeds` to use `src-git-full` or by checking out the feed without using `scripts/feeds`. A shallow git clone can be updated to a “full” clone through use of `git fetch --unshallow`
 
 ## Working with Feeds
 
@@ -93,7 +93,7 @@ During the `install` step, packages from the feeds obtained during an \`update\`
 
 ### Feed Commands
 
-Feeds can be utilized through the `scripts/feeds` script. A list of the available commands is generated by invoking `scripts/feeds` without any arguments. Most commands require the feed information to be available locally, so running update first is usually necessary. In the following discussion the term "applicable packages" usually refers to the package names given on the command line or all packages in a feed when the -a option is used.
+Feeds can be utilized through the `scripts/feeds` script. A list of the available commands is generated by invoking `scripts/feeds` without any arguments. Most commands require the feed information to be available locally, so running update first is usually necessary. In the following discussion the term “applicable packages” usually refers to the package names given on the command line or all packages in a feed when the -a option is used.
 
 #### Clean
 
@@ -103,17 +103,17 @@ The clean command removes the locally stored feed data, including the feed index
 
 The install command installs the applicable packages and any packages on which the applicable packages depend (both direct dependencies and build dependencies). The installation process consists of creating a symbolic link from `package/feeds/$feed_name/$package_name` to `feeds/$feed_name/$package_name` so that the package will be included in the configuration process when the directory hierarchy under `packages` is searched.
 
-| Command                            | Description                                                                                                  |
-|:-----------------------------------|--------------------------------------------------------------------------------------------------------------|
-| ./scripts/feeds install -a         | Install all packages (not required; packages can be installed on an as-needed basis for slow build machines) |
-| ./scripts/feeds install luci       | Install only the package LuCI                                                                                |
-| ./scripts/feeds install -a -p luci | Install the complete LuCI WebUI by installing all (-a) packages from the preferred feed (-p) luci            |
+| Command | Description |
+|:---|----|
+| ./scripts/feeds install -a | Install all packages (not required; packages can be installed on an as-needed basis for slow build machines) |
+| ./scripts/feeds install luci | Install only the package LuCI |
+| ./scripts/feeds install -a -p luci | Install the complete LuCI WebUI by installing all (-a) packages from the preferred feed (-p) luci |
 
 See the above section for a list of the feeds available by default.
 
-|                                                                   |                                                                                                                                               |
-|-------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------|
-| ![48px-outdated.svg.png](/meta/icons/tango/48px-outdated.svg.png) | Please note that this replaces the old method of creating symlinks, which can be still found on-line in many old forum and user-group entries |
+|  |  |
+|----|:---|
+| <img src="/meta/icons/tango/48px-outdated.svg.png" data-query="?nolink" alt="48px-outdated.svg.png" /> | Please note that this replaces the old method of creating symlinks, which can be still found on-line in many old forum and user-group entries |
 
 #### List
 
@@ -137,11 +137,11 @@ When `scripts/feeds update` is invoked, each of the applicable feeds are downloa
 
 Note that update also stores the configured location of the feed in `feeds/$feed_name.tmp/location` such that changes to the configuration can be detected and handled appropriately.
 
-After retrieval the downloaded packages need to be *"installed"*. Only after installation will they be available in the configuration interface!
+After retrieval the downloaded packages need to be *“installed”*. Only after installation will they be available in the configuration interface!
 
 ## Custom Feeds
 
-Ok, you've developed your package, and now you want to use it via make menuconfig, OR you are developing a package and you want to test it in a build before you try to get it included in OpenWrt.
+Ok, you’ve developed your package, and now you want to use it via make menuconfig, OR you are developing a package and you want to test it in a build before you try to get it included in OpenWrt.
 
 The solution is a custom feed. You can either create an entirely new feed, or use a modified version of one of the standard ones.
 
@@ -158,20 +158,24 @@ FIXME
 For this example we assume that you name your feed `custom` and your project is called `helloworld` and its openwrt Makefile is located at `/usr/src/openwrt/custom-feed/helloworld/Makefile`.
 
 1.  Edit `/home/user/openwrt/feeds.conf.default`
-2.  Add a new line for your feed. `src-link custom /usr/src/openwrt/custom-feed/`
+2.  Add a new line for your feed.
+        src-link custom /usr/src/openwrt/custom-feed/
 
 <!-- -->
 
-1.  Update the feed: from the `<buildroot dir>` (e.g. `/home/user/openwrt`) do: `./scripts/feeds update custom`
-2.  And then install it `./scripts/feeds install -a -p custom`
+1.  Update the feed: from the `<buildroot dir>` (e.g. `/home/user/openwrt`) do:
+        ./scripts/feeds update custom
+2.  And then install it
+        ./scripts/feeds install -a -p custom
 
 ### Using the feed
 
-1.  Now your package(s) should be available when you do `make menuconfig`
+1.  Now your package(s) should be available when you do
+        make menuconfig
 
 ## Explanations
 
-The downloaded sources (referenced in package Makefiles) are not there... The downloads go first to \<buildroot\>/dl as gzipped .gz files. And there they are stored and then they get unzipped to /build_dir. See e.g. \<buildroot\>/build_dir/target-\*/ and below it you will find subdirectories for each package's sources.
+The downloaded sources (referenced in package Makefiles) are not there… The downloads go first to \<buildroot\>/dl as gzipped .gz files. And there they are stored and then they get unzipped to /build_dir. See e.g. \<buildroot\>/build_dir/target-\*/ and below it you will find subdirectories for each package’s sources.
 
 ### Documentation
 
@@ -179,6 +183,6 @@ The downloaded sources (referenced in package Makefiles) are not there... The do
 2.  [OpenWrt Buildroot – Installation](/docs/guide-developer/toolchain/install-buildsystem)
 3.  [OpenWrt Buildroot – Usage](/docs/guide-developer/toolchain/use-buildsystem)
 4.  OpenWrt Buildroot – Feeds
-5.  [OpenWrt Buildroot – Technical Reference](/docs/techref/buildroot) <img src="/meta/icons/tango/48px-construction.svg.png" width="16" alt="48px-construction.svg.png" /> this article needs *your* attention.
+5.  [OpenWrt Buildroot – Technical Reference](/docs/techref/buildroot) <img src="/meta/icons/tango/48px-construction.svg.png" data-query="?nolink&amp;16" width="16" alt="48px-construction.svg.png" /> this article needs *your* attention.
 
 ## Links

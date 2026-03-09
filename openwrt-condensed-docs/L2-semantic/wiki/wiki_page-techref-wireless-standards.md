@@ -2,10 +2,10 @@
 title: Wireless Standards
 module: wiki
 origin_type: wiki_page
-token_count: 845
+token_count: 859
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-wireless-standards.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Wireless Standards
@@ -24,7 +24,7 @@ Old standard that operates in 5GHz [frequency band](https://en.wikipedia.org/wik
 
 ## 802.11g
 
-[](https://en.wikipedia.org/wiki/IEEE_802.11g-2003) Operates in 2.4GHz Band Old standard.
+[IEEE_802.11g-2003](https://en.wikipedia.org/wiki/IEEE_802.11g-2003) Operates in 2.4GHz Band Old standard.
 
 ## 802.11n
 
@@ -32,7 +32,7 @@ Old standard that operates in 5GHz [frequency band](https://en.wikipedia.org/wik
 
 ## 802.11ac
 
-[IEEE_802.11ac](https://en.wikipedia.org/wiki/IEEE_802.11ac) Also called "Wifi 5"
+[IEEE_802.11ac](https://en.wikipedia.org/wiki/IEEE_802.11ac) Also called “Wifi 5”
 
 ## 802.11ad
 
@@ -42,11 +42,15 @@ Old standard that operates in 5GHz [frequency band](https://en.wikipedia.org/wik
 
 [IEEE_802.11ax](https://en.wikipedia.org/wiki/IEEE_802.11ax)
 
-Also called "Wifi 6"
+Also called “Wifi 6”
 
 ### Features in Drivers
 
-Each hardware has certain features that can be queried in OpenWrt by using `iw phy <phy interface> info `
+Each hardware has certain features that can be queried in OpenWrt by using
+
+``` bash
+iw phy <phy interface> info 
+```
 
 Mismatching features result in compatibility problems and possibly reduced data transfer rates.
 
@@ -72,7 +76,7 @@ Technology that uses multiple antennas to increase data transfer rates. see also
 
 #### HT, VHT, HE
 
-Required for higher throughput - 802.11n, 802.11ac, 802.11ax standards. HT ... 802.11n , VHT ... 802.11ac, HE ... 802.11ax
+Required for higher throughput - 802.11n, 802.11ac, 802.11ax standards. HT … 802.11n , VHT … 802.11ac, HE … 802.11ax
 
 HT20 : 20 MHz wide channels HT40: 40 MHz VHT80 : 80 MHz VHT160: 160MHz
 

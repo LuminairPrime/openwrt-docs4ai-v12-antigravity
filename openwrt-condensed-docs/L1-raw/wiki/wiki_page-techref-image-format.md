@@ -1,6 +1,6 @@
 # Image formats
 
-\<WRAP center round info 50%\> You can help to improve this page by adding explanations for the different firmware types below.  
+\<WRAP center round info 50%\> You can help to improve this page by adding explanations for the different firmware types below.\
 \</WRAP\>
 
 If you are confused by the many different firmware types and extensions in the [OpenWrt firmware downloads](/toh/views/toh_fwdownload) table, this pages tries to explain a bit about this topic.
@@ -11,7 +11,7 @@ If you are confused by the many different firmware types and extensions in the [
 
 Use when flashing from OEM ( non-openwrt ) [^1]
 
-If only a sysupgrade image is available for your router, either the router is already running some kind of OpenWrt fork (which understands the sysupgrade format natively) or web flash via the OEM UI is not possible... Please consult the Table of Hardware for your device for installation instructions from OEM firmware.
+If only a sysupgrade image is available for your router, either the router is already running some kind of OpenWrt fork (which understands the sysupgrade format natively) or web flash via the OEM UI is not possible… Please consult the Table of Hardware for your device for installation instructions from OEM firmware.
 
 ### sysupgrade ( or trx )
 
@@ -107,53 +107,53 @@ Linux kernel for build [^6]
 
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th>Target</th>
 <th>Install</th>
 <th>Upgrade</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>adm5120</td>
 <td>squashfs.bin</td>
 <td>squashfs.bin</td>
 </tr>
-<tr class="even">
+<tr>
 <td>apm821xx</td>
 <td>squashfs-factory.img<br />
 initramfs-kernel.bin</td>
 <td>squashfs-sysupgrade.tar<br />
 ext4-rootfs.img.gz</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>ar7</td>
 <td>squashfs.bin<br />
 squashfs-code.bin</td>
 <td>squashfs.bin</td>
 </tr>
-<tr class="even">
+<tr>
 <td>ar71xx</td>
 <td>factory.img<br />
 factory.bin</td>
 <td>sysupgrade.bin</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>at91</td>
 <td></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr>
 <td>atheros</td>
 <td>squashfs-factory.bin</td>
 <td>squashfs-sysupgrade.tar</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>brcm2708</td>
 <td>ext4-sdcard.img.gz</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>brcm47xx</td>
 <td>squashfs.bin<br />
 squashfs.chk<br />
@@ -162,7 +162,7 @@ squashfs.trx</td>
 squashfs.chk<br />
 squashfs.trx</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>bcm53xx</td>
 <td>squashfs.bin<br />
 squashfs.chk<br />
@@ -171,80 +171,80 @@ squashfs.trx</td>
 squashfs.chk<br />
 squashfs.trx</td>
 </tr>
-<tr class="even">
+<tr>
 <td>brcm63xx</td>
 <td>squashfs-cfe.bin<br />
 squashfs-factory.chk</td>
 <td>squashfs-sysupgrade.bin</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>cns3xxx</td>
 <td>-</td>
 <td>sysupgrade.bin</td>
 </tr>
-<tr class="even">
+<tr>
 <td>imx6</td>
 <td>?</td>
 <td>?</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>ipq806x</td>
 <td>factory.img</td>
 <td>sysupgrade.tar</td>
 </tr>
-<tr class="even">
+<tr>
 <td>ixp4xx</td>
 <td>squashfs.bin<br />
 squashfs.img<br />
 zImage</td>
 <td>squashfs-sysupgrade.bin</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>kirkwood</td>
 <td>squashfs-factory.bin</td>
 <td>squashfs-sysupgrade.bin</td>
 </tr>
-<tr class="even">
+<tr>
 <td>lantiq</td>
 <td>initramfs-kernel.bin<br />
 squashfs-factory.bin</td>
 <td>squashfs-sysupgrade.bin</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>layerscape</td>
 <td>squashfs-firmware.bin</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>mpc85xx</td>
 <td>squashfs-factory.bin</td>
 <td>squashfs-sysupgrade.bin</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>mvebu</td>
 <td>sdcard.img.gz<br />
 squashfs-factory.img</td>
 <td><br />
 squashfs-sysupgrade.bin</td>
 </tr>
-<tr class="even">
+<tr>
 <td>mxs</td>
 <td>?</td>
 <td>?</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>orion</td>
 <td>not supported</td>
 <td>not supported</td>
 </tr>
-<tr class="even">
+<tr>
 <td>oxnas</td>
 <td>squashfs-ubinized.bin<br />
 ubifs-ubinized.bin</td>
 <td>squashfs-sysupgrade.tar<br />
 ubifs-sysupgrade.tar</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>ramips</td>
 <td>initramfs-kernel.bin<br />
 squashfs-factory.bin<br />
@@ -253,13 +253,13 @@ initramfs-uImage.bin</td>
 <td>squashfs-sysupgrade.bin<br />
 squashfs-sysupgrade.tar</td>
 </tr>
-<tr class="even">
+<tr>
 <td>sunxi</td>
 <td>ext4-sdcard.img.gz<br />
 squashfs-sdcard.img.gz</td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>x86</td>
 <td>combined-ext4.img</td>
 <td>combined-ext4.img.gz</td>

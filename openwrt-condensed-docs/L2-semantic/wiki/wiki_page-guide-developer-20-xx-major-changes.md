@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 2106
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-20-xx-major-changes.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # 21.02: Major cosmetic changes
@@ -20,9 +20,9 @@ Note that this page is not even close to being complete.
 
 Recently, most obvious through the transition from ar71xx to ath79, we tried to make device/image names more systematic by applying a vendor_model-variant scheme.
 
-This has already been used in 19.07 in some cases (ath79, ipq40xx, ipq806x, mpc85xx, new ramips devices, ...).
+This has already been used in 19.07 in some cases (ath79, ipq40xx, ipq806x, mpc85xx, new ramips devices, …).
 
-After 19.07 had been released, the attempt was made to apply this more widely, and use the momentum to also achieve a more unified and systematic naming scheme for the different locations where the "device name" is used in its variations:
+After 19.07 had been released, the attempt was made to apply this more widely, and use the momentum to also achieve a more unified and systematic naming scheme for the different locations where the “device name” is used in its variations:
 
 - device name in image/Makefile (will be used for image name)
 - DEVICE_TITLE in image/Makefile
@@ -64,21 +64,21 @@ Note that ath79 might also include several changes after 19.07.
 
 ### bcm27xx/brcm2708
 
-The whole target has been renamed from "brcm2708" to "bcm27xx". This will affect all cases where target variables are used, i.e. CONFIG_TARGET\_\* or TARGET\_\* dependencies. Despite, image names will change. The same rename applies to packages brcm2708-userland and brcm2708-gpu-fw.
+The whole target has been renamed from “brcm2708” to “bcm27xx”. This will affect all cases where target variables are used, i.e. CONFIG_TARGET\_\* or TARGET\_\* dependencies. Despite, image names will change. The same rename applies to packages brcm2708-userland and brcm2708-gpu-fw.
 
-This can be easily addressed downstream by just grepping for "brcm2708".
+This can be easily addressed downstream by just grepping for “brcm2708”.
 
 ### bcm47xx/brcm47xx
 
-The whole target has been renamed from "brcm47xx" to "bcm47xx". This will affect all cases where target variables are used, i.e. CONFIG_TARGET\_\* or TARGET\_\* dependencies. Despite, image names will change.
+The whole target has been renamed from “brcm47xx” to “bcm47xx”. This will affect all cases where target variables are used, i.e. CONFIG_TARGET\_\* or TARGET\_\* dependencies. Despite, image names will change.
 
-This can be easily addressed downstream by just grepping for "brcm47xx".
+This can be easily addressed downstream by just grepping for “brcm47xx”.
 
 ### bcm63xx/brcm63xx
 
-The whole target has been renamed from "brcm63xx" to "bcm63xx". This will affect all cases where target variables are used, i.e. CONFIG_TARGET\_\* or TARGET\_\* dependencies. Despite, image names will change.
+The whole target has been renamed from “brcm63xx” to “bcm63xx”. This will affect all cases where target variables are used, i.e. CONFIG_TARGET\_\* or TARGET\_\* dependencies. Despite, image names will change.
 
-This can be easily addressed downstream by just grepping for "brcm63xx".
+This can be easily addressed downstream by just grepping for “brcm63xx”.
 
 Despite, this target has also been subject to an ath79-like unification of device names:
 

@@ -6,18 +6,18 @@ The easy way is to include the files as [custom files](/docs/guide-developer/too
 
 This is a plain copy-paste from mailing list, if you have some time to turn it in a proper wiki article please do so.
 
-Hi Karl,  
-let me introduce a not strictly new way but another heavily under documented buildroot feature which you can use to implement custom modifications to packages which do not require source code edits.  
-For every processed package Makefile, the buildroot tries to include a a Makefile fragment in \$(TOPDIR)/overlay/\*/\$(PKG_DIR_NAME).mk which one can use to monkey-patch internals without directly touching the package recipes.  
-For example to amend "base-files" to include a custom banner and inittab, you could create an overlay file called  
+Hi Karl,\
+let me introduce a not strictly new way but another heavily under documented buildroot feature which you can use to implement custom modifications to packages which do not require source code edits.\
+For every processed package Makefile, the buildroot tries to include a a Makefile fragment in \$(TOPDIR)/overlay/\*/\$(PKG_DIR_NAME).mk which one can use to monkey-patch internals without directly touching the package recipes.\
+For example to amend “base-files” to include a custom banner and inittab, you could create an overlay file called\
 
     "overlay/my-example-organization/base-files.mk"\\
 
-which extends the default Package/base-files/install recipe to copy your custom files in the end.  
-Assuming a directory structure like this  
-\* overlay/my-example-organization/banner  
-\* overlay/my-example-organization/inittab  
-\* overlay/my-example-organization/base-files.mk  
+which extends the default Package/base-files/install recipe to copy your custom files in the end.\
+Assuming a directory structure like this\
+\* overlay/my-example-organization/banner\
+\* overlay/my-example-organization/inittab\
+\* overlay/my-example-organization/base-files.mk\
 the base-files.mk would need to include something like the following code to splicy your custom files into the packaging procedure:
 
     --- 8< ---

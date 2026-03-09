@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 322
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-mountd.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # mountd – Technical Reference
@@ -18,8 +18,8 @@ OpenWrt automount daemon, is configured in `/etc/config/mountd`
 
 ## What is mountd?
 
-- `mountd` is another [daemon](https://en.wikipedia.org/wiki/Daemon (computing)) written in [C](https://en.wikipedia.org/wiki/C (programming language)) with the ability to ...:?:
-- `mountd` replaces ...:?:... on full blown desktop distributions.
+- `mountd` is another [daemon](https://en.wikipedia.org/wiki/Daemon (computing)) written in [C](https://en.wikipedia.org/wiki/C (programming language)) with the ability to …:?:
+- `mountd` replaces …:?:… on full blown desktop distributions.
 
 ## Help with the development of mountd
 

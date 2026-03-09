@@ -54,7 +54,7 @@ Note: `unetd` is not yet capable of installing these prerequisites above via `op
 
 #### Example
 
-This creates a new JSON file `test.json` locally and also generates a signing key in `test.json.key` locally (if it doesn't exist already):
+This creates a new JSON file `test.json` locally and also generates a signing key in `test.json.key` locally (if it doesn’t exist already):
 
     # unet-cli test.json create
 
@@ -151,18 +151,18 @@ By now, uploading the data to one of the two hosts is enough, because once it (1
 
 Configuration of a `interface` section in /etc/config/network for unetd.
 
-| Name       | Type    | Required | Description                                                                                                          |
-|------------|---------|----------|----------------------------------------------------------------------------------------------------------------------|
-| `proto`    | string  | required | Needs to be `unet`                                                                                                   |
-| `device`   | string  | required | Name of the tunnel device                                                                                            |
-| `key`      | string  | required | Local wireguard key                                                                                                  |
-| `auth_key` | string  | required | Key used to sign network config                                                                                      |
-| `tunnels`  | list    |          | List of tunnel devices mapped to VXLAN service definitions in the network config (format: `<device>=<servicename>`). |
-| `connect`  | list    |          | List of external unetd host IP addresses to download network config updates from                                     |
-| `domain`   | string  |          | Domain suffix for hosts in the generated hosts file                                                                  |
-| `dht`      | boolean |          | Enable DHT peer discovery for this network                                                                           |
+| Name | Type | Required | Description |
+|----|----|----|----|
+| `proto` | string | required | Needs to be `unet` |
+| `device` | string | required | Name of the tunnel device |
+| `key` | string | required | Local wireguard key |
+| `auth_key` | string | required | Key used to sign network config |
+| `tunnels` | list |  | List of tunnel devices mapped to VXLAN service definitions in the network config (format: `<device>=<servicename>`). |
+| `connect` | list |  | List of external unetd host IP addresses to download network config updates from |
+| `domain` | string |  | Domain suffix for hosts in the generated hosts file |
+| `dht` | boolean |  | Enable DHT peer discovery for this network |
 
-The `connect` option only needs to be used for bootstrapping the setup in case you're not uploading the network data to the node directly. Once unetd has a working peer connection, it will always replicate updates over the tunnel.
+The `connect` option only needs to be used for bootstrapping the setup in case you’re not uploading the network data to the node directly. Once unetd has a working peer connection, it will always replicate updates over the tunnel.
 
 ### Network config data
 
@@ -210,32 +210,32 @@ Network config is written as a JSON file.
 
 ##### Config properties:
 
-| Name                 | Type             | Description                                                                |
-|:---------------------|:-----------------|:---------------------------------------------------------------------------|
-| `port`               | int              | Wireguard tunnel port (can be overriden for individual hosts)              |
-| `keepalive`          | int              | Interval (in seconds) for keepalive and forcing peer reconnection attempts |
-| `peer-exchange-port` | int              | Port for exchanging peer messages on the WireGuard tunnel (0: disabled)    |
-| `stun-servers`       | array of strings | List of STUN servers written as hostname:port strings                      |
+| Name | Type | Description |
+|:---|:---|:---|
+| `port` | int | Wireguard tunnel port (can be overriden for individual hosts) |
+| `keepalive` | int | Interval (in seconds) for keepalive and forcing peer reconnection attempts |
+| `peer-exchange-port` | int | Port for exchanging peer messages on the WireGuard tunnel (0: disabled) |
+| `stun-servers` | array of strings | List of STUN servers written as hostname:port strings |
 
 ##### Host properties:
 
-| Name                 | Type             | Description                                                                                                              |
-|:---------------------|:-----------------|:-------------------------------------------------------------------------------------------------------------------------|
-| `key`                | string           | Wireguard public key                                                                                                     |
-| `groups`             | array of strings | Names of groups that the host is a member of                                                                             |
-| `ipaddr`             | array of strings | Local IP addresses of the host (IPv4 or IPv6)                                                                            |
-| `subnet`             | array of strings | Subnets routed by the host (IPv4 or IPv6) (format: `<addr>/<mask>`)                                                      |
-| `port`               | int              | Wireguard tunnel port (overrides `config` property)                                                                      |
-| `peer-exchange-port` | int              | Host specific port for exchanging peer messages on the WireGuard tunnel (0: disabled)                                    |
-| `endpoint`           | string           | Public endpoint address (format: `<addr>` for IPv4, `[<addr>]` for IPv6 with optional `:<port>` suffix)                  |
-| `gateway`            | string           | Name of another host to use as gateway (can be used for avoiding direct connections with all other peers from this host) |
+| Name | Type | Description |
+|:---|:---|:---|
+| `key` | string | Wireguard public key |
+| `groups` | array of strings | Names of groups that the host is a member of |
+| `ipaddr` | array of strings | Local IP addresses of the host (IPv4 or IPv6) |
+| `subnet` | array of strings | Subnets routed by the host (IPv4 or IPv6) (format: `<addr>/<mask>`) |
+| `port` | int | Wireguard tunnel port (overrides `config` property) |
+| `peer-exchange-port` | int | Host specific port for exchanging peer messages on the WireGuard tunnel (0: disabled) |
+| `endpoint` | string | Public endpoint address (format: `<addr>` for IPv4, `[<addr>]` for IPv6 with optional `:<port>` suffix) |
+| `gateway` | string | Name of another host to use as gateway (can be used for avoiding direct connections with all other peers from this host) |
 
 ##### Service properties
 
-| Name      | Type             | Description                                                 |
-|:----------|:-----------------|:------------------------------------------------------------|
-| `type`    | string           | Service type                                                |
-| `config`  | object           | Service type specific config options                        |
+| Name | Type | Description |
+|:---|:---|:---|
+| `type` | string | Service type |
+| `config` | object | Service type specific config options |
 | `members` | array of strings | Members assigned to this service (use `@<name>` for groups) |
 
 ### CLI usage

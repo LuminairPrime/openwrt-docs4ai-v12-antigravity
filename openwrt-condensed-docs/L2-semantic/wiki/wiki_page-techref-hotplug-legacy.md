@@ -1,35 +1,35 @@
 ---
-title: Hotplug -- Legacy
+title: "Hotplug \u2013 Legacy"
 module: wiki
 origin_type: wiki_page
-token_count: 3473
+token_count: 3517
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-hotplug-legacy.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
-# Hotplug -- Legacy
+# Hotplug – Legacy
 
 ![historic&noheader&nofooter&noeditbtn](/page>meta/infobox/historic&noheader&nofooter&noeditbtn)
 
 <table>
 <tbody>
-<tr class="odd">
-<td><img src="/meta/icons/tango/48px-outdated.svg.png" alt="48px-outdated.svg.png" /></td>
+<tr>
+<td><img src="/meta/icons/tango/48px-outdated.svg.png" data-query="?nolink" alt="48px-outdated.svg.png" /></td>
 <td style="text-align: left;">See the <a href="/docs/guide-user/base-system/hotplug">Hotplug article</a> for information on the current approach.<br />
 <br />
-The "hotplug2" daemon was removed in 2013 (<a href="https://dev.openwrt.org/changeset/36987">r36987</a>) and replaced with <a href="/docs/techref/procd">procd</a>.</td>
+The “hotplug2” daemon was removed in 2013 (<a href="https://dev.openwrt.org/changeset/36987">r36987</a>) and replaced with <a href="/docs/techref/procd">procd</a>.</td>
 </tr>
 </tbody>
 </table>
 
-Hotplug2 was a trivial replacement of some of the UDev functionality in a tiny pack, intended for Linux early userspace: Init RAM FS and InitRD. Hotplug executes scripts located in the respective hotplug directory: `/etc/hotplug.d/` on certain events, like when an interface goes up or down or when a button gets pressed. It can be very useful with [PPPoE](https://en.wikipedia.org/wiki/Point-to-Point Protocol over Ethernet)-connection or in an unstable network. Hotplug has been available since OpenWrt 'Kamikaze' 7.06 and was removed in 2013, prior to the release of "Attitude Adjustment".
+Hotplug2 was a trivial replacement of some of the UDev functionality in a tiny pack, intended for Linux early userspace: Init RAM FS and InitRD. Hotplug executes scripts located in the respective hotplug directory: `/etc/hotplug.d/` on certain events, like when an interface goes up or down or when a button gets pressed. It can be very useful with [PPPoE](https://en.wikipedia.org/wiki/Point-to-Point Protocol over Ethernet)-connection or in an unstable network. Hotplug has been available since OpenWrt ‘Kamikaze’ 7.06 and was removed in 2013, prior to the release of “Attitude Adjustment”.
 
 - <https://dev.openwrt.org/browser/trunk/package/hotplug2?rev=36446>
 
-|                                                                   |                                                                                                                                           |
-|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| ![48px-outdated.svg.png](/meta/icons/tango/48px-outdated.svg.png) | Example: See [r37336: procd: make old button hotplug rules work until all packages are migrated](https://dev.openwrt.org/changeset/37336) |
+|  |  |
+|----|----|
+| <img src="/meta/icons/tango/48px-outdated.svg.png" data-query="?nolink" alt="48px-outdated.svg.png" /> | Example: See [r37336: procd: make old button hotplug rules work until all packages are migrated](https://dev.openwrt.org/changeset/37336) |
 
 It is also used by [hardware.button](/docs/guide-user/hardware/hardware.button)
 
@@ -39,13 +39,13 @@ Best answer to this question is found on [Chris Lumens's website](http://www.ban
 
 #### How it works
 
-Every time an interface goes up or down, all scripts in the `/etc/hotplug.d/iface/` directory are executed, in alphabetical order. According to an informal convention a numeric prefix is added to each script name to set the correct order of running. That's why the scripts there are named like this: `/etc/hotplug.d/iface/<nn>-<scriptname>` e.g.: 10-routes, 20-firewall
+Every time an interface goes up or down, all scripts in the `/etc/hotplug.d/iface/` directory are executed, in alphabetical order. According to an informal convention a numeric prefix is added to each script name to set the correct order of running. That‘s why the scripts there are named like this: ’‘/etc/hotplug.d/iface/\<nn\>-\<scriptname\>’’ e.g.: 10-routes, 20-firewall
 
 Kernel module: `button-hotplug`
 
 ## Configuration
 
-Modify `/etc/hotplug2.rules` to enable Hotplug execute your script(s) in `/etc/hotplug.d/<type>`. `<type>` is a kind of hotplug device; such as usb. In /etc/hotplug2.rules, remove '^' before `<type>` which can be net, input, button, usb etc.
+Modify `/etc/hotplug2.rules` to enable Hotplug execute your script(s) in `/etc/hotplug.d/<type>`. `<type>` is a kind of hotplug device; such as usb. In /etc/hotplug2.rules, remove ‘^’ before `<type>` which can be net, input, button, usb etc.
 
     $include /etc/hotplug2-common.rules
 
@@ -62,23 +62,23 @@ Simply place your script(s) into the respective hotplug subdirectory. Script loo
 
 There are three main environment variables that are passed to each iface hotplug-script:
 
-| Variable name | Description                                                                      |
-|---------------|----------------------------------------------------------------------------------|
-| ACTION        | Either "ifup" or "ifdown"                                                        |
-| INTERFACE     | Name of the interface which went up or down (e.g. "wan" or "ppp0")               |
-| DEVICE        | Physical device name which interface went up or down (e.g. "eth0.1" or "br-lan") |
+| Variable name | Description |
+|----|----|
+| ACTION | Either “ifup” or “ifdown” |
+| INTERFACE | Name of the interface which went up or down (e.g. “wan” or “ppp0”) |
+| DEVICE | Physical device name which interface went up or down (e.g. “eth0.1” or “br-lan”) |
 
 ## Examples
 
 Save the example script at `/etc/hotplug.d/iface/99-my-action`.
 
-\| ''#!/bin/sh
+\| ’’#!/bin/sh
 
-\[ "\$ACTION" = ifup \] && {
+\[ “\$ACTION” = ifup \] && {
 
     logger -t button-hotplug Device: $DEVICE / Action: $ACTION
 
-}'' \|
+}’’ \|
 
 Every time an interface goes up then the if/fi statement will be executed.
 
@@ -86,7 +86,7 @@ Every time an interface goes up then the if/fi statement will be executed.
 
 Niii has posted this quick example for a USB WiFi device hotplug event to trigger an init.d network restart wlan0 script.
 
-For determine RTL8188SU_PRODID variable, use "lsusb -v":
+For determine RTL8188SU_PRODID variable, use “lsusb -v”:
 
     idVendor           0x0bda Realtek Semiconductor Corp.
     idProduct          0x8171 RTL8188SU 802.11n WLAN Adapter
@@ -94,28 +94,28 @@ For determine RTL8188SU_PRODID variable, use "lsusb -v":
 
 **/etc/hotplug.d/usb/20-rtl8188su**
 
-\| ''#!/bin/sh
+\| ’’#!/bin/sh
 
-BINARY="/sbin/wifi up" RTL8188SU_PRODID="bda/8171/200"
+BINARY=“/sbin/wifi up” RTL8188SU_PRODID=“bda/8171/200”
 
-if \[ "\${PRODUCT}" = "\${RTL8188SU_PRODID}" \]; then
+if \[ “\${PRODUCT}” = “\${RTL8188SU_PRODID}” \]; then
 
       if [ "${ACTION}" = "add" ]; then
           ${BINARY}
       fi
 
-fi'' \|
+fi’’ \|
 
 **`/etc/hotplug.d/usb/20-cp210x`**
 
-An other script to create a symlink instead of renaming the device.  
+An other script to create a symlink instead of renaming the device.\
 I test if DEVICE_NAME is empty because when I plug usb device I retrieve two add event, and the first come before created device, so symlink fails.
 
-\| ''#!/bin/sh
+\| ’’#!/bin/sh
 
-CP210_PRODID="10c4/ea60/100" SYMLINK="my_link"
+CP210_PRODID=“10c4/ea60/100” SYMLINK=“my_link”
 
-if \[ "\${PRODUCT}" = "\${CP210_PRODID}" \];
+if \[ “\${PRODUCT}” = “\${CP210_PRODID}” \];
 
      then if [ "${ACTION}" = "add" ];
         then
@@ -131,7 +131,7 @@ if \[ "\${PRODUCT}" = "\${CP210_PRODID}" \];
 
 fi
 
-if \[ "\${PRODUCT}" = "\${CP210_PRODID}" \];
+if \[ “\${PRODUCT}” = “\${CP210_PRODID}” \];
 
      then if [ "${ACTION}" = "remove" ];
            then 
@@ -139,15 +139,15 @@ if \[ "\${PRODUCT}" = "\${CP210_PRODID}" \];
            logger -t Hotplug Symlink /dev/${SYMLINK} removed
      fi
 
-fi'' \|
+fi’’ \|
 
 Script that detects if plugged usb device is bluetooth or not.
 
-\| ''#!/bin/sh BT_PRODID="a12/1/" BT_PRODID_HOT=\`echo \$PRODUCT \| cut -c 1-6\`
+\| ’’#!/bin/sh BT_PRODID=“a12/1/” BT_PRODID_HOT=\`echo \$PRODUCT \| cut -c 1-6\`
 
-\#logger -t HOTPLUG "PRODUCT ID is" \$BT_PRODID_HOT
+\#logger -t HOTPLUG “PRODUCT ID is” \$BT_PRODID_HOT
 
-if \[ "\$BT_PRODID_HOT" = "\$BT_PRODID" \]; then
+if \[ “\$BT_PRODID_HOT” = “\$BT_PRODID” \]; then
 
       if [ "$ACTION" = "add" ]; then
           logger -t HOTPLUG "bluetooth device has been plugged in!"
@@ -165,9 +165,9 @@ else
 
       logger -t HOTPLUG "USB device is not bluetooth"
 
-fi'' \|
+fi’’ \|
 
-Auto start mjpg-streamer when an usb camera is plugged in. Firstly, remove '^' before 'input' in `/etc/hotplug2.rules` to enable Hotplug execute script(s) in `/etc/hotplug.d/input`. Secondly, add `/etc/hotplug.d/input/30-mjpg-streamer`
+Auto start mjpg-streamer when an usb camera is plugged in. Firstly, remove ‘^’ before ‘input’ in `/etc/hotplug2.rules` to enable Hotplug execute script(s) in `/etc/hotplug.d/input`. Secondly, add `/etc/hotplug.d/input/30-mjpg-streamer`
 
     case "$ACTION" in
         add)
@@ -182,9 +182,9 @@ Auto start mjpg-streamer when an usb camera is plugged in. Firstly, remove '^' b
 
 ## Coldplug
 
-If you had notice the udev and eudev were removed in the openwrt 18.0.\* release, don't be afraid because you still can make the things works.  
-**Using hotplug scripts as coldplug**  
-You just need to pay atention at the ACTION env var, at the boot are executed 'bind' actions.  
+If you had notice the udev and eudev were removed in the openwrt 18.0.\* release, don‘t be afraid because you still can make the things works.\
+**Using hotplug scripts as coldplug**\
+You just need to pay atention at the ACTION env var, at the boot are executed ’bind’ actions.\
 So, just add this option to hotplug run accordinly. In my case I used this:
 
 Take a look into file `/etc/hotplug.d/usb/22-symlinks`
@@ -276,6 +276,6 @@ So with debuging enabled here is how it looks like when you plug two different u
     action='add' product='a12/1/134' type='224/1/1' interface='224/1/1'
     action='add' product='a12/1/134' type='224/1/1' interface='224/1/1'
 
-So my using some (maybe flawed) logic we can deduce that match bluetooth is possible if we use product='a12/1\*'
+So my using some (maybe flawed) logic we can deduce that match bluetooth is possible if we use product=‘a12/1\*’
 
 ## Notes

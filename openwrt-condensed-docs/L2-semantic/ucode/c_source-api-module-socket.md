@@ -2,10 +2,10 @@
 title: 'ucode module: socket'
 module: ucode
 origin_type: c_source
-token_count: 15013
+token_count: 17280
 version: unknown
 source_file: L1-raw/ucode/c_source-api-module-socket.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 upstream_path: lib/socket.c
 language: c
 ---
@@ -1296,4 +1296,200 @@ the socket.
 | SO_RCVBUFFORCE | `number` | Set the receive buffer size forcefully. |
 | SO_RCVLOWAT | `number` | Set the minimum number of bytes to process for input operations. |
 | SO_RCVTIMEO | `number` | Set the timeout for receiving data. |
-| SO_REUSEADDR | `number` | Allow the socket to
+| SO_REUSEADDR | `number` | Allow the socket to be bound to an address that is already in use. |
+| SO_REUSEPORT | `number` | Enable duplicate address and port bindings. |
+| SO_RXQ_OVFL | `number` | Reports if the receive queue has overflown. |
+| SO_SNDBUF | `number` | Set the send buffer size. |
+| SO_SNDBUFFORCE | `number` | Set the send buffer size forcefully. |
+| SO_SNDLOWAT | `number` | Set the minimum number of bytes to process for output operations. |
+| SO_SNDTIMEO | `number` | Set the timeout for sending data. |
+| SO_TIMESTAMP | `number` | Enable receiving of timestamps. |
+| SO_TIMESTAMPNS | `number` | Enable receiving of nanosecond timestamps. |
+| SO_TYPE | `number` | Retrieves the type of the socket (e.g., SOCK_STREAM). |
+
+<a name="module_socket..TCP Protocol Constants"></a>
+
+### socket~TCP Protocol Constants
+The `IPPROTO_TCP` constant specifies the TCP protocol number and may be
+passed as third argument to [create()](#module_socket+create) as well
+as *level* argument value to [getopt()](#module_socket.socket+getopt)
+and [setopt()](#module_socket.socket+setopt).
+
+The `TCP_*` constants are *option* argument values recognized by
+[getopt()](#module_socket.socket+getopt)
+and [setopt()](#module_socket.socket+setopt), in conjunction with
+the `IPPROTO_TCP` socket level.
+
+**Kind**: inner typedef of [`socket`](#module_socket)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| IPPROTO_TCP | `number` | TCP protocol. |
+| TCP_CONGESTION | `number` | Set the congestion control algorithm. |
+| TCP_CORK | `number` | Delay packet transmission until full-sized packets are available. |
+| TCP_DEFER_ACCEPT | `number` | Delay accepting incoming connections until data arrives. |
+| TCP_FASTOPEN | `number` | Enable TCP Fast Open. |
+| TCP_FASTOPEN_CONNECT | `number` | Perform TFO connect. |
+| TCP_INFO | `number` | Retrieve TCP statistics. |
+| TCP_KEEPCNT | `number` | Number of keepalive probes. |
+| TCP_KEEPIDLE | `number` | Time before keepalive probes begin. |
+| TCP_KEEPINTVL | `number` | Interval between keepalive probes. |
+| TCP_LINGER2 | `number` | Lifetime of orphaned FIN_WAIT2 state sockets. |
+| TCP_MAXSEG | `number` | Maximum segment size. |
+| TCP_NODELAY | `number` | Disable Nagle's algorithm. |
+| TCP_QUICKACK | `number` | Enable quick ACKs. |
+| TCP_SYNCNT | `number` | Number of SYN retransmits. |
+| TCP_USER_TIMEOUT | `number` | Set the user timeout. |
+| TCP_WINDOW_CLAMP | `number` | Set the maximum window. |
+
+<a name="module_socket..Packet Socket Constants"></a>
+
+### socket~Packet Socket Constants
+The `SOL_PACKET` constant specifies the packet socket level and may be
+passed as *level* argument value to
+[getopt()](#module_socket.socket+getopt) and
+[setopt()](#module_socket.socket+setopt).
+
+Most `PACKET_*` constants are *option* argument values recognized by
+[getopt()](#module_socket.socket+getopt)
+and [setopt()](#module_socket.socket+setopt), in conjunction with
+the `SOL_PACKET` socket level.
+
+The constants `PACKET_MR_PROMISC`, `PACKET_MR_MULTICAST` and
+`PACKET_MR_ALLMULTI` are used in conjunction with the
+`PACKET_ADD_MEMBERSHIP` and `PACKET_DROP_MEMBERSHIP` options to specify
+the packet socket receive mode.
+
+The constants `PACKET_HOST`, `PACKET_BROADCAST`, `PACKET_MULTICAST`,
+`PACKET_OTHERHOST` and `PACKET_OUTGOING` may be used as *packet_type*
+value in [socket address](#module_socket.socket.SocketAddress)
+structures.
+
+**Kind**: inner typedef of [`socket`](#module_socket)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| SOL_PACKET | `number` | Socket options at the packet API level. |
+| PACKET_ADD_MEMBERSHIP | `number` | Add a multicast group membership. |
+| PACKET_DROP_MEMBERSHIP | `number` | Drop a multicast group membership. |
+| PACKET_AUXDATA | `number` | Receive auxiliary data (packet info). |
+| PACKET_FANOUT | `number` | Configure packet fanout. |
+| PACKET_LOSS | `number` | Retrieve the current packet loss statistics. |
+| PACKET_RESERVE | `number` | Reserve space for packet headers. |
+| PACKET_RX_RING | `number` | Configure a receive ring buffer. |
+| PACKET_STATISTICS | `number` | Retrieve packet statistics. |
+| PACKET_TIMESTAMP | `number` | Retrieve packet timestamps. |
+| PACKET_TX_RING | `number` | Configure a transmit ring buffer. |
+| PACKET_VERSION | `number` | Set the packet protocol version. |
+| PACKET_QDISC_BYPASS | `number` | Bypass queuing discipline for outgoing packets. |
+| PACKET_MR_PROMISC | `number` | Enable promiscuous mode. |
+| PACKET_MR_MULTICAST | `number` | Receive multicast packets. |
+| PACKET_MR_ALLMULTI | `number` | Receive all multicast packets. |
+| PACKET_HOST | `number` | Receive packets destined for this host. |
+| PACKET_BROADCAST | `number` | Receive broadcast packets. |
+| PACKET_MULTICAST | `number` | Receive multicast packets. |
+| PACKET_OTHERHOST | `number` | Receive packets destined for other hosts. |
+| PACKET_OUTGOING | `number` | Transmit packets. |
+
+<a name="module_socket..UDP Protocol Constants"></a>
+
+### socket~UDP Protocol Constants
+The `IPPROTO_UDP` constant specifies the UDP protocol number and may be
+passed as third argument to [create()](#module_socket+create) as well
+as *level* argument value to [getopt()](#module_socket.socket+getopt)
+and [setopt()](#module_socket.socket+setopt).
+
+The `UDP_*` constants are *option* argument values recognized by
+[getopt()](#module_socket.socket+getopt)
+and [setopt()](#module_socket.socket+setopt), in conjunction with
+the `IPPROTO_UDP` socket level.
+
+**Kind**: inner typedef of [`socket`](#module_socket)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| IPPROTO_UDP | `number` | UDP protocol. |
+| UDP_CORK | `number` | Cork data until flush. |
+
+<a name="module_socket..Shutdown Constants"></a>
+
+### socket~Shutdown Constants
+The `SHUT_*` constants are passed as argument to the
+[shutdown()](#module_socket.socket+shutdown) function to specify
+which direction of a full duplex connection to shut down.
+
+**Kind**: inner typedef of [`socket`](#module_socket)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| SHUT_RD | `number` | Disallow further receptions. |
+| SHUT_WR | `number` | Disallow further transmissions. |
+| SHUT_RDWR | `number` | Disallow further receptions and transmissions. |
+
+<a name="module_socket..Address Info Flags"></a>
+
+### socket~Address Info Flags
+The `AI_*` flags may be passed as bitwise OR-ed number in the *flags*
+property of the *hints* dictionary argument of
+[addrinfo()](#module_socket+addrinfo).
+
+**Kind**: inner typedef of [`socket`](#module_socket)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| AI_ADDRCONFIG | `number` | Address configuration flag. |
+| AI_ALL | `number` | Return IPv4 and IPv6 socket addresses. |
+| AI_CANONIDN | `number` | Canonicalize using the IDNA standard. |
+| AI_CANONNAME | `number` | Fill in the canonical name field. |
+| AI_IDN | `number` | Enable IDN encoding. |
+| AI_NUMERICHOST | `number` | Prevent hostname resolution. |
+| AI_NUMERICSERV | `number` | Prevent service name resolution. |
+| AI_PASSIVE | `number` | Use passive socket. |
+| AI_V4MAPPED | `number` | Map IPv6 addresses to IPv4-mapped format. |
+
+<a name="module_socket..Name Info Constants"></a>
+
+### socket~Name Info Constants
+The `NI_*` flags may be passed as bitwise OR-ed number via the *flags*
+argument of [nameinfo()](#module_socket+nameinfo).
+
+**Kind**: inner typedef of [`socket`](#module_socket)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| NI_DGRAM | `number` | Datagram socket type. |
+| NI_IDN | `number` | Enable IDN encoding. |
+| NI_NAMEREQD | `number` | Hostname resolution required. |
+| NI_NOFQDN | `number` | Do not force fully qualified domain name. |
+| NI_NUMERICHOST | `number` | Return numeric form of the hostname. |
+| NI_NUMERICSERV | `number` | Return numeric form of the service name. |
+
+<a name="module_socket..Poll Event Constants"></a>
+
+### socket~Poll Event Constants
+The following constants represent event types for polling operations and
+are set or returned as part of a
+[PollSpec](#module_socket.PollSpec) tuple by the
+[poll()](#module_socket+poll) function. When passed via an argument
+PollSpec to `poll()`, they specify the I/O events to watch for on the
+corresponding handle. When appearing in a PollSpec returned by `poll()`,
+they specify the I/O events that occurred on a watched handle.
+
+**Kind**: inner typedef of [`socket`](#module_socket)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| POLLIN | `number` | Data available to read. |
+| POLLPRI | `number` | Priority data available to read. |
+| POLLOUT | `number` | Writable data available. |
+| POLLERR | `number` | Error condition. |
+| POLLHUP | `number` | Hang up. |
+| POLLNVAL | `number` | Invalid request. |
+| POLLRDHUP | `number` | Peer closed or shutdown writing. |

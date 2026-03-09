@@ -5,12 +5,12 @@ origin_type: wiki_page
 token_count: 1494
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-hw-hacking-first-steps.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Hardware Hacking First Steps
 
-You bought yourself a new router, and it's nice. You can connect a hard disc to it and then it shares its content over samba. It even can do torrent. Wow. But then you stumbled over OpenWrt and its 2000 packages you can install just like that. Never mind all the other FOSS software you could compile for it. And you started crying and decided: you **neeeed** OpenWrt on your router. And if your router is already supported, dandy, flash it on and have fun. But if your router is not (yet) supported? Well, then do this:
+You bought yourself a new router, and it’s nice. You can connect a hard disc to it and then it shares its content over samba. It even can do torrent. Wow. But then you stumbled over OpenWrt and its 2000 packages you can install just like that. Never mind all the other FOSS software you could compile for it. And you started crying and decided: you **neeeed** OpenWrt on your router. And if your router is already supported, dandy, flash it on and have fun. But if your router is not (yet) supported? Well, then do this:
 
 ## Gain Access
 
@@ -29,7 +29,7 @@ You bought yourself a new router, and it's nice. You can connect a hard disc to 
 - <http://www.tldp.org/LDP/tlk/tlk.html> *The Linux Kernel*
 - <http://www.tldp.org/LDP/lkmpg/index.html> *The Linux Kernel Module Programming Guide*
 - <http://lwn.net/Articles/driver-porting/> you could also check this thread
-- ~~<http://linux.junsun.net/porting-howto/porting-howto.html>~~ [Link on archive.org](https://web.archive.org/web/20191031031349/http://linux.junsun.net/porting-howto/porting-howto.html) Jun Sun's *Linux MIPS Porting Guide*
+- ~~<http://linux.junsun.net/porting-howto/porting-howto.html>~~ [Link on archive.org](https://web.archive.org/web/20191031031349/http://linux.junsun.net/porting-howto/porting-howto.html) Jun Sun’s *Linux MIPS Porting Guide*
 - <http://www.win.tue.nl/~aeb/linux/lk/lk.html> an overview over the history and also technical insights
 
 Oh, you should also learn a programming language, like C.
@@ -37,11 +37,11 @@ Oh, you should also learn a programming language, like C.
 ## Gather Information about Software
 
 - [bootloader](/docs/techref/bootloader) This is probably going to be the first piece of software you are going to notice. But the rest of the system could be of interest as well:
-- Most probably it's a kind of outdated GNU/Linux Kernel with FOSS drivers or with binary only drivers or both. Then you are lucky, because the source code of the Linux Kernel is licensed under the GPLv2 and this constrains the seller to make the modified source code, if they actually bothered to modify anything, and they probably did, available to the customers (and not necessarily to the public) free of charge.
+- Most probably it’s a kind of outdated GNU/Linux Kernel with FOSS drivers or with binary only drivers or both. Then you are lucky, because the source code of the Linux Kernel is licensed under the GPLv2 and this constrains the seller to make the modified source code, if they actually bothered to modify anything, and they probably did, available to the customers (and not necessarily to the public) free of charge.
 
-Now maybe the drivers for the components have already been integrated into mainline kernel, which means that a newer kernel should work on this device out of the box. If not, you could continue to use the one, from the manufacturer. So combine this kernel with other FOSS software, you want to run on it... ;-)
+Now maybe the drivers for the components have already been integrated into mainline kernel, which means that a newer kernel should work on this device out of the box. If not, you could continue to use the one, from the manufacturer. So combine this kernel with other FOSS software, you want to run on it… ;-)
 
-- In case the manufacturer did not use a Linux Kernel but some kind of \*BSD, you're fucked, since the license the \*BSD sources are under are not GPL. This particularly means, the usurper does not have to make source code available. They could, but they don't have to. Oh may you have much "fun" with \*BSD. :-P
+- In case the manufacturer did not use a Linux Kernel but some kind of \*BSD, you’re fucked, since the license the \*BSD sources are under are not GPL. This particularly means, the usurper does not have to make source code available. They could, but they don’t have to. Oh may you have much “fun” with \*BSD. :-P
 
 ## Gather Information about Flash Layout
 
@@ -56,11 +56,11 @@ The overall Flash Layout looks like the [example](/docs/techref/flash.layout#exa
 
 This is more tricky, here you want to know exactly what is written on the flash: [flash.layout](/docs/techref/flash.layout)
 
-The data could be zipped or g'zipped or even be encrypted. Also, there is going to be some number's between the data blocks, like CRC or whatever.
+The data could be zipped or g’zipped or even be encrypted. Also, there is going to be some number’s between the data blocks, like CRC or whatever.
 
 ## Software Development
 
-Now you want to run you own Software on your device. Maybe its hardware has already support in **some projects** or in the **mainline kernel**. If not, then consider adding a new device or a complete new platform to develop software for. Please do not bother developers or potential developers to write code for this. Present the information you gathered, if it is interesting enough, somebody is going to do that ;-) Now to write code, the developer needs only some bread and water and a simple text editor, but to test this code, they're going to need the hardware itself. You could donate or maybe just lend the hardware.
+Now you want to run you own Software on your device. Maybe its hardware has already support in **some projects** or in the **mainline kernel**. If not, then consider adding a new device or a complete new platform to develop software for. Please do not bother developers or potential developers to write code for this. Present the information you gathered, if it is interesting enough, somebody is going to do that ;-) Now to write code, the developer needs only some bread and water and a simple text editor, but to test this code, they’re going to need the hardware itself. You could donate or maybe just lend the hardware.
 
 ### Add Device
 

@@ -2,7 +2,7 @@
 
 `jshn` (JSON SHell Notation), a small utility and shell library for parsing and generating [JSON](https://en.wikipedia.org/wiki/JSON) data.
 
-Shell scripts (ash, bash, zsh) doesn't have built-in functions to work with JSON or other hierarchical structures so OpenWrt provides a shell library [/usr/share/libubox/jshn.sh](https://git.openwrt.org/?p=project/libubox.git;a=blob;f=sh/jshn.sh;hb=HEAD) from `libubox` package. You need to include it into your scripts and then you can call it's functions:
+Shell scripts (ash, bash, zsh) doesn‘t have built-in functions to work with JSON or other hierarchical structures so OpenWrt provides a shell library [/usr/share/libubox/jshn.sh](https://git.openwrt.org/?p=project/libubox.git;a=blob;f=sh/jshn.sh;hb=HEAD) from ’‘libubox’’ package. You need to include it into your scripts and then you can call it’s functions:
 
 ``` bash
 #!/bin/sh
@@ -298,7 +298,7 @@ Then internally it will call `jshn -w` with the json obj passed via multiple env
     root@OpenWrt:/# JSON_CUR=J_V T_J_V_username=string K_J_V=username J_V_username=root jshn -w
     { "username": "root" }
 
-Here `J_V` stands for "JSON value":
+Here `J_V` stands for “JSON value”:
 
 - `JSON_CUR` means a name of var with root object to format
 - `K_J_V` is a key name i.e. `username`
@@ -460,7 +460,7 @@ The first jsonfilter call will output one radio JSON structure object per line, 
 
 ### jq
 
-[jq](https://stedolan.github.io/jq/) jq is a flexible command-line JSON processor that is very popular for scripting. It's not installed by default in OpenWRT because is too big (more than 200Kb) so to install use `opkg update; opkg install jq` By default it just colorize an output e.g. `cat /etc/board.json | jq`
+[jq](https://stedolan.github.io/jq/) jq is a flexible command-line JSON processor that is very popular for scripting. It‘s not installed by default in OpenWRT because is too big (more than 200Kb) so to install use ’‘opkg update; opkg install jq’’ By default it just colorize an output e.g. `cat /etc/board.json | jq`
 
 ### See also
 

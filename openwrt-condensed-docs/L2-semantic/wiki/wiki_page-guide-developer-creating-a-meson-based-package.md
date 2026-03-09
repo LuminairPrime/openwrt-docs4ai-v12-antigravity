@@ -2,10 +2,10 @@
 title: Create Meson-based packages in OpenWrt
 module: wiki
 origin_type: wiki_page
-token_count: 1313
+token_count: 1315
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-creating-a-meson-based-package.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Create Meson-based packages in OpenWrt
@@ -57,7 +57,7 @@ touch main.c  meson.build
 
 ### main.c
 
-To demonstrate a basic scenario, we will be populating the `main.c` file with a straightforward yet classic `"Hello World!"` message.
+To demonstrate a basic scenario, we will be populating the `main.c` file with a straightforward yet classic `“Hello World!”` message.
 
 ``` c
 // main.c
@@ -141,6 +141,6 @@ To finish building the package, we need to execute the build command. Running th
 make package/helloworld/compile
 ```
 
-If everything goes smoothly, the package that is built will be located in ''\<BIN_DIR\>/packages/\<target\>/mesonpackages/packages'. For instance:
+If everything goes smoothly, the package that is built will be located in ’‘\<BIN_DIR\>/packages/\<target\>/mesonpackages/packages’. For instance:
 
     helloworld_1.0-1_arm_cortex-a7_neon-vfpv4.ipk

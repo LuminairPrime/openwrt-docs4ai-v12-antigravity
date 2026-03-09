@@ -8,8 +8,8 @@ OpenWrt automount daemon, is configured in `/etc/config/mountd`
 
 ## What is mountd?
 
-- `mountd` is another [daemon](https://en.wikipedia.org/wiki/Daemon (computing)) written in [C](https://en.wikipedia.org/wiki/C (programming language)) with the ability to ...:?:
-- `mountd` replaces ...:?:... on full blown desktop distributions.
+- `mountd` is another [daemon](https://en.wikipedia.org/wiki/Daemon (computing)) written in [C](https://en.wikipedia.org/wiki/C (programming language)) with the ability to …:?:
+- `mountd` replaces …:?:… on full blown desktop distributions.
 
 ## Help with the development of mountd
 

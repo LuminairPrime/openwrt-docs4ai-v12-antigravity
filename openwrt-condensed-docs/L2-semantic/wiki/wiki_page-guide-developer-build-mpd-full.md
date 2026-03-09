@@ -2,24 +2,24 @@
 title: MPD-full building from source
 module: wiki
 origin_type: wiki_page
-token_count: 386
+token_count: 385
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-build-mpd-full.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # MPD-full building from source
 
 More information about building from source: [OpenWrt Buildroot - Usage](/docs/guide-developer/toolchain/start)
 
-Based on the following reference:  
-[Help on compiling MPD full](https://forum.openwrt.org/viewtopic.php?pid=158385#p158385)  
-If you build from source you will only be able to select the MPD-mini from the make menuconfig interface.  
-To display and enable the full version in the menuconfig interface, you'll have to edit the MPD Makefile.
+Based on the following reference:\
+[Help on compiling MPD full](https://forum.openwrt.org/viewtopic.php?pid=158385#p158385)\
+If you build from source you will only be able to select the MPD-mini from the make menuconfig interface.\
+To display and enable the full version in the menuconfig interface, you’ll have to edit the MPD Makefile.
 
 ### Barrier Breaker and Chaos Calmer
 
-1.  In your git clone directory edit `/openwrt/feeds/packages/sound/mpd/Makefile`.  
+1.  In your git clone directory edit `/openwrt/feeds/packages/sound/mpd/Makefile`.\
     It is a good idea to make a backup copy before starting.
 2.  Detect the area in the Makefile involved with the full MPD installation and edit `+libffmpeg` to `+libffmpeg-full`
 3.  Save the file
@@ -44,4 +44,4 @@ Edited file:
       PROVIDES:=mpd
       VARIANT:=full
 
-Now if you start `make menuconfig`, you'll have the choice to build the full or the mini MPD version
+Now if you start `make menuconfig`, you’ll have the choice to build the full or the mini MPD version

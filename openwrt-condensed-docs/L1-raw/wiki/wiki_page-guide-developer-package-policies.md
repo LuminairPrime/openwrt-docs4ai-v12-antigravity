@@ -73,8 +73,7 @@ Some general considerations when packaging a new piece of software are:
 
 - Do not ship man pages or documentation, a typical installation lacks both the infrastructure and the space to view and store man page databases
 - Minimize external dependencies - try to avoid optional external dependencies whenever possible. An extreme example is `ICU` which weighs around 12MB and is an optional dependency for Unicode multi language support in various packages
-- Modularize packages - if the software you're packaging supports and uses plugins then put those plugins into separate binary package declarations instead of lumping them all together along with the main program. This way you can externalize dependencies and move them into the plugin packages instead of having them in the main component, which makes the package usable on a wider range of targets because users can omit parts with large dependencies.
-- Try to rely on standard facilities - instead of requiring extra programs to implement tasks like user context switching, use the `procd` facilities to run a service as a different user.
+- Modularize packages - if the software you‘re packaging supports and uses plugins then put those plugins into separate binary package declarations instead of lumping them all together along with the main program. This way you can externalize dependencies and move them into the plugin packages instead of having them in the main component, which makes the package usable on a wider range of targets because users can omit parts with large dependencies. \* Try to rely on standard facilities - instead of requiring extra programs to implement tasks like user context switching, use the ’‘procd’’ facilities to run a service as a different user.
 
 Often it is tempting to add various `menuconfig` configuration options to allow the customization of the package features by the users compiling their own variant of OpenWrt but it should be kept in mind that large parts of the userbase will use the package solely by installing binary archives from the OpenWrt repositories.
 
@@ -90,7 +89,7 @@ Historically, packages for OpenWrt used to contain a copyright notice at the top
 
 Since contributors likely do not have a formal contract with OpenWrt to develop packages, they cannot disclaim their own copyrights and assign them to the project.
 
-When adding new packages, please don't simply copy the statement from another package but add either your own in the form:
+When adding new packages, please don’t simply copy the statement from another package but add either your own in the form:
 
     # Copyright (C) 2016 Joe Random <joe@example.org>
 
@@ -112,8 +111,8 @@ The package revision should start with the value `1` and must be increased whene
 
 Some examples for dealing with the `PKG_RELEASE` are:
 
-- Fixed a typo in the maintainer's mail address -\> `PKG_RELEASE` stays unchanged
-- Added a `--disable-acl` to the configure arguments -\> `PKG_RELEASE` is incremented
+- Fixed a typo in the maintainer‘s mail address -\> ’‘PKG_RELEASE’’ stays unchanged
+- Added a `–disable-acl` to the configure arguments -\> `PKG_RELEASE` is incremented
 - Updated `libfoo` from version `0.2.1` to `0.2.2` -\> `PKG_RELEASE` is reset to `1` and `PKG_VERSION` set to `0.2.2`
 
 ### Downloading
@@ -155,7 +154,7 @@ Example for achieving the same using variable overrides:
 
     MAKE_PATH := nonstandard/dir/
 
-Likewise, do not attempt to override `Build/Configure` but use `CONFIGURE_ARGS` to pass switches like `CONFIGURE_ARGS += --enable-acl` or `CONFIGURE_ARGS += --without-systemd` and `CONFIGURE_VARS` to pass environment variables to the configuration script, like `CONFIGURE_VARS += ac_cv_func_snprintf=yes`.
+Likewise, do not attempt to override `Build/Configure` but use `CONFIGURE_ARGS` to pass switches like `CONFIGURE_ARGS += –enable-acl` or `CONFIGURE_ARGS += –without-systemd` and `CONFIGURE_VARS` to pass environment variables to the configuration script, like `CONFIGURE_VARS += ac_cv_func_snprintf=yes`.
 
 #### Hooks
 
@@ -204,7 +203,7 @@ Usual problems revolve around:
 Due to the complex nature of the GNU autoconf/automake system there is no single set of solutions to a given problem but rather a general list of guidelines and best practices to adhere to.
 
 - Never patch the generated / shipped `configure` script but fix the underlying `configure.ac` or `configure.in` files and rely on the `PKG_FIXUP:=autoreconf` facility to regenerate the config script. This also has the nice side-effect of updating the embedded `libtool` version and using a cross-compile-safe set of standard macros, replacing unsafe ones in many cases.
-- Make `./configure` invocations as explicit as possible by forcibly disabling or enabling any feature which depends on the presence of an external library, e.g. `--disable-acl` to build a given package without `libacl` support on both systems having `libacl` in their staging directory and systems not providing this library. Failure to do so will result in errors like `Package example is missing dependencies for the following libraries: libfoo.so.1` on systems that happen to build `libfoo` before building example.
+- Make `./configure` invocations as explicit as possible by forcibly disabling or enabling any feature which depends on the presence of an external library, e.g. `–disable-acl` to build a given package without `libacl` support on both systems having `libacl` in their staging directory and systems not providing this library. Failure to do so will result in errors like `Package example is missing dependencies for the following libraries: libfoo.so.1` on systems that happen to build `libfoo` before building example.
 - Pre-seed `configure` tests that cannot be reliably determined in a cross-compile setting. Properly written autoconf test macros can be overridden by cache-variables in the form `ac_cv_somename=value` - use this facility to skip tests which would otherwise fail or result in host-system specific values. For example the `libpcap` package passes `ac_cv_linux_vers=$(LINUX_VERSION)` to prevent `./configure` from calling the host systems `uname` in order to figure out the kernel version. The names of the involved cache variables can be found in the `config.log` file within the package build directory or by inspecting the generated shell code of the `configure` program. Use the `CONFIGURE_VARS` variable to pass the cache variables down to the actual `./configure` invocation
 - Never trust shipped `autogen.sh` and similar scripts, rather use `PKG_FIXUP:=autoreconf` to (re)generate the configure script and automake templates and encode additionally needed steps in the appropriate build recipes.
 
@@ -212,13 +211,13 @@ Due to the complex nature of the GNU autoconf/automake system there is no single
 
 A *source package* may depend on a number of other packages, either to satisfy compilation requirements or to enforce the presence of specific functionality, such as shared libraries or support programs at runtime on the target system.
 
-There are two kinds of dependencies; *build dependencies*, specified by the `PKG_BUILD_DEPENDS` Makefile variable and *runtime dependencies*, declared in the `DEPENDS` variable of the corresponding `define Package/...` Makefile sections.
+There are two kinds of dependencies; *build dependencies*, specified by the `PKG_BUILD_DEPENDS` Makefile variable and *runtime dependencies*, declared in the `DEPENDS` variable of the corresponding `define Package/…` Makefile sections.
 
 *Build dependencies* are resolved at package compilation time and instruct the build system to download, patch and compile each mentioned dependency before the source package itself is compiled. This is required when the compilation process of a package depends on resources such as header files from another package. *Build dependencies* are not transformed into *runtime dependencies* and should only be used when the resources of the packages being depended upon are solely required at compilation time. This usually is the case for header-only libraries such as the C++ Boost project or static `.a` library archives that result in no dynamic runtime requirements.
 
-*Runtime dependencies*, on the other hand, specify the relation of *binary packages*, instructing the package manager to fetch and install the listed dependencies before installing the binary package itself. A *runtime dependency* automatically implies a *build dependency*, so if a `DEPENDS` variable within a `define Package/...` section of a given source package specifies the name of a `define Package/...` section of another source package, the build system will take care of compiling the other package before compiling the source package specifiying the runtime dependency.
+*Runtime dependencies*, on the other hand, specify the relation of *binary packages*, instructing the package manager to fetch and install the listed dependencies before installing the binary package itself. A *runtime dependency* automatically implies a *build dependency*, so if a `DEPENDS` variable within a `define Package/…` section of a given source package specifies the name of a `define Package/…` section of another source package, the build system will take care of compiling the other package before compiling the source package specifiying the runtime dependency.
 
-Package dependencies, regardless of whether they're build-time or runtime ones, should only require packages within the same *package feed* or provided by the *base feed* located within the main OpenWrt `package/` directory.
+Package dependencies, regardless of whether they‘re build-time or runtime ones, should only require packages within the same *package feed* or provided by the *base feed* located within the main OpenWrt ’‘package/’’ directory.
 
 Dependencies among packages in different, non-base feeds are strongly discouraged as it is not guaranteed that each build system has access to all feeds.
 
@@ -248,7 +247,7 @@ This ensures that incompatible updates to the `libfoo` library, denoted by an `A
 
 Example: when `libfoo` is updated to a new, incompatible version and its `SONAME` property changed from `libfoo.so.1.0` to `libfoo.so.1.1`, then `ABI_VERSION` should be increased from `1.0` to `1.1`, causing the resulting `libfoo` binary package to be called `libfoo1.1`. Source packages linking `libfoo` from then on, will have runtime dependencies on `libfoo1.1`.
 
-When a shared library is packaged, the `ABI_VERSION` variable of the corresponding `define Package/lib...` section should be set to the `SONAME` of the `.so` library file contained within the binary package. The `SONAME` usually reflects the library's internal `ABI` version and is incremented whenever incompatible changes to the public APIs are made within the library, E.G. when changing a function call signature or when removing exported symbols.
+When a shared library is packaged, the `ABI_VERSION` variable of the corresponding `define Package/lib…` section should be set to the `SONAME` of the `.so` library file contained within the binary package. The `SONAME` usually reflects the library‘s internal ’‘ABI’’ version and is incremented whenever incompatible changes to the public APIs are made within the library, E.G. when changing a function call signature or when removing exported symbols.
 
 The public [ABI tracker](https://abi-laboratory.pro/index.php?view=tracker) is useful to decide whether an `ABI_VERSION` change is required when updating an existing library package to a newer upstream version.
 
@@ -283,7 +282,7 @@ Instead, use
 
     $(CP) $(PKG_INSTALL_DIR)/usr/lib/libbar.so.* $(1)/usr/lib/
 
-and you'll get the intended result:
+and you’ll get the intended result:
 
     libbar.so.1     -> libbar.so.1.2.3 (symlink)
     libbar.so.1.2.3                    (regular file)
@@ -294,4 +293,4 @@ While there has been a proposal to change `$(INSTALL_BIN)` behavior, `$(CP)` wil
 
 Source packages defining binary packages that ship shared libraries should declare a `Build/InstallDev` recipe that copies all resources required to discover and link the shared libraries into the staging directory.
 
-A typical `InstallDev` recipe usually copies all library symlinks (including the unversioned ones), header files and, in case they're provided, pkg-config (`*.pc`) files.
+A typical `InstallDev` recipe usually copies all library symlinks (including the unversioned ones), header files and, in case they‘re provided, pkg-config (’‘\*.pc’’) files.

@@ -5,12 +5,12 @@ origin_type: wiki_page
 token_count: 1613
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-obtain-firmware-sdk.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Using the SDK
 
-\<WRAP center round info 60%\> THIS IS THE *OLD* DOCUMENT :!:  
+\<WRAP center round info 60%\> THIS IS THE *OLD* DOCUMENT :!:\
 **See [Using the SDK](/docs/guide-developer/toolchain/using_the_sdk) for the latest version** :!: \</WRAP\>
 
 The [SDK](https://en.wikipedia.org/wiki/Software_development_kit) is a relocatable, precompiled OpenWrt [toolchain](https://en.wikipedia.org/wiki/Toolchain) suitable to [cross compile](https://en.wikipedia.org/wiki/Cross_compile) single [userspace](https://en.wikipedia.org/wiki/User_space) packages for a specific target without compiling the whole system from scratch.
@@ -23,7 +23,7 @@ Reasons for using the SDK are:
 
 ## Obtain SDK
 
-You can either download an already compiled SDK, or compile it yourself by using the "make menuconfig" command.
+You can either download an already compiled SDK, or compile it yourself by using the “make menuconfig” command.
 
 #### Prerequisites
 
@@ -141,6 +141,6 @@ See [Creating packages](/docs/guide-developer/packages)
 
 :!: Some SDK versions have bugs.
 
-Bug: BB SDK for BRCM2708: wants to compile with "ccache_cc" see <https://dev.openwrt.org/ticket/13949>
+Bug: BB SDK for BRCM2708: wants to compile with “ccache_cc” see <https://dev.openwrt.org/ticket/13949>
 
 Bug: BB SDK for BRCM2708: static compilation broken

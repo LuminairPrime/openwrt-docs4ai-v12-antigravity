@@ -5,14 +5,14 @@ origin_type: wiki_page
 token_count: 2057
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-mac-address.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Device Support: MAC address setup
 
 ## Retrieve addresses from stock firmware
 
-The first step is to find out which addresses are present in stock configuration. The procedure depends on your level of access to the device's firmware.
+The first step is to find out which addresses are present in stock configuration. The procedure depends on your level of access to the device’s firmware.
 
 The result would be a list like the following:
 
@@ -40,7 +40,7 @@ You would normally expect WiFi MAC addresses in the art partition. To check for 
 
     $ hexdump -C /dev/mtd4
 
-This will dump the whole partition to your console. Now you can look for addresses there: Take one byte of the vendor part of the address (first three bytes) and do text search ...
+This will dump the whole partition to your console. Now you can look for addresses there: Take one byte of the vendor part of the address (first three bytes) and do text search …
 
 The same should be done for other partitions. Usual suspects are:
 
@@ -56,7 +56,7 @@ If you are successful, you will have a list of addresses and locations, e.g.
     factory 0xe006 *:0B
     art 0x4 *:0A
 
-You can check your data by using OpenWrt's get_mac_binary command (based on mtdX):
+You can check your data by using OpenWrt’s get_mac_binary command (based on mtdX):
 
     . /lib/functions/system.sh
     get_mac_binary /dev/mtd4 0x4
@@ -77,11 +77,11 @@ Now, combine data from stock firmware and your research to have a complete list:
 
 You could also include this list in your commit message to preserve the information.
 
-As in the example, it is possible that the same address is present in different locations. In this case, use the location that "belongs" to the interface, i.e. art for WiFi, others for ethernet.
+As in the example, it is possible that the same address is present in different locations. In this case, use the location that “belongs” to the interface, i.e. art for WiFi, others for ethernet.
 
 ## Set MAC addresses
 
-TBD: mtd_mac_address, 02_network, ...
+TBD: mtd_mac_address, 02_network, …
 
 ### MAC address pulled by driver
 
@@ -123,7 +123,7 @@ refs: <https://github.com/openwrt/openwrt/pull/2159> <https://github.com/openwrt
 
 Many devices bear a label with one or several MAC addresses on it. Those may be used to identify the device in the network and thus represent a valuable additional information about the device.
 
-When adding device support, you should also check which of the interface addresses corresponds to address on the label. If we assume the label MAC address ends with `0a`, we could assign either LAN or 5 GHz to it. The choice for an ambiguous address is arbitrary, so let's choose 5 GHz.
+When adding device support, you should also check which of the interface addresses corresponds to address on the label. If we assume the label MAC address ends with `0a`, we could assign either LAN or 5 GHz to it. The choice for an ambiguous address is arbitrary, so let’s choose 5 GHz.
 
 There are two options to specify the label MAC address in OpenWrt:
 
@@ -163,7 +163,7 @@ For each of the returned paths (if there are any), retrieve the mac-address, e.g
 
 Valid choices are only `mac-address` or `local-mac-address`. There may be one, two or no paths giving the correct address.
 
-If you find the label MAC address here, check your DTS for the corresponding parent node. The correct node for `/proc/device-tree/ahb/apb/wmac@18100000/mac-address` would be `/ahb/apb/wmac@18100000`. Use this node's alias or add a reasonable one yourself if missing.
+If you find the label MAC address here, check your DTS for the corresponding parent node. The correct node for `/proc/device-tree/ahb/apb/wmac@18100000/mac-address` would be `/ahb/apb/wmac@18100000`. Use this node’s alias or add a reasonable one yourself if missing.
 
 *Attention: Note that label MAC addresses are assigned relatively randomly by vendors, so label-mac-device should be regularly put into DTS files or DTSIs with few users, so it is not inherited by accident.*
 
@@ -204,7 +204,7 @@ ath79:
 
 ramips: For ramips, typical locations for ethernet addresses are as follows:
 
-- mt7621: lan mac is at factory 0xe000 and wan mac at factory 0xe006. This is the default location for mt7621 boards in MTK's SDK.
-- For mt7620/mt76x8 boards if there's a lan mac at 0x28 there may be a wan mac at 0x2e. (There's only one GMAC for these two chips so GMAC2_OFFSET defined above isn't used.)
+- mt7621: lan mac is at factory 0xe000 and wan mac at factory 0xe006. This is the default location for mt7621 boards in MTK’s SDK.
+- For mt7620/mt76x8 boards if there’s a lan mac at 0x28 there may be a wan mac at 0x2e. (There’s only one GMAC for these two chips so GMAC2_OFFSET defined above isn’t used.)
 
 //Attention: Those are *typical* addresses. Some vendors mix them, invert them, or even use completely different locations!//

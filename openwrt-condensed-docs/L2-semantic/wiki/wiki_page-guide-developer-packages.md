@@ -2,17 +2,17 @@
 title: Creating packages
 module: wiki
 origin_type: wiki_page
-token_count: 11054
+token_count: 11066
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-packages.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Creating packages
 
 **See also -\> [Package Policy Guide](package-policies)**, which contains a wealth of extra technical information not covered here.
 
-One of the things that we've attempted to do with OpenWrt's template system is make it incredibly easy to port software to OpenWrt. If you look at a typical package directory in OpenWrt you'll find three things:
+One of the things that we’ve attempted to do with OpenWrt’s template system is make it incredibly easy to port software to OpenWrt. If you look at a typical package directory in OpenWrt you’ll find three things:
 
 - package/Makefile
 - package/patches
@@ -22,7 +22,7 @@ The patches directory is optional and typically contains bug fixes or optimizati
 
 The package `Makefile` is the important item because it provides the steps actually needed to download and compile the package.
 
-Looking at one of the package makefiles, you'd hardly recognize it as a makefile. Through what can only be described as blatant disregard and abuse of the traditional make format, the `Makefile` has been transformed into an object oriented template which simplifies the entire ordeal.
+Looking at one of the package makefiles, you‘d hardly recognize it as a makefile. Through what can only be described as blatant disregard and abuse of the traditional make format, the ’‘Makefile’’ has been transformed into an object oriented template which simplifies the entire ordeal.
 
 Here, for example, is package/bridge/Makefile:
 
@@ -67,11 +67,10 @@ $(eval $(call BuildPackage,bridge))
 
 ## BuildPackage variables
 
-As you can see, there's not much work to be done; everything is hidden in other makefiles and abstracted to the point where you only need to specify a few variables.
+As you can see, there’s not much work to be done; everything is hidden in other makefiles and abstracted to the point where you only need to specify a few variables.
 
-- `PKG_NAME` - The name of the package, as seen via menuconfig and ipkg. Avoid using underscores in the package name, to avoid build failures--for example, the underscore separates name from version information, and may confuse the build system in hard-to-spot places.
-- `PKG_VERSION` - The upstream version number that we're downloading
-- `PKG_RELEASE` - The version of this package Makefile. Should be initially set to 1, and reset to 1 whenever the `PKG_VERSION` is changed. Increment it when `PKG_VERSION` stays the same, but when there are functional changes to the installed artifacts.
+- `PKG_NAME` - The name of the package, as seen via menuconfig and ipkg. Avoid using underscores in the package name, to avoid build failures–for example, the underscore separates name from version information, and may confuse the build system in hard-to-spot places.
+- `PKG_VERSION` - The upstream version number that we‘re downloading \* ’‘PKG_RELEASE’’ - The version of this package Makefile. Should be initially set to 1, and reset to 1 whenever the `PKG_VERSION` is changed. Increment it when `PKG_VERSION` stays the same, but when there are functional changes to the installed artifacts.
 - `PKG_LICENSE` - The license(s) the package is available under, [SPDX](https://spdx.org/licenses/) form.
 - `PKG_LICENSE_FILES`- file containing the license text
 - `PKG_BUILD_DIR` - Where to compile the package
@@ -82,12 +81,11 @@ As you can see, there's not much work to be done; everything is hidden in other 
 - `PKG_URL`. - Upstream project homepage
 - `PKG_BUILD_DEPENDS` - Packages that need to be built before this package. Use this option if you need to make sure that your package has access to includes and/or libraries of another package at build time. Specify the directory name (i.e. openssl) rather than the binary package name (i.e. libopenssl). This build variable only establishes the build time dependency. Use `DEPENDS` to establish the runtime dependencies. This variable uses the same syntax as `DEPENDS` below.
 - `PKG_CONFIG_DEPENDS` - specifies which config options influence the build configuration and should trigger a rerun of Build/Configure on change
-- `PKG_INSTALL` - Setting it to "1" will call the package's original "make install" with prefix set to `PKG_INSTALL_DIR`
-- `PKG_INSTALL_DIR` - Where "make install" copies the compiled files
+- `PKG_INSTALL` - Setting it to “1” will call the package‘s original “make install” with prefix set to ’‘PKG_INSTALL_DIR’’
+- `PKG_INSTALL_DIR` - Where “make install” copies the compiled files
 - `PKG_FIXUP` - See below
 - `PKG_CPE_ID` - Variable defining Common Platform Enumeration (CPE) identifier, which uniquely identifies application usually in vulnerability tracking. The CPE standard itself is maintained by NIST and documented at[Official Common Platform Enumeration (CPE) Dictionary](https://nvd.nist.gov/products/cpe)
-- `PKG_CVE_IGNORE` - Variable for defining CVEs that don't apply to this version of the package due to features not enabled, or affecting other platforms (e.g. Windows issues or features that are not used and so not relevant)
-- `PKG_CVE_FIXED` - Variable for defining CVEs that are patches in the current version, but aren't properly marked as fixed at cve.org in the current version
+- `PKG_CVE_IGNORE` - Variable for defining CVEs that don‘t apply to this version of the package due to features not enabled, or affecting other platforms (e.g. Windows issues or features that are not used and so not relevant) \* ’‘PKG_CVE_FIXED’’ - Variable for defining CVEs that are patches in the current version, but aren’t properly marked as fixed at cve.org in the current version
 
 Optional support for fetching sources from a VCS (git, bzr, svn, etc), see [Use source repository](#use_source_repository) below for more information:
 
@@ -98,9 +96,9 @@ Optional support for fetching sources from a VCS (git, bzr, svn, etc), see [Use 
 - `PKG_MIRROR_HASH` - SHA256 checksum of the tarball generated from the source repository checkout (previously named `PKG_MIRROR_MD5SUM`). See [below](#use_source_repository) for details.
 - `PKG_SOURCE_SUBDIR` - where the temporary source checkout should be stored, defaults to `$(PKG_NAME)-$(PKG_VERSION)`
 
-The `PKG_*` variables define where to download the package from; @SF is a special keyword for downloading packages from sourceforge. The md5sum is used to verify the package was downloaded correctly and PKG_BUILD_DIR defines where to find the package after the sources are uncompressed into \$(BUILD_DIR). PKG_INSTALL_DIR defines where the files will be copied after calling "make install" (set with the PKG_INSTALL variable), and after that you can package them in the install section.
+The `PKG_*` variables define where to download the package from; @SF is a special keyword for downloading packages from sourceforge. The md5sum is used to verify the package was downloaded correctly and PKG_BUILD_DIR defines where to find the package after the sources are uncompressed into \$(BUILD_DIR). PKG_INSTALL_DIR defines where the files will be copied after calling “make install” (set with the PKG_INSTALL variable), and after that you can package them in the install section.
 
-At the bottom of the file is where the real magic happens, "BuildPackage" is a macro setup by the earlier include statements. BuildPackage only takes one argument directly -- the name of the package to be built, in this case "bridge". All other information is taken from the define blocks. This is a way of providing a level of verbosity, it's inherently clear what the DESCRIPTION variable in Package/bridge is, which wouldn't be the case if we passed this information directly as the Nth argument to BuildPackage.
+At the bottom of the file is where the real magic happens, “BuildPackage” is a macro setup by the earlier include statements. BuildPackage only takes one argument directly – the name of the package to be built, in this case “bridge”. All other information is taken from the define blocks. This is a way of providing a level of verbosity, it’s inherently clear what the DESCRIPTION variable in Package/bridge is, which wouldn’t be the case if we passed this information directly as the Nth argument to BuildPackage.
 
 Avoid reuse of PKG_NAME in call, define and eval lines for consistency and readability. Write the full name instead.
 
@@ -146,11 +144,11 @@ If the shipped automake recipes are broken beyond repair, then simply find insta
 
 ##### gettext-version
 
-This fixup suppresses version mismatch errors in automake's gettext support.
+This fixup suppresses version mismatch errors in automake’s gettext support.
 
 #### Tips
 
-Packages that are using Autotools should work with simply "PKG_FIXUP:=autoreconf". However there might be issues with required versions.
+Packages that are using Autotools should work with simply “PKG_FIXUP:=autoreconf”. However there might be issues with required versions.
 
 :!: Instead of patching `./configure`, one should fix the file from which `./configure` is generated in autotools: `configure.ac` (or `configure.in`, for very old packages). Another important file is `Makefile.am` from which `Makefile`s (with `configure` output) are generated.
 
@@ -201,7 +199,7 @@ PKG_SOURCE_VERSION:=32fc0925cbc30a4a8f71392e976aa94b586c4086
 PKG_MIRROR_HASH:=caedb66cf6dcbdcee0d1525923e203d003ef15f34a13a328686794666f16171f
 ```
 
-History: `PKG_MIRROR_MD5SUM` was [introduced in 2011](commit>?p=openwrt/openwrt.git;a=commitdiff;h=b568a64f8c1f7c077c83d8c189d4c84ca270aeb4) and [renamed to `PKG_MIRROR_HASH` in 2016](commit>?p=openwrt/openwrt.git;a=commitdiff;h=7416d2e046b87b262b407f8af70b8dd9b2927c70).
+History: `PKG_MIRROR_MD5SUM` was [introduced in 2011](commit>?p=openwrt/openwrt.git;a=commitdiff;h=b568a64f8c1f7c077c83d8c189d4c84ca270aeb4) and [renamed to ''PKG_MIRROR_HASH'' in 2016](commit>?p=openwrt/openwrt.git;a=commitdiff;h=7416d2e046b87b262b407f8af70b8dd9b2927c70).
 
 ### Bundle source code with OpenWrt Makefile
 
@@ -265,9 +263,9 @@ matches the argument passed to buildroot, this describes the package the menucon
 -  URL - Where to find the original software
 -  MAINTAINER - (required for new packages) Who to contact concerning the package
 -  DEPENDS - (optional) Which packages must be built/installed before this package. See [below](#dependency_types) for the syntax
--  EXTRA_DEPENDS - (optional) Runtime dependencies, don't get built, only added to package `control` file
+-  EXTRA_DEPENDS - (optional) Runtime dependencies, don‘t get built, only added to package ’‘control’’ file
 -  PROVIDES - (optional) allow to define a virtual package that might be provided by multiple real-packages
--  PKGARCH - (optional) Set this to "all" to produce a package with "Architecture: all" (See below)
+-  PKGARCH - (optional) Set this to “all” to produce a package with “Architecture: all” (See below)
 -  USERID - (optional) a username:groupname pair to create at package installation time.
 
 ##### PKGARCH (optional)
@@ -288,15 +286,15 @@ A set of commands to unpack and patch the sources. You may safely leave this und
 
 ##### Build/Configure (optional)
 
-You can leave this undefined if the source doesn't use configure or has a normal config script, otherwise you can put your own commands here or use "\$(call Build/Configure/Default,)" as above to pass in additional arguments for a standard configure script.
+You can leave this undefined if the source doesn’t use configure or has a normal config script, otherwise you can put your own commands here or use “\$(call Build/Configure/Default,)” as above to pass in additional arguments for a standard configure script.
 
 ##### Build/Compile (optional)
 
-How to compile the source; in most cases you should leave this undefined, because then the default is used, which calls make. If you want to pass special arguments to make, use e.g. "\$(call Build/Compile/Default,FOO=bar)"
+How to compile the source; in most cases you should leave this undefined, because then the default is used, which calls make. If you want to pass special arguments to make, use e.g. “\$(call Build/Compile/Default,FOO=bar)”
 
 ##### Build/Install (optional)
 
-How to install the compiled source. The default is to call "make install". Again, to pass special arguments or targets, use "\$(call Build/Install/Default,install install-foo)". Note that you need put all the needed make arguments here. If you just need to add something to the "install" argument, don't forget the "install" itself.
+How to install the compiled source. The default is to call “make install”. Again, to pass special arguments or targets, use “\$(call Build/Install/Default,install install-foo)”. Note that you need put all the needed make arguments here. If you just need to add something to the “install” argument, don’t forget the “install” itself.
 
 ##### Build/InstallDev (optional)
 
@@ -312,25 +310,25 @@ A set of commands to copy files into the ipkg which is represented by the \$(1) 
 
 ##### Package/preinst
 
-The actual text of the script which is to be executed before installation. Don't forget to include the `#!/bin/sh`. If you need to abort installation, have the script return `false`.
+The actual text of the script which is to be executed before installation. Don‘t forget to include the ’‘\#!/bin/sh’‘. If you need to abort installation, have the script return ’‘false’’.
 
 ##### Package/postinst
 
-The actual text of the script which is to be executed after installation. Don't forget to include the `#!/bin/sh`. Alternatively you can also use an [uci-default script](/docs/guide-developer/uci-defaults) which will be executed automatically on runtime installations by opkg or embedding into an image.
+The actual text of the script which is to be executed after installation. Don‘t forget to include the ’‘\#!/bin/sh’’. Alternatively you can also use an [uci-default script](/docs/guide-developer/uci-defaults) which will be executed automatically on runtime installations by opkg or embedding into an image.
 
 ##### Package/prerm
 
-The actual text of the script which is to be executed before removal. Don't forget to include the `#!/bin/sh`. If you need to abort removal, have the script return `false`.
+The actual text of the script which is to be executed before removal. Don‘t forget to include the ’‘\#!/bin/sh’‘. If you need to abort removal, have the script return ’‘false’’.
 
 ##### Package/postrm
 
-The actual text of the script which is to be executed after removal. Don't forget to include the `#!/bin/sh`.
+The actual text of the script which is to be executed after removal. Don‘t forget to include the ’‘\#!/bin/sh’’.
 
-The reason that some of the defines are prefixed by "Package/" and others are simply "Build" is because of the possibility of generating multiple packages from a single source. OpenWrt works under the assumption of one source per package `Makefile`, but you can split that source into as many packages as desired. Since you only need to compile the sources once, there's one global set of "Build" defines, but you can add as many "Package/" defines as you want by adding extra calls to BuildPackage -- see the dropbear package for an example.
+The reason that some of the defines are prefixed by “Package/” and others are simply “Build” is because of the possibility of generating multiple packages from a single source. OpenWrt works under the assumption of one source per package `Makefile`, but you can split that source into as many packages as desired. Since you only need to compile the sources once, there’s one global set of “Build” defines, but you can add as many “Package/” defines as you want by adding extra calls to BuildPackage – see the dropbear package for an example.
 
 ## Building in a subdirectory of the source
 
-Some software has no Makefile directly at the root of the tarball. For instance, it is common to have a `src/` directory with all source files and a Makefile. The problem is that OpenWRT's build system will try to run `make` in `PKG_BUILD_DIR`; this will fail if there is no Makefile there. To solve this problem, use the `MAKE_PATH` variable, for instance:
+Some software has no Makefile directly at the root of the tarball. For instance, it is common to have a `src/` directory with all source files and a Makefile. The problem is that OpenWRT‘s build system will try to run ’‘make’’ in `PKG_BUILD_DIR`; this will fail if there is no Makefile there. To solve this problem, use the `MAKE_PATH` variable, for instance:
 
     MAKE_PATH:=src
 
@@ -340,35 +338,35 @@ This path is relative to `PKG_BUILD_DIR` and defaults to `.`. Alternatively, you
 
 Various types of dependencies can be specified, which require a bit of explanation for their differences. More documentation is available at [Using Dependencies](/docs/guide-developer/dependencies)
 
-|              |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|:-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| +\<foo\>     | Package will depend on package \<foo\> and will select it when selected.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| \<foo\>      | Package will depend on package \<foo\> and will be invisible until \<foo\> is selected.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| @FOO         | Package depends on the config symbol CONFIG_FOO and will be invisible unless CONFIG_FOO is set. This usually used for depending on certain Linux versions or targets, e.g. @TARGET_foo will make a package only available for target foo. You can also use boolean expressions for complex dependencies, e.g. @(!TARGET_foo&&!TARGET_bar) will make the package unavailable for foo and bar.                                                                                                                                                                                                                                                                       |
+|  |  |
+|:---|----|
+| +\<foo\> | Package will depend on package \<foo\> and will select it when selected. |
+| \<foo\> | Package will depend on package \<foo\> and will be invisible until \<foo\> is selected. |
+| @FOO | Package depends on the config symbol CONFIG_FOO and will be invisible unless CONFIG_FOO is set. This usually used for depending on certain Linux versions or targets, e.g. @TARGET_foo will make a package only available for target foo. You can also use boolean expressions for complex dependencies, e.g. @(!TARGET_foo&&!TARGET_bar) will make the package unavailable for foo and bar. |
 | +FOO:\<bar\> | Package will depend on \<bar\> if CONFIG_FOO is set, and will select \<bar\> when it is selected itself. The typical use case would be if there are compile time options for this package toggling features that depend on external libraries. :!: Note that the + replaces the @. :!: There is limited support for boolean operators here compared to the @ type above. Negation ! is only supported to negate the whole condition. Parentheses are ignored, so use them only for readability. Like C, && has a higher precedence than \|\|. So +(YYY\|\|FOO&&BAR):package will select package if CONFIG_YYY is set or if both CONFIG_FOO and CONFIG_BAR are set. |
-| @FOO:\<bar\> | Package will depend on \<bar\> if CONFIG_FOO is set, and will be invisible until \<bar\> is selected when CONFIG_FOO is set.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| @FOO:\<bar\> | Package will depend on \<bar\> if CONFIG_FOO is set, and will be invisible until \<bar\> is selected when CONFIG_FOO is set. |
 
 Some typical config symbols for (conditional) dependencies are:
 
-|                                   |                                                                                                                                                                                 |
-|-----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| TARGET\_\<foo\>                   | Target \<foo\> is selected                                                                                                                                                      |
-| TARGET\_\<foo\>\_\<bar\>          | If the target \<foo\> has subtargets, subtarget \<foo\> is selected. If not, profile \<foo\> is selected. This is in addition to TARGET\_\<foo\>                                |
-| TARGET\_\<foo\>\_\<bar\>\_\<baz\> | Target \<foo\> with subtarget \<bar\> and profile \<baz\> is selected.                                                                                                          |
-| LINUX_3_X                         | Linux version used is 3.x.\*                                                                                                                                                    |
-| LINUX_2_6_X                       | Linux version used is 2.6.x.\* (:1: only used for backfire and earlier)                                                                                                         |
-| LINUX_2_4                         | Linux version is 2.4 (:!: only used in backfire and earlier, and only for target brcm-2.4)                                                                                      |
-| USE_UCLIBC, USE_GLIBC, USE_EGLIBC | To (not) depend on a certain libc.                                                                                                                                              |
-| BROKEN                            | Package doesn't build or work, and should only be visible if "Show broken targets/packages" is selected. Prevents the package from failing builds by accidentally selecting it. |
-| IPV6                              | IPv6 support in packages is selected.                                                                                                                                           |
+|  |  |
+|----|----|
+| TARGET\_\<foo\> | Target \<foo\> is selected |
+| TARGET\_\<foo\>\_\<bar\> | If the target \<foo\> has subtargets, subtarget \<foo\> is selected. If not, profile \<foo\> is selected. This is in addition to TARGET\_\<foo\> |
+| TARGET\_\<foo\>\_\<bar\>\_\<baz\> | Target \<foo\> with subtarget \<bar\> and profile \<baz\> is selected. |
+| LINUX_3_X | Linux version used is 3.x.\* |
+| LINUX_2_6_X | Linux version used is 2.6.x.\* (:1: only used for backfire and earlier) |
+| LINUX_2_4 | Linux version is 2.4 (:!: only used in backfire and earlier, and only for target brcm-2.4) |
+| USE_UCLIBC, USE_GLIBC, USE_EGLIBC | To (not) depend on a certain libc. |
+| BROKEN | Package doesn’t build or work, and should only be visible if “Show broken targets/packages” is selected. Prevents the package from failing builds by accidentally selecting it. |
+| IPV6 | IPv6 support in packages is selected. |
 
 Note that the syntax above applies to the `DEPENDS` field only.
 
-`PKG_BUILD_DEPENDS` does not use `+` or `@`, but otherwise uses the same syntax. You can write `FOO:bar` to build `bar` if `CONFIG_FOO` is defined (if you want to build bar if package FOO is selected, use `PACKAGE_FOO:bar`). You may use `!`, `||` and `&&` as explained above. `PKG_BUILD_DEPENDS` uses the name from the `PKG_NAME`, not the individual packages. For example, if you want to have openssl to be a build-dependency, you would write `PKG_BUILD_DEPENDS:=openssl`, whereas if your package depends and selects the openssl library, you'd have `DEPENDS:=+libopenssl`. Notice that there's no installable package named `openssl`: the library is `libopenssl`, the utility is `openssl-util`, but their `PKG_NAME` is `openssl`. If you need a host-built package, append `/host` to the `PKG_NAME`, e.g. `PKG_BUILD_DEPENDS:=openssl/host`. A package listed in `PKG_BUILD_DEPENDS` will be built even if it is not selected in `make menuconfig`.
+`PKG_BUILD_DEPENDS` does not use `+` or `@`, but otherwise uses the same syntax. You can write `FOO:bar` to build `bar` if `CONFIG_FOO` is defined (if you want to build bar if package FOO is selected, use `PACKAGE_FOO:bar`). You may use `!`, `||` and `&&` as explained above. `PKG_BUILD_DEPENDS` uses the name from the `PKG_NAME`, not the individual packages. For example, if you want to have openssl to be a build-dependency, you would write `PKG_BUILD_DEPENDS:=openssl`, whereas if your package depends and selects the openssl library, you‘d have ’‘DEPENDS:=+libopenssl’‘. Notice that there’s no installable package named ’‘openssl’‘: the library is ’‘libopenssl’‘, the utility is ’‘openssl-util’‘, but their ’‘PKG_NAME’’ is `openssl`. If you need a host-built package, append `/host` to the `PKG_NAME`, e.g. `PKG_BUILD_DEPENDS:=openssl/host`. A package listed in `PKG_BUILD_DEPENDS` will be built even if it is not selected in `make menuconfig`.
 
 `EXTRA_DEPENDS` does not accept the conditional or select dependency syntax. However, unlike `DEPENDS` and `PKG_BUILD_DEPENDS`, it is generated at package-build-time, so you may use Makefile functions to add them conditionally. For example, to get the equivalent of `DEPENDS:=@SOMESYMBOL:foo +PACKAGE_somepkg:bar`, you can write `EXTRA_DEPENDS:=$(if $(CONFIG_SOMESYMBOL),foo) $(if $(CONFIG_PACKAGE_somepkg),bar)`. :!: Note that neither `foo` or `bar` will be selected in menuconfig, or guaranteed to be built before your package, even if selected somewhere else. For this reason, it is seldom used in packages.
 
-`EXTRA_DEPENDS` is more often used to depend on specific versions, by adding the desired version specification in parentheses, using \>=,\>,\<,\<=,=. Make sure you add the `PKG_RELEASE` number if you're using '=', such as `EXTRA_DEPENDS:=foo (=2.0.0-1)`: where foo's `PKG_VERSION` is 2.0.0, and `PKG_RELEASE` is 1.
+`EXTRA_DEPENDS` is more often used to depend on specific versions, by adding the desired version specification in parentheses, using \>=,\>,\<,\<=,=. Make sure you add the `PKG_RELEASE` number if you‘re using ’=‘, such as ’‘EXTRA_DEPENDS:=foo (=2.0.0-1)’‘: where foo’s ’‘PKG_VERSION’’ is 2.0.0, and `PKG_RELEASE` is 1.
 
 ## Configure a package source
 
@@ -394,7 +392,7 @@ To set variables (autoconfig internal ones or CPPFLAGS,CFLAGS, CXXFLAGS, LDFLAGS
 
 ### Host tools required
 
-In order to build your package, you may require some extra build tools or libraries that are not already in the standard OpenWrt toolchain. These must be built as part of the OpenWrt build process ie. you cannot rely on them being installed via the build system's package manager (or manually by the user or administrator). This is so that OpenWrt can be built reliably and repeatably on a wide variety of machines. These are referred to as *host tools* because they run on (or are compiled for) the host, not the target.
+In order to build your package, you may require some extra build tools or libraries that are not already in the standard OpenWrt toolchain. These must be built as part of the OpenWrt build process ie. you cannot rely on them being installed via the build system’s package manager (or manually by the user or administrator). This is so that OpenWrt can be built reliably and repeatably on a wide variety of machines. These are referred to as *host tools* because they run on (or are compiled for) the host, not the target.
 
 If your package requires host tools in order to be built for the target machine, these should go in `PKG_BUILD_DEPENDS` and will end with `/host`. For example, the `json-glib` package requires the [Meson build system](https://mesonbuild.com/) to generate build files, as well as Glib2 on the host, so it has:
 
@@ -411,24 +409,24 @@ HOST_BUILD_DEPENDS:=ninja/host
 The makefile for a package that provides host tools will:
 
 - Include `$(INCLUDE_DIR)/host-build.mk`. You can look at this makefile for the details of the host tool build process.
-- Have sections similar to the `Build/...` sections of other packages, but they will start with `Host/`. For example, `Host/Configure`, `Host/Compile` and `Host/Install` are common.
+- Have sections similar to the `Build/…` sections of other packages, but they will start with `Host/`. For example, `Host/Configure`, `Host/Compile` and `Host/Install` are common.
 - Call `$(eval $(call HostBuild))` at the end.
 
 Some examples of packages that *provide* host tools (and their makefiles):
 
 - [Meson](https://github.com/openwrt/packages/blob/master/devel/meson/Makefile)
 - [Samba 4](https://github.com/openwrt/packages/blob/master/net/samba4/Makefile) - note that the Samba 4 *target* package actually depends on the Samba 4 *host* package provided in the same makefile
-- [Go (golang)](https://github.com/openwrt/packages/blob/master/lang/golang/golang/Makefile) - this is a much more complex example, and useful if you're thinking of adding support for a new language in OpenWrt.
+- [Go (golang)](https://github.com/openwrt/packages/blob/master/lang/golang/golang/Makefile) - this is a much more complex example, and useful if you’re thinking of adding support for a new language in OpenWrt.
 
 ##### BUILD
 
 If you want to build only the host tool to test or check a compilation error for host compilation, then you could also build only the host tool with the following command.
 
-- Compile:  
+- Compile:\
   make ./package/\<package_name\>/**host**/compile
-- Clean:  
+- Clean:\
   make ./package/\<package_name\>/**host**/clean
-- Update:  
+- Update:\
   make ./package/\<package_name\>/**host**/update
 
 The make arguments **QUILT=1** and **V=s** are also valid.
@@ -439,9 +437,9 @@ If you want to patch the host and target tool separately, then you have to add `
 
 ##### NOTES
 
-All variables in your pre/post install/removal scripts should have double (\$\$) instead of a single (\$) string characters. This will inform "make" to not interpret the value as a variable, but rather just ignore the string and replace the double \$\$ by a single \$ -- [More Info](https://forum.openwrt.org/viewtopic.php?pid=85197#p85197)
+All variables in your pre/post install/removal scripts should have double (\$\$) instead of a single (\$) string characters. This will inform “make” to not interpret the value as a variable, but rather just ignore the string and replace the double \$\$ by a single \$ – [More Info](https://forum.openwrt.org/viewtopic.php?pid=85197#p85197)
 
-After you've created your package Makefile, the new package will automatically show in the menu the next time you run "make menuconfig" and if selected will be built automatically the next time "make" is run.
+After you’ve created your package Makefile, the new package will automatically show in the menu the next time you run “make menuconfig” and if selected will be built automatically the next time “make” is run.
 
 DESCRIPTION is obsolete, use Package/PKG_NAME/description.
 
@@ -525,7 +523,7 @@ Create a Config.in file directory where the Makefile is located with the content
     endmenu
 ```
 
-Above, you can see examples for various types of config parameters. Finally, you can check your configuration parameters in your Makefile in the following way (note that you can reference the parameter's value with its name prefixed with `CONFIG_`):
+Above, you can see examples for various types of config parameters. Finally, you can check your configuration parameters in your Makefile in the following way (note that you can reference the parameter‘s value with its name prefixed with ’‘CONFIG\_’’):
 
 ``` make
 ifeq ($(CONFIG_MJPEG_STREAMER_INPUT_UVC),y)
@@ -535,18 +533,18 @@ endif
 
 ## Working on local application source
 
-If you are still working on the application, itself, at the same time as you are working on the packaging, it can be very useful to have OpenWrt build your work in progress code, rather than a specific version+md5sum combination checked out of revision control, or downloaded from your final "release" location. There are a few ways of doing this.
+If you are still working on the application, itself, at the same time as you are working on the packaging, it can be very useful to have OpenWrt build your work in progress code, rather than a specific version+md5sum combination checked out of revision control, or downloaded from your final “release” location. There are a few ways of doing this.
 
 ### CONFIG_SRC_TREE_OVERRIDE
 
-This is an option in menuconfig. See "Advanced configuration options (for developers)" -\> "Enable package source tree override"
+This is an option in menuconfig. See “Advanced configuration options (for developers)” -\> “Enable package source tree override”
 
 This allows you to point to a local git tree. (And only git) Say your package is defined in my_cool_feed/awesome_app.
 
     ln -s /path/to/local/awesome_app_tree/.git feeds/my_cool_feed/awesome_app/git-src
     make package/awesome_app/{clean,compile} V=s
 
-Benefits of this approach are that you don't need any special infrastructure in your package makefiles, they stay completely as they would be for a final build. The downside is that it only builds whatever is currently **committed** in HEAD of your local tree. (This could be a private testing branch, but everything you want to include in the package must be committed: uncommitted local changes will not be included in the build.) This will also use a **separate** directory for building and checking out the code. So, any built objects in your local git tree (for example, a build targeting a different architecture) will be left alone, but whichever **branch** is checked out in your tree determines where HEAD is.
+Benefits of this approach are that you don’t need any special infrastructure in your package makefiles, they stay completely as they would be for a final build. The downside is that it only builds whatever is currently **committed** in HEAD of your local tree. (This could be a private testing branch, but everything you want to include in the package must be committed: uncommitted local changes will not be included in the build.) This will also use a **separate** directory for building and checking out the code. So, any built objects in your local git tree (for example, a build targeting a different architecture) will be left alone, but whichever **branch** is checked out in your tree determines where HEAD is.
 
 ### USE_SOURCE_DIR
 
@@ -558,13 +556,13 @@ As part of deprecating `package-version-override.mk` (below), a method to point 
 
 (`V=s` is optional above)
 
-This doesn't require any config change to enable rules, doesn't require that you have a local git tree, and doesn't require any files to be committed.
+This doesn’t require any config change to enable rules, doesn’t require that you have a local git tree, and doesn’t require any files to be committed.
 
 At least at present, however, this has the following problems:
 
-- make clean doesn't clean the source link directory, but still seems to be removing a link
+- make clean doesn’t clean the source link directory, but still seems to be removing a link
 - make prepare needs to be run every time
-- make package/awesome_app/{clean,compile} USE_SOURCE_DIR=~blah doesn't work
+- make package/awesome_app/{clean,compile} USE_SOURCE_DIR=~blah doesn’t work
 - Seems to have bad interactions with leaving USE_SOURCE_DIR set for other (dependent?) packages.
 
 See <http://www.mail-archive.com/openwrt-devel@lists.openwrt.org/msg23122.html> for the original discussion of this new feature
@@ -573,13 +571,13 @@ See <http://www.mail-archive.com/openwrt-devel@lists.openwrt.org/msg23122.html> 
 
 ### (Deprecated) package-version-override.mk
 
-:!: \*\* Don't use this anymore! \*\*
+:!: \*\* Don’t use this anymore! \*\*
 
-Support for this style of local source building was removed. This style required a permanent modification to your package makefile, and then entering a path via menuconfig to where the source was found. It was fairly easy to use, and didn't care whether your local source was in git or svn or visual source safe even, but it had the major downside that the "clean" target simply didn't work (as it simply removed a symlink for cleaning).
+Support for this style of local source building was removed. This style required a permanent modification to your package makefile, and then entering a path via menuconfig to where the source was found. It was fairly easy to use, and didn’t care whether your local source was in git or svn or visual source safe even, but it had the major downside that the “clean” target simply didn’t work (as it simply removed a symlink for cleaning).
 
 If you build a current OpenWrt tree, with packages that still attempt to use this style of local building, you **will** receive errors like so: ERROR: please fix package/feeds/feed_name/application_name/Makefile - see logs/package/feeds/feed_name/application_name/dump.txt for details
 
-If you need/want to keep using this style, where it's available, make sure you include without failing if it was missing:
+If you need/want to keep using this style, where it’s available, make sure you include without failing if it was missing:
 
     -include $(INCLUDE_DIR)/package-version-override.mk
 
@@ -595,7 +593,7 @@ Many kernel programs are included in the Linux source distribution; typically th
 
 See ***FIX:Customizingthekerneloptions customizing the kernel options*** for including it in the kernel.
 
-To include one of these programs as a loadable module, select the corresponding kernel option in the OpenWrt configuration (see [Build Configuration](/docs/guide-developer/toolchain/use-buildsystem#image_configuration)). If your favorite kernel module does not appear in the OpenWrt configuration menus, you must add a stanza to one of the files in the package/kernel/linux/modules directory. Here is an example extracted from .../modules/block.mk:
+To include one of these programs as a loadable module, select the corresponding kernel option in the OpenWrt configuration (see [Build Configuration](/docs/guide-developer/toolchain/use-buildsystem#image_configuration)). If your favorite kernel module does not appear in the OpenWrt configuration menus, you must add a stanza to one of the files in the package/kernel/linux/modules directory. Here is an example extracted from …/modules/block.mk:
 
 ``` make
 define KernelPackage/loop
@@ -766,7 +764,7 @@ $(eval $(call KernelPackage,madwifi))
 
 #### The use of MODPARAMS
 
-If a module require some special param to be passed on Autoload, it's available MODPARAMS using the following syntax:
+If a module require some special param to be passed on Autoload, it’s available MODPARAMS using the following syntax:
 
     MODPARAMS.module_ko:=example_param1=example_value example_param2=example_value2
 
@@ -789,8 +787,8 @@ endef
 
 #### Make a Kernel Module required for boot
 
-Some modules may be required for the correct operation of the device. One example would be an ethernet driver required for the correct operation of the switch on the device.  
-To flag a Kernel Module this way it's needed to append `1` to `AUTOLOAD` at the end.  
+Some modules may be required for the correct operation of the device. One example would be an ethernet driver required for the correct operation of the switch on the device.\
+To flag a Kernel Module this way it‘s needed to append ’‘1’’ to `AUTOLOAD` at the end.\
 This cause the module file to get placed in /etc/modules-boot.d/ instead of /etc/modules.d/, modules-boot.d is processed by procd init before launching preinit and correctly works both in a normal boot and in a failsafe boot. All of this is with the assumption that the module is installed in the firmware and not with OPKG on a loaded system as **it needs to be present before /overlay is mounted**. (OPKG installed module are present only in after /overlay is mounted)
 
 For example here is `phy-realtek` in `package/kernel/linux/modules/netdevices.mk`:
@@ -827,7 +825,7 @@ A set of commands to copy files out of the compiled source and into the ipkg whi
 
 ## Packaging a service
 
-If you want to install a service (something that should start/stop at boot time, that has a /etc/init.d/blah script), read the [Init Scripts](/docs/techref/initscripts) section of the Technical Reference and the [Procd init scripts](/docs/guide-developer/procd-init-scripts) section of the Developer's Guide. A key point is to make sure that the init.d script can be run on the host. At image build time, all init.d scripts found are run on the host, looking for the START=20/STOP=99 lines. This is what installs the symlinks in /etc/rc.d.
+If you want to install a service (something that should start/stop at boot time, that has a /etc/init.d/blah script), read the [Init Scripts](/docs/techref/initscripts) section of the Technical Reference and the [Procd init scripts](/docs/guide-developer/procd-init-scripts) section of the Developer’s Guide. A key point is to make sure that the init.d script can be run on the host. At image build time, all init.d scripts found are run on the host, looking for the START=20/STOP=99 lines. This is what installs the symlinks in /etc/rc.d.
 
 Packages have default postinst/prerm scripts that will run `/etc/init.d/foo enable` (creating the symlinks) or `/etc/init.d/foo disable` (removing the symlinks) when they are installed/removed by opkg.
 

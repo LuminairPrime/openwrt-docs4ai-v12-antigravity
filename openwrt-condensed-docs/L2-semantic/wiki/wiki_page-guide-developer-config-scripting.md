@@ -2,10 +2,10 @@
 title: Configuration in scripts
 module: wiki
 origin_type: wiki_page
-token_count: 2804
+token_count: 2809
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-config-scripting.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Configuration in scripts
@@ -44,7 +44,7 @@ Additionally, you may call `reset_cb()` to reset all three callbacks to no-op fu
 
 ### `config_cb` callback
 
-The `config_cb` procedure is called every time a UCI section heading is encountered during parsing. Also an extra call to `config_cb` (without any argument) is generated after `config_load` is done. This may be useful if you accumulate something while parsing options (see below) and want to do something with the accumulated values (write them to a file, ...) when a section has been entirely parsed.
+The `config_cb` procedure is called every time a UCI section heading is encountered during parsing. Also an extra call to `config_cb` (without any argument) is generated after `config_load` is done. This may be useful if you accumulate something while parsing options (see below) and want to do something with the accumulated values (write them to a file, …) when a section has been entirely parsed.
 
 When called, the procedure receives two arguments:
 
@@ -124,7 +124,7 @@ config_load network
 config_foreach handle_interface interface test
 ```
 
-Note that `config_foreach` will iterate through all sections without regard to the callback function's return value.
+Note that `config_foreach` will iterate through all sections without regard to the callback function’s return value.
 
 Within the per-section callback, the `config_get` or `config_set` procedures may be used to read or set values belonging to the currently processed section.
 
@@ -166,13 +166,13 @@ config_set "$config" auto 0
 Note:
 
 - values changed with `config_set` are only kept in memory. Subsequent calls to `config_get` will return the updated values but the underlying configuration files are *not* altered. If you want to alter values, use the uci\_\* functions from /lib/config/uci.sh which are automatically included by /etc/functions.sh.
-- config_set is arcane and buggy (config_get is fine), use "uci set" instead.
+- config_set is arcane and buggy (config_get is fine), use “uci set” instead.
 
 ## Direct access
 
 If the name of a configuration section is known in advance (it is named), options can be read directly without using a section iterator callback.
 
-The example below reads "option proto" from the "config interface wan" section.
+The example below reads “option proto” from the “config interface wan” section.
 
 ``` bash
 ...
@@ -309,7 +309,7 @@ The result of this section should be:
 
     redistribute ip 172.22.0.0/15 local metric 128
 
-That is, the type should come first, then selectors (with a special case for `local`, which doesn't take an argument), and finally the action. The basic parsing method is the following:
+That is, the type should come first, then selectors (with a special case for `local`, which doesn’t take an argument), and finally the action. The basic parsing method is the following:
 
 ``` bash
 parse_filter() {
@@ -340,4 +340,4 @@ config_foreach parse_filter filter
 
 ### Mixing the two styles
 
-Of course, it is possible to mix the two styles of parsing, for instance parsing one section with callbacks and another section explicitly. Don't forget to reset or unset the callbacks (`reset_cb` or `option_cb() { return; }`) for sections you don't want to parse with callbacks.
+Of course, it is possible to mix the two styles of parsing, for instance parsing one section with callbacks and another section explicitly. Don‘t forget to reset or unset the callbacks (’‘reset_cb’’ or `option_cb() { return; }`) for sections you don’t want to parse with callbacks.

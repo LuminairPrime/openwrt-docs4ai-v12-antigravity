@@ -1,6 +1,6 @@
 # libubox
 
-It's one of the core libraries used within openwrt because it's a set of utilities, mostly wrappers, that are present usually in programs and that have been coded in a flexible and reusable way to avoid wasting time.
+It’s one of the core libraries used within openwrt because it’s a set of utilities, mostly wrappers, that are present usually in programs and that have been coded in a flexible and reusable way to avoid wasting time.
 
 The library consists mostly on independent functionalities, ones higher level than others.
 
@@ -34,7 +34,7 @@ The method is to create a type-value chained data, supporting nested data. This 
 
 ## libubox/blobmsg.h
 
-Blobmsg sits on top of blob.h, providing tables and arrays, providing it's own but parallel datatypes.
+Blobmsg sits on top of blob.h, providing tables and arrays, providing it’s own but parallel datatypes.
 
 ## libubox/list.h
 

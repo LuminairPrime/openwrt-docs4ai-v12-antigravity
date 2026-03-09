@@ -1,7 +1,7 @@
 # ucode (Skeleton Semantic Map)
 
 > **Contains:** Headers and function signatures for ucode.
-> **Generated:** 2026-03-08T12:16:54.678819+00:00
+> **Generated:** 2026-03-09T09:44:02.577905+00:00
 
 ---
 
@@ -41,6 +41,8 @@
 ### digest.sha384\_file(path) ⇒ `string`
 ### digest.sha512\_file(path) ⇒ `string`
 
+> **Summary:** Native filesystem access module for ucode. Implements robust, low-level POSIX-style operations including atomic file writes, directory traversal, file stat, and symbolic link management.
+> **Use Case:** Use for all ucode-based filesystem interactions on OpenWrt, especially when atomicity or precise permission control is required.
 # ucode module: fs
 ## fs
 # Filesystem Access
@@ -287,6 +289,13 @@
 ### socket~IP Protocol Constants
 ### socket~IPv6 : `Object`
 ### socket~Socket Option Constants
+### socket~TCP Protocol Constants
+### socket~Packet Socket Constants
+### socket~UDP Protocol Constants
+### socket~Shutdown Constants
+### socket~Address Info Flags
+### socket~Name Info Constants
+### socket~Poll Event Constants
 
 # ucode module: struct
 ## struct
@@ -314,6 +323,8 @@
 #### buffer.set([value], [start], [end]) ⇒ [`buffer`](#module_struct.buffer)
 #### buffer.pull() ⇒ `string`
 
+> **Summary:** Unified Configuration Interface (UCI) bindings for ucode. Provides a comprehensive API for reading, writing, and applying OpenWrt system configurations directly from ucode scripts.
+> **Use Case:** Use to programmatically manage system settings, parse config sections, and integrate custom services with the OpenWrt UCI ecosystem.
 # ucode module: uci
 ## uci
 # OpenWrt UCI configuration
@@ -344,6 +355,8 @@
 #### cursor.SectionObject : `Object.<string, (boolean\|number\|string\|Array.<string>)>`
 #### cursor.SectionCallback : `function`
 
+> **Summary:** ucode bindings for the OpenWrt uloop event loop. Enables asynchronous programming, recursive timers, network socket monitoring, and child process management within ucode scripts.
+> **Use Case:** Essential for non-blocking ucode applications, periodic background tasks, and event-driven network programming.
 # ucode module: uloop
 ## uloop
 # OpenWrt uloop event loop

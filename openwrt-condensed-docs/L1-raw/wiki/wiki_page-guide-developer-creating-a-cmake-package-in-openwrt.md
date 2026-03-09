@@ -4,7 +4,7 @@ In the [Meson tutorial](/docs/guide-developer/creating_a_meson_based_package), w
 
 ## CMakeLists.txt
 
-To begin, let's create a CMake project. The `main.c` file for this project will be the same as the one in the Meson tutorial, which includes a single `"Hello, World"` program. However, in order to use CMake, we need to include a `CMakeLists.txt` file. The most basic CMake file is presented here for simplicity.
+To begin, let‘s create a CMake project. The ’‘main.c’’ file for this project will be the same as the one in the Meson tutorial, which includes a single `“Hello, World”` program. However, in order to use CMake, we need to include a `CMakeLists.txt` file. The most basic CMake file is presented here for simplicity.
 
 ``` cmake
 cmake_minimum_required(VERSION 3.1...3.27)

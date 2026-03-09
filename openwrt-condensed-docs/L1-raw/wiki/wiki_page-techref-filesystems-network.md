@@ -29,4 +29,4 @@ Files can be provided by other means: see [filesharing](/doc/howto/filesharing)
 
 :FIXME:
 
-The Filesystems mentioned, support varying security. Accessible via TCP often means support for tcp-wrappers (libwrap). Blacklists/Whitelists are sometimes possible. Authentication via ldap ....
+The Filesystems mentioned, support varying security. Accessible via TCP often means support for tcp-wrappers (libwrap). Blacklists/Whitelists are sometimes possible. Authentication via ldap ….

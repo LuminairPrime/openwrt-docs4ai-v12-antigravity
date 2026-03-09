@@ -1,19 +1,19 @@
 # The OpenWrt Flash Layout
 
-The embedded devices (routers and such) OpenWrt/LEDE (Linux Embedded Development Environment) has mainly targeted since its inception, use flash memory as the form of non-volatile memory for the persistent storage of the firmware and its configuration.  
+The embedded devices (routers and such) OpenWrt/LEDE (Linux Embedded Development Environment) has mainly targeted since its inception, use flash memory as the form of non-volatile memory for the persistent storage of the firmware and its configuration.\
 
 ## Types of flash memory
 
 ### Non-mechanical wear
 
-Moving parts are prone to [wear](https://en.wikipedia.org/wiki/wear) (german: [Verschleiß](https://de.wikipedia.org/wiki/Verschleiß)) and experience all sorts of "mechanical breakage/mechanical failure". But how can a non-moving part possibly break? Possibly by [electromigration](https://en.wikipedia.org/wiki/electromigration), by [whisker growth](https://en.wikipedia.org/wiki/Whisker (metallurgy)), etc.
+Moving parts are prone to [wear](https://en.wikipedia.org/wiki/wear) (german: [Verschleiß](https://de.wikipedia.org/wiki/Verschleiß)) and experience all sorts of “mechanical breakage/mechanical failure”. But how can a non-moving part possibly break? Possibly by [electromigration](https://en.wikipedia.org/wiki/electromigration), by [whisker growth](https://en.wikipedia.org/wiki/Whisker (metallurgy)), etc.
 
 Non-mechanical wear does not only occur when flash memory is erased!
 
 <table>
 <tbody>
-<tr class="odd">
-<td><img src="/meta/icons/tango/dialog-information.png" alt="dialog-information.png" /></td>
+<tr>
+<td><img src="/meta/icons/tango/dialog-information.png" data-query="?nolink" alt="dialog-information.png" /></td>
 <td>1. Flash memory is more likely to experience failure than a <a href="https://en.wikipedia.org/wiki/Hard_disk_drive">Hard_disk_drive</a> (the ones with the platters rotating at 5400–15000 <a href="https://en.wikipedia.org/wiki/Revolutions per minute">RPM</a>)<br />
 2. Some types of flash memory seem to experience more non-mechanical wear then other types<br />
 3. How do we deal with failure?</td>
@@ -23,13 +23,13 @@ Non-mechanical wear does not only occur when flash memory is erased!
 
 ### Host-managed vs. self-managed
 
-Based on how the flash memory chip is connected with the [SoC](/docs/techref/hardware/soc) (i.e. the "host") we at OpenWrt distinguish between ***"raw flash"*** or ***"host-managed"*** and ***"FTL (Flash Translation Layer) flash"*** or ***"self-managed"***: in case the flash memory chip is connected directly with the SoC we call it "raw flash" / "host-managed" and in case there is an additional controller chip between the flash memory chip and the SoC, we call it "FTL flash" / "self-managed". Primarily the controller chip does [wear-leveling](https://en.wikipedia.org/wiki/wear-leveling) and manages known bad blocks, but it may do other stuff as well. The flash memory cannot be accessed directly, but only through this controller. The controller has to be considered a [black box](https://en.wikipedia.org/wiki/black box).
+Based on how the flash memory chip is connected with the [SoC](/docs/techref/hardware/soc) (i.e. the “host”) we at OpenWrt distinguish between ***“raw flash”*** or ***“host-managed”*** and ***“FTL (Flash Translation Layer) flash”*** or ***“self-managed”***: in case the flash memory chip is connected directly with the SoC we call it “raw flash” / “host-managed” and in case there is an additional controller chip between the flash memory chip and the SoC, we call it “FTL flash” / “self-managed”. Primarily the controller chip does [wear-leveling](https://en.wikipedia.org/wiki/wear-leveling) and manages known bad blocks, but it may do other stuff as well. The flash memory cannot be accessed directly, but only through this controller. The controller has to be considered a [black box](https://en.wikipedia.org/wiki/black box).
 
 <table>
 <tbody>
-<tr class="odd">
-<td><img src="/meta/icons/tango/dialog-information.png" alt="dialog-information.png" /></td>
-<td>Embedded systems almost exclusively use "raw flash", while <a href="https://en.wikipedia.org/wiki/Solid-state drive">solid-state drives (SSDs)</a> and USB memory sticks, almost exclusively use "FTL flash"!<br />
+<tr>
+<td><img src="/meta/icons/tango/dialog-information.png" data-query="?nolink" alt="dialog-information.png" /></td>
+<td>Embedded systems almost exclusively use “raw flash”, while <a href="https://en.wikipedia.org/wiki/Solid-state drive">solid-state drives (SSDs)</a> and USB memory sticks, almost exclusively use “FTL flash”!<br />
 </td>
 </tr>
 </tbody>
@@ -37,10 +37,10 @@ Based on how the flash memory chip is connected with the [SoC](/docs/techref/har
 
 ### NOR flash vs NAND flash
 
-Additionally we at OpenWrt distinguish between the two basic types of flash memory: [NOR flash](https://en.wikipedia.org/wiki/Flash_memory#NOR_flash) and [NAND flash](https://en.wikipedia.org/wiki/Flash_memory#NAND_flash).  
-"Raw NOR flash" in typical routers is generally small (4 MiB – 16 MiB) and <u>error-free</u>: all data blocks are guaranteed to work correctly. Because raw NOR flash is error-free, the installed file system(s) do not need to take bad blocks into account, and neither SquashFS nor JFFS2 do. The combination of OverlayFS with SquashFS and JFFS2 has been the default OpenWrt setup since the beginning, and it works flawlessly on "raw NOR flash". Older routers typically use NOR flash.
+Additionally we at OpenWrt distinguish between the two basic types of flash memory: [NOR flash](https://en.wikipedia.org/wiki/Flash_memory#NOR_flash) and [NAND flash](https://en.wikipedia.org/wiki/Flash_memory#NAND_flash).\
+“Raw NOR flash” in typical routers is generally small (4 MiB – 16 MiB) and <u>error-free</u>: all data blocks are guaranteed to work correctly. Because raw NOR flash is error-free, the installed file system(s) do not need to take bad blocks into account, and neither SquashFS nor JFFS2 do. The combination of OverlayFS with SquashFS and JFFS2 has been the default OpenWrt setup since the beginning, and it works flawlessly on “raw NOR flash”. Older routers typically use NOR flash.
 
-"Raw NAND flash" in typical routers is generally much larger (32 MiB – 1 GiB) and <u>not error-free</u>: in general the flash contains bad blocks when new and may develop more at any time. Newer routers use NAND flash because it is much cheaper for a given capacity and is also faster for bulk access (disk emulation), but at the cost of the increased complexity required to handle flash defects.
+“Raw NAND flash” in typical routers is generally much larger (32 MiB – 1 GiB) and <u>not error-free</u>: in general the flash contains bad blocks when new and may develop more at any time. Newer routers use NAND flash because it is much cheaper for a given capacity and is also faster for bulk access (disk emulation), but at the cost of the increased complexity required to handle flash defects.
 
 Bad blocks in NAND flash and handled in various ways:
 
@@ -62,13 +62,13 @@ To be noted that it is **NOT RIGHT** to estimate the life of a NAND flash in emb
 
 ## Partitioning of NOR flash-based devices
 
-On these systems, the storage is presented by the kernel as an MTD device, and it is divided into MTD partitions. The device is not partitioned in the traditional way, where you store information about partitions in a [GPT](https://en.wikipedia.org/wiki/GUID Partition Table) or [MBR](https://en.wikipedia.org/wiki/Master boot record). Instead, the partitioning information is directly known by the bootloader and the kernel, either through configuration, or more typically through baking it in at build time. For example, in the kernel it may simply be defined that *"MTD partition **`kernel`** starts at flash block `X` and consists of `Y` blocks"*. MTD partitions can be accessed by name or number.
+On these systems, the storage is presented by the kernel as an MTD device, and it is divided into MTD partitions. The device is not partitioned in the traditional way, where you store information about partitions in a [GPT](https://en.wikipedia.org/wiki/GUID Partition Table) or [MBR](https://en.wikipedia.org/wiki/Master boot record). Instead, the partitioning information is directly known by the bootloader and the kernel, either through configuration, or more typically through baking it in at build time. For example, in the kernel it may simply be defined that *“MTD partition **`kernel`** starts at flash block `X` and consists of `Y` blocks”*. MTD partitions can be accessed by name or number.
 
 The generic flash layout is:
 
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th>Layer0</th>
 <th style="text-align: center;">raw flash</th>
 <th></th>
@@ -79,7 +79,7 @@ The generic flash layout is:
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Layer1</td>
 <td style="text-align: center;">bootloader<br />
 partition(s)</td>
@@ -95,7 +95,7 @@ SoC<br />
 specific<br />
 partition(s)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Layer2</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
@@ -104,26 +104,26 @@ partition(s)</td>
 <td><em>(space available for storage)</em></td>
 <td>:::</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Layer3</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
 <td>Linux kernel<br />
 (raw image)</td>
 <td><strong><code>rootfs</code></strong><br />
-mounted: "<code>/rom</code>", <a href="/docs/techref/filesystems#SquashFS">SquashFS</a><br />
+mounted: “<code>/rom</code>”, <a href="/docs/techref/filesystems#SquashFS">SquashFS</a><br />
 size depends on selected packages</td>
 <td><strong><code>rootfs_data</code></strong><br />
-mounted: "<code>/overlay</code>", <a href="/docs/techref/filesystems#JFFS2">JFFS2</a><br />
+mounted: “<code>/overlay</code>”, <a href="/docs/techref/filesystems#JFFS2">JFFS2</a><br />
 all remaining free space</td>
 <td>:::</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Layer4</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
 <td>:::</td>
-<td>mounted: "<code>/</code>", <a href="/docs/techref/filesystems#overlayfs">OverlayFS</a><br />
+<td>mounted: “<code>/</code>”, <a href="/docs/techref/filesystems#overlayfs">OverlayFS</a><br />
 stacking <code>/overlay</code> on top of <code>/rom</code></td>
 <td></td>
 <td>:::</td>
@@ -147,20 +147,20 @@ Note: Arbitrary files you may choose to store in **`rootfs_data`** are by defaul
 
 [Qualcomm Atheros](/docs/techref/hardware/soc/soc.qualcomm)-based [TL-WR1043ND](/toh/tp-link/TL-WR1043ND). Somebody also provided a [LibreOffice Calc ODS](https://web.archive.org/web/20131021013058/http://ubuntuone.com/2aPBH9pwkxtYzy93S0cS1z).
 
-SquashFS-Images are suitable for devices with *"raw NOR flash memory"*-chips and it is not recommended to install them onto devices with *"raw NAND flash memory"*-chips. SquashFS-Images comprise both, a SquashFS partition and an JFFS2 partition. JFFS2-Images omit the SquashFS partition.
+SquashFS-Images are suitable for devices with *“raw NOR flash memory”*-chips and it is not recommended to install them onto devices with *“raw NAND flash memory”*-chips. SquashFS-Images comprise both, a SquashFS partition and an JFFS2 partition. JFFS2-Images omit the SquashFS partition.
 
-|     TP-Link WR1043ND Flash Layout     |                                                                                                                             |                              |                                                            |                                                      |                       |
-|:-------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------|------------------------------------------------------------|------------------------------------------------------|-----------------------|
-|                Layer0                 | raw NOR flash memory chip (m25p80 [spi](https://en.wikipedia.org/wiki/Serial Peripheral Interface Bus)0.0: m25p64) 8192 KiB |                              |                                                            |                                                      |                       |
-|                Layer1                 | mtd0 ***u-boot*** 128 KiB                                                                                                   | mtd5 ***firmware*** 8000 KiB |                                                            |                                                      | mtd4 ***art*** 64 KiB |
-|                Layer2                 |                                                                                                                             | mtd1 ***kernel*** 1280 KiB   | mtd2 ***rootfs*** 6720 KiB                                 |                                                      |                       |
-| \<color magenta\>mountpoint\</color\> |                                                                                                                             |                              | \<color magenta\>`/`\</color\>                             |                                                      |                       |
-|              filesystem               |                                                                                                                             |                              | [OverlayFS](/docs/techref/filesystems#overlayfs)           |                                                      |                       |
-|                Layer3                 |                                                                                                                             |                              |                                                            | mtd3 ***rootfs_data*** 5184 KiB                      |                       |
-|              Size in KiB              | 128 KiB                                                                                                                     | 1280 KiB                     | 1536 KiB                                                   | 5184 KiB                                             | 64 KiB                |
-|                 Name                  | ***u-boot***                                                                                                                | ***kernel***                 |                                                            | ***rootfs_data***                                    | ***art***             |
-| \<color magenta\>mountpoint\</color\> | *none*                                                                                                                      | *none*                       | \<color magenta\>`/rom`\</color\>                          | \<color magenta\>`/overlay`\</color\>                | *none*                |
-|              filesystem               | *none*                                                                                                                      | *none*                       | [filesystems#SquashFS](/docs/techref/filesystems#SquashFS) | [filesystems#JFFS2](/docs/techref/filesystems#JFFS2) | *none*                |
+| TP-Link WR1043ND Flash Layout |  |  |  |  |  |
+|:--:|----|----|----|----|----|
+| Layer0 | raw NOR flash memory chip (m25p80 [spi](https://en.wikipedia.org/wiki/Serial Peripheral Interface Bus)0.0: m25p64) 8192 KiB |  |  |  |  |
+| Layer1 | mtd0 ***u-boot*** 128 KiB | mtd5 ***firmware*** 8000 KiB |  |  | mtd4 ***art*** 64 KiB |
+| Layer2 |  | mtd1 ***kernel*** 1280 KiB | mtd2 ***rootfs*** 6720 KiB |  |  |
+| \<color magenta\>mountpoint\</color\> |  |  | \<color magenta\>`/`\</color\> |  |  |
+| filesystem |  |  | [OverlayFS](/docs/techref/filesystems#overlayfs) |  |  |
+| Layer3 |  |  |  | mtd3 ***rootfs_data*** 5184 KiB |  |
+| Size in KiB | 128 KiB | 1280 KiB | 1536 KiB | 5184 KiB | 64 KiB |
+| Name | ***u-boot*** | ***kernel*** |  | ***rootfs_data*** | ***art*** |
+| \<color magenta\>mountpoint\</color\> | *none* | *none* | \<color magenta\>`/rom`\</color\> | \<color magenta\>`/overlay`\</color\> | *none* |
+| filesystem | *none* | *none* | [filesystems#SquashFS](/docs/techref/filesystems#SquashFS) | [filesystems#JFFS2](/docs/techref/filesystems#JFFS2) | *none* |
 
 #### Another Flash layout example
 
@@ -168,12 +168,12 @@ SquashFS-Images are suitable for devices with *"raw NOR flash memory"*-chips and
 
 ### Explanations
 
-The Linux kernel treats "raw flash memory" (no matter whether NOR or NAND) chips as an [MTD (Memory Technology Device)](/docs/techref/mtd) and employs [filesystems](/docs/techref/filesystems) developed for this purpose on top of the MTD layer.
+The Linux kernel treats “raw flash memory” (no matter whether NOR or NAND) chips as an [MTD (Memory Technology Device)](/docs/techref/mtd) and employs [filesystems](/docs/techref/filesystems) developed for this purpose on top of the MTD layer.
 
 Since the partitions are nested we look at this whole thing in layers:
 
 1.  Layer0: So we have the Flashchip, 8 MiB in size, which is soldered to the PCB and connected to the [soc](/docs/techref/hardware/soc) over [SPI (Serial Peripheral Interface Bus)](https://en.wikipedia.org/wiki/Serial Peripheral Interface Bus).
-2.  Layer1: We "partition" the space into mtd0 for the bootloader, mtd5 for OpenWrt and, in this case, mtd4 for the ART (Atheros Radio Test) - it contains calibration data for the wifi (EEPROM). If it is missing or corrupt, `ath9k` (wireless driver) won't come up anymore. The bootloader (128 KiB) contains of the u-boot 64KiB block AND a data section which contains the MAC, WPS-PIN and type description. If no MAC is configured ath9k will not work correctly due to a faulty MAC.
+2.  Layer1: We “partition” the space into mtd0 for the bootloader, mtd5 for OpenWrt and, in this case, mtd4 for the ART (Atheros Radio Test) - it contains calibration data for the wifi (EEPROM). If it is missing or corrupt, `ath9k` (wireless driver) won’t come up anymore. The bootloader (128 KiB) contains of the u-boot 64KiB block AND a data section which contains the MAC, WPS-PIN and type description. If no MAC is configured ath9k will not work correctly due to a faulty MAC.
 3.  Layer2: we subdivide mtd5 (firmware) into mtd1 (kernel) and mtd2 (rootfs); In the generation process of the firmware (see [imagebuilder](/docs/guide-user/additional-software/imagebuilder)) the Kernel binary file is first packed with [LZMA](https://en.wikipedia.org/wiki/Lempel–Ziv–Markov chain algorithm), then the obtained file is packed with [gzip](https://en.wikipedia.org/wiki/gzip) and then this file will be written onto the raw flash (mtd1) without being part of any filesystem! During boot, u-boot copies this entire section into RAM and executes it. From there on, the Linux kernel bootstraps itself…
 4.  Layer3: we subdivide rootfs even further into mtd3 for rootfs_data and the rest for an unnamed partition which will accommodate the SquashFS-partition.
 
@@ -185,7 +185,7 @@ Since the partitions are nested we look at this whole thing in layers:
 
 Whenever the system is asked to look for an existing file in `/`, it first looks in `/overlay`, and if not there, then in `/rom`. In this way `/overlay` overrides `/rom` and creates the effect of a writable `/` while much of the content is safely and efficiently stored in the read-only `/rom`.
 
-When the system is asked to delete a file that is in `/rom`, it instead creates a corresponding entry in `/overlay`, a whiteout. A whiteout is a symlink to `(overlay-whiteout)` that mostly behaves like a file that doesn't exist. In newer versions, the whiteout is created as a character device with 0/0 device number instead.
+When the system is asked to delete a file that is in `/rom`, it instead creates a corresponding entry in `/overlay`, a whiteout. A whiteout is a symlink to `(overlay-whiteout)` that mostly behaves like a file that doesn’t exist. In newer versions, the whiteout is created as a character device with 0/0 device number instead.
 
 ``` bash
 #!/bin/sh
@@ -203,7 +203,7 @@ find /overlay -type c; find /overlay -type l -exec sh -c \
 
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th>Layer0</th>
 <th style="text-align: center;">raw flash, 8192 KiB</th>
 <th></th>
@@ -214,7 +214,7 @@ find /overlay -type c; find /overlay -type l -exec sh -c \
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Layer1</td>
 <td style="text-align: center;"><strong>mtd0</strong><br />
 <code>u-boot</code><br />
@@ -231,7 +231,7 @@ find /overlay -type c; find /overlay -type l -exec sh -c \
 <td></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr>
 <td>Layer2</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
@@ -243,7 +243,7 @@ about 1 MiB</td>
 <code>rootfs</code></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Layer3</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
@@ -264,13 +264,13 @@ For some devices, the OpenWrt partition `firmware` may not exist at all. The [DI
 
 ## Partitioning of NAND flash-based devices
 
-On these systems, the storage is presented by the kernel as an MTD device, and it is divided into MTD partitions. The device is not partitioned in the traditional way, where you store information about partitions in a [GPT](https://en.wikipedia.org/wiki/GUID Partition Table) or [MBR](https://en.wikipedia.org/wiki/Master boot record). Instead, the partitioning information is directly known by the bootloader and the kernel, either through configuration, or more typically through baking it in at build time. For example, in the kernel it may simply be defined that *"MTD partition **`kernel`** starts at flash block `X` and consists of `Y` blocks"*. MTD partitions can be accessed by name or number.
+On these systems, the storage is presented by the kernel as an MTD device, and it is divided into MTD partitions. The device is not partitioned in the traditional way, where you store information about partitions in a [GPT](https://en.wikipedia.org/wiki/GUID Partition Table) or [MBR](https://en.wikipedia.org/wiki/Master boot record). Instead, the partitioning information is directly known by the bootloader and the kernel, either through configuration, or more typically through baking it in at build time. For example, in the kernel it may simply be defined that *“MTD partition **`kernel`** starts at flash block `X` and consists of `Y` blocks”*. MTD partitions can be accessed by name or number.
 
 Some NAND devices contain bootloaders that do not understand UBI partitions and thus cannot boot kernels contained in UBI volumes. The generic flash layout for these devices is:
 
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th>Layer0</th>
 <th style="text-align: center;">raw flash</th>
 <th></th>
@@ -282,7 +282,7 @@ Some NAND devices contain bootloaders that do not understand UBI partitions and 
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Layer1</td>
 <td style="text-align: center;">bootloader<br />
 partition(s)</td>
@@ -303,27 +303,27 @@ SoC<br />
 specific<br />
 partition(s)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Layer2</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
 <td>:::</td>
 <td>:::</td>
 <td><strong><code>rootfs</code></strong><br />
-mounted: "<code>/rom</code>", <a href="/docs/techref/filesystems#SquashFS">SquashFS</a><br />
+mounted: “<code>/rom</code>”, <a href="/docs/techref/filesystems#SquashFS">SquashFS</a><br />
 size depends on selected packages</td>
 <td><strong><code>rootfs_data</code></strong><br />
-mounted: "<code>/overlay</code>", <a href="/docs/techref/filesystems#UBIFS">UBIFS</a><br />
+mounted: “<code>/overlay</code>”, <a href="/docs/techref/filesystems#UBIFS">UBIFS</a><br />
 all remaining free space</td>
 <td>:::</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Layer3</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
 <td>:::</td>
 <td>:::</td>
-<td>mounted: "<code>/</code>", <a href="/docs/techref/filesystems#overlayfs">OverlayFS</a><br />
+<td>mounted: “<code>/</code>”, <a href="/docs/techref/filesystems#overlayfs">OverlayFS</a><br />
 stacking <code>/overlay</code> on top of <code>/rom</code></td>
 <td></td>
 <td>:::</td>
@@ -335,7 +335,7 @@ The generic flash layout for NAND devices that can boot kernels contained in UBI
 
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th>Layer0</th>
 <th style="text-align: center;">raw flash</th>
 <th></th>
@@ -346,7 +346,7 @@ The generic flash layout for NAND devices that can boot kernels contained in UBI
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Layer1</td>
 <td style="text-align: center;">bootloader<br />
 partition(s)</td>
@@ -362,7 +362,7 @@ SoC<br />
 specific<br />
 partition(s)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Layer2</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
@@ -370,19 +370,19 @@ partition(s)</td>
 Linux kernel<br />
 (raw image)</td>
 <td><strong><code>rootfs</code></strong><br />
-mounted: "<code>/rom</code>", <a href="/docs/techref/filesystems#SquashFS">SquashFS</a><br />
+mounted: “<code>/rom</code>”, <a href="/docs/techref/filesystems#SquashFS">SquashFS</a><br />
 size depends on selected packages</td>
 <td><strong><code>rootfs_data</code></strong><br />
-mounted: "<code>/overlay</code>", <a href="/docs/techref/filesystems#UBIFS">UBIFS</a><br />
+mounted: “<code>/overlay</code>”, <a href="/docs/techref/filesystems#UBIFS">UBIFS</a><br />
 all remaining free space</td>
 <td>:::</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Layer3</td>
 <td style="text-align: center;">:::</td>
 <td>:::</td>
 <td>:::</td>
-<td>mounted: "<code>/</code>", <a href="/docs/techref/filesystems#overlayfs">OverlayFS</a><br />
+<td>mounted: “<code>/</code>”, <a href="/docs/techref/filesystems#overlayfs">OverlayFS</a><br />
 stacking <code>/overlay</code> on top of <code>/rom</code></td>
 <td></td>
 <td>:::</td>
@@ -398,9 +398,9 @@ For [historical reasons](/docs/techref/flash.layout#sysupgrade_and_rootfs_data) 
 
 On NAND devices using UBI, sysupgrade partially reads the **`rootfs_data`** volume to RAM, deletes **`kernel`** (for kernel-in-UBI devices), **`rootfs`** and **`rootfs_data`** volumes, recreates **`kernel`** (if kernel-in-UBI) and **`rootfs`** volumes sizing them to fit the new images, recreates the **`rootfs_data`** volume utilizing all remaining free space in the UBI partition, flashes the firmware, and writes back data from RAM to **`rootfs_data`**.
 
-While this setup worked well for old space-limited NOR devices, it may not be optimal for today's large NANDs. Nowadays, devices with flash sizes of 1 GiB or more are not uncommon, and for these devices moving all flash data to RAM and back is inefficient, unduly dangerous, and may not even be possible.
+While this setup worked well for old space-limited NOR devices, it may not be optimal for today’s large NANDs. Nowadays, devices with flash sizes of 1 GiB or more are not uncommon, and for these devices moving all flash data to RAM and back is inefficient, unduly dangerous, and may not even be possible.
 
-Fortunately the default behavior of sysupgrade on NAND devices using UBI can be modified: instead of recreating the **`rootfs_data`** volume utilizing all the free space in the UBI partition, sysupgrade can restrict the volume to a specific user-defined size. The requested **`rootfs_data`** size must be specified in bytes in the **`rootfs_data_max`** bootloader environment variable. (The variable is evaluated when read, so "128\*1024\*1024", "0x8000000", "134217728" are all valid and equivalent.)
+Fortunately the default behavior of sysupgrade on NAND devices using UBI can be modified: instead of recreating the **`rootfs_data`** volume utilizing all the free space in the UBI partition, sysupgrade can restrict the volume to a specific user-defined size. The requested **`rootfs_data`** size must be specified in bytes in the **`rootfs_data_max`** bootloader environment variable. (The variable is evaluated when read, so “128\*1024\*1024”, “0x8000000”, “134217728” are all valid and equivalent.)
 
 The relevant bootloader variable can be read with this command:
 
@@ -429,7 +429,7 @@ In an Askey RT4230W REV6 router with 512 MiB flash, the **`rootfs_data`** volume
     Name:        rootfs_data
     Character device major/minor: 246:3
 
-Given that this volume is routinely wiped by sysupgrade, storing any remotely valuable files here would be ill-advised. For this router you might choose to limit **`rootfs_data`** to a generous 128 MiB, and create a new 192 MiB UBIFS volume for persistent storage, while still reserving 50+ MiB as free space to accommodate future growth of OpenWrt images. Let's do just that and name the new volume **`extra`**.
+Given that this volume is routinely wiped by sysupgrade, storing any remotely valuable files here would be ill-advised. For this router you might choose to limit **`rootfs_data`** to a generous 128 MiB, and create a new 192 MiB UBIFS volume for persistent storage, while still reserving 50+ MiB as free space to accommodate future growth of OpenWrt images. Let’s do just that and name the new volume **`extra`**.
 
 First you need to limit **`rootfs_data`** to 128 MiB for all following sysupgrades:
 
@@ -446,7 +446,7 @@ Next do a sysupgarde (even if no upgrade is needed) to resize **`rootfs_data`**.
     Name:        rootfs_data
     Character device major/minor: 246:3
 
-You just freed 240+ MiB in the UBI partition. Next, you could manually create, format, and mount a new UBIFS volume. But OpenWrt has a tool to automate this, so let's use it.
+You just freed 240+ MiB in the UBI partition. Next, you could manually create, format, and mount a new UBIFS volume. But OpenWrt has a tool to automate this, so let’s use it.
 
 Connect the router to the internet if necessary, and use Luci to install package `uvol` (**System \> Software**). You might also want to install your favorite text editor now (`nano-full` is a good option).
 
@@ -479,15 +479,15 @@ Finally reboot and check that your new volume is mounted where you want it:
 
 ## MTD (Memory Technology Device) and MTDSPLIT
 
-The Linux kernel treats "raw/host-managed" flash memory (NOR and NAND alike) as an MTD (Memory Technology Device). An MTD is different to a [block device](https://en.wikipedia.org/wiki/block device) or a [character device](https://en.wikipedia.org/wiki/character device).
+The Linux kernel treats “raw/host-managed” flash memory (NOR and NAND alike) as an MTD (Memory Technology Device). An MTD is different to a [block device](https://en.wikipedia.org/wiki/block device) or a [character device](https://en.wikipedia.org/wiki/character device).
 
-On a common block device such as a hard drive, the storage space is split up into "blocks", which are also named "sectors", of a size of 512 Bytes or 4096 Bytes. Blocks do not get corrupted during common operation, but only exceptionally. In the very rare case this happens, the LBA hard disk controller takes care, that accesses to such a bad block are redirected to a replacement block. Block devices support 2 main operations - read a whole block and write a whole block. When a block device is partitioned, the information is stored in the [MBR](https://en.wikipedia.org/wiki/Master boot record) or the [GPT](https://en.wikipedia.org/wiki/GUID Partition Table).
+On a common block device such as a hard drive, the storage space is split up into “blocks”, which are also named “sectors”, of a size of 512 Bytes or 4096 Bytes. Blocks do not get corrupted during common operation, but only exceptionally. In the very rare case this happens, the LBA hard disk controller takes care, that accesses to such a bad block are redirected to a replacement block. Block devices support 2 main operations - read a whole block and write a whole block. When a block device is partitioned, the information is stored in the [MBR](https://en.wikipedia.org/wiki/Master boot record) or the [GPT](https://en.wikipedia.org/wiki/GUID Partition Table).
 
 Flash memory using MTD is different from this.
 
-The storage space of a MTD is split up into "erase-blocks", of a size of e.g 64 KiB, 128 KiB or much more, which themselves are split up into "blocks", which are more correctly named "pages", of smaller sizes.
+The storage space of a MTD is split up into “erase-blocks”, of a size of e.g 64 KiB, 128 KiB or much more, which themselves are split up into “blocks”, which are more correctly named “pages”, of smaller sizes.
 
-A single "page" can be written to, but it cannot be overwritten, but instead the entire "erase block" that page is part of, has to be erased before it becomes possible to re-write its "pages". Erase-blocks do become worn out after some number of erase cycles – typically 100K-1G for SLC NAND and NOR flashes, and 1K-10K for MLC NAND flashes. Erase-blocks may become bad (only NAND). In case of "FTL flash", the controller should notice and avoid further access to bad erase-blocks. In case of "raw flash", the operating system should deal with such cases.
+A single “page” can be written to, but it cannot be overwritten, but instead the entire “erase block” that page is part of, has to be erased before it becomes possible to re-write its “pages”. Erase-blocks do become worn out after some number of erase cycles – typically 100K-1G for SLC NAND and NOR flashes, and 1K-10K for MLC NAND flashes. Erase-blocks may become bad (only NAND). In case of “FTL flash”, the controller should notice and avoid further access to bad erase-blocks. In case of “raw flash”, the operating system should deal with such cases.
 
 MTD devices support 3 main operations - read from some offset within an erase block, write to some offset within an erase-block, and erase a whole erase-block.
 
@@ -510,16 +510,16 @@ Some of these schemes but not all are implemented in the mainline Linux kernel. 
 
 ### MTDSPLIT
 
-In order to deal with some of the custom flash partitioning schemes directly in the kernel, OpenWrt has developed `mtdsplit` which is a set of patches currently maintained separately from the mainline kernel, but used in OpenWrt to parse different flash layouts and split them into further "logical" partitions.
+In order to deal with some of the custom flash partitioning schemes directly in the kernel, OpenWrt has developed `mtdsplit` which is a set of patches currently maintained separately from the mainline kernel, but used in OpenWrt to parse different flash layouts and split them into further “logical” partitions.
 
-This is done recursively so that further split of a new "child" partition may be attempted. Whether an attempt is made to split a partition depends on the partition name.
+This is done recursively so that further split of a new “child” partition may be attempted. Whether an attempt is made to split a partition depends on the partition name.
 
 - `rootfs` is hardcoded to be split.
 - `CONFIG_MTD_SPLIT_FIRMWARE` can be used to control whether attempt is made on `firmware` partition. The most common splitting here is kernel, followed by padding, followed by SquashFS root filesystem, followed by padding, followed by free space.
 
 During splitting, the kernel walks the erase blocks and detects magic bytes via parsers. Each partition type (usually determined from name) has its own list of parsers.
 
-New partitions are usually some offset into the start of the original partition. The size and number of the "children" depends on what is detected. For example if SquashFS image is found then the `rootfs` partition is added. For SquashFS image the splitter also automatically adds `rootfs_data` to the list of the available mtd partitions, setting this partition's beginning to the first appropriate address after the SquashFS end and size to the remainder of the `rootfs` partition.
+New partitions are usually some offset into the start of the original partition. The size and number of the “children” depends on what is detected. For example if SquashFS image is found then the `rootfs` partition is added. For SquashFS image the splitter also automatically adds `rootfs_data` to the list of the available mtd partitions, setting this partition‘s beginning to the first appropriate address after the SquashFS end and size to the remainder of the ’‘rootfs’’ partition.
 
 The resulting list of split off partitions is stored in RAM only, so no partition table of any kind gets actually modified. This also includes detection and creation of `ubi` partition and others, as well as for vendor-specific layouts.
 
@@ -531,7 +531,7 @@ For overlaying a special `mini_fo` filesystem is used, the `README` is available
 
 Unsorted Block Images (UBI) is an `erase block` management layer in the Linux kernel for raw NAND flash memory chips. It is layer on top of the MTD layer. UBI is used by [UBIFS](/docs/techref/filesystems#UBIFS).
 
-UBI serves two purposes, tracking "bad erase blocks" of a raw NAND flash memory chip and also providing wear-leveling. To accomplish this, UBI maps *logical erase blocks* to *physical erase blocks* and presents the first ones to higher layers.
+UBI serves two purposes, tracking “bad erase blocks” of a raw NAND flash memory chip and also providing wear-leveling. To accomplish this, UBI maps *logical erase blocks* to *physical erase blocks* and presents the first ones to higher layers.
 
 - \[<http://www.linux-mtd.infradead.org/doc/ubi.html> UBI Documentation\]
 
@@ -558,7 +558,7 @@ The *erasesize* is the [block size](https://en.wikipedia.org/wiki/Block (data st
     0x0000007f0000-0x000000800000 : "art"
     0x000000020000-0x0000007f0000 : "firmware"
 
-These are the start and end offsets of the partitions as hex values in Bytes. Now you don't have to guess which is nested in which. E.g. 02 0000 = 131.072 Bytes = 128KiB.
+These are the start and end offsets of the partitions as hex values in Bytes. Now you don’t have to guess which is nested in which. E.g. 02 0000 = 131.072 Bytes = 128KiB.
 
 ## Details
 
@@ -566,44 +566,44 @@ These are the start and end offsets of the partitions as hex values in Bytes. No
 
 The flash chip can be represented as a large block of continuous space:
 
-|                                               |
-|:----------------------------------------------|
-| start of flash ................. end of flash |
+|                                     |
+|:------------------------------------|
+| start of flash …………….. end of flash |
 
-There is no ROM to boot from; at power up the CPU begins executing the code at the very start of the flash. Luckily this isn't the firmware or we'd be in real danger every time we reflashed. Boot is actually handled by a section of code we tend to refer to as the [bootloader](bootloader) (the BIOS of your PC *is* a bootloader).
+There is no ROM to boot from; at power up the CPU begins executing the code at the very start of the flash. Luckily this isn’t the firmware or we’d be in real danger every time we reflashed. Boot is actually handled by a section of code we tend to refer to as the [bootloader](bootloader) (the BIOS of your PC *is* a bootloader).
 
-|          |                                          |                    |                              |                  |               |
-|----------|------------------------------------------|--------------------|------------------------------|------------------|---------------|
-|          | Boot Loader Partition                    | Firmware Partition | `Special Configuration Data` |                  |               |
-| Atheros  | [U-Boot](/docs/techref/bootloader/uboot) | firmware           | `ART`                        |                  |               |
-| Broadcom | CFE                                      | firmware           | `NVRAM`                      |                  |               |
-| Atheros  | RedBoot                                  | firmware           | `FIS recovery`               | `RedBoot config` | `boardconfig` |
+|  |  |  |  |  |  |
+|----|----|----|----|----|----|
+|  | Boot Loader Partition | Firmware Partition | `Special Configuration Data` |  |  |
+| Atheros | [U-Boot](/docs/techref/bootloader/uboot) | firmware | `ART` |  |  |
+| Broadcom | CFE | firmware | `NVRAM` |  |  |
+| Atheros | RedBoot | firmware | `FIS recovery` | `RedBoot config` | `boardconfig` |
 
 The partition or partitions containing so called *Special Configuration Data* differ very much from each other. Example: The `ART`-partition you will meet in conjunction with Atheros-Wireless and U-Boot, contains only data regarding the wireless driver, while the `NVRAM`-partition of broadcom devices is used for much more than only that. There are special utilities to access and modify special configuration partitions. For Broadcom devices this is the `nvram` utility. To find out what is written in `NVRAM` you can run `nvram show`.
 
-Note that clearing these special configuration data partitions like `ART, NVRAM` and `FIS` does not clear much of OpenWrt's configuration, unlike other router software which keep configuration data solely in e.g. `NVRAM`. Instead, as a consequence of using the overlay_fs filesystem configuration with JFFS2 flash partition, the whole file system is writable and allows the flexibility of extending your OpenWrt installation in any way you want. OpenWrt's main configuration is therefore just kept in the root file system, using [UCI](/docs/guide-user/base-system/uci) configuration files. For convenience, many other packages are made UCI compatible. If you want to reset your complete installation you should use OpenWrt's built-in functionality such as [sysupgrade](/docs/guide-user/installation/generic.sysupgrade) to restore settings, by clearing the JFFS2 partition. Or, if you cannot boot normally, you can wipe or change the JFFS2 partition using OpenWrt's [failsafe mode](/docs/guide-user/troubleshooting/failsafe_and_factory_reset) (look in your device's dedicated page for information how to boot into failsafe).
+Note that clearing these special configuration data partitions like `ART, NVRAM` and `FIS` does not clear much of OpenWrt‘s configuration, unlike other router software which keep configuration data solely in e.g. ’‘NVRAM’’. Instead, as a consequence of using the overlay_fs filesystem configuration with JFFS2 flash partition, the whole file system is writable and allows the flexibility of extending your OpenWrt installation in any way you want. OpenWrt’s main configuration is therefore just kept in the root file system, using [UCI](/docs/guide-user/base-system/uci) configuration files. For convenience, many other packages are made UCI compatible. If you want to reset your complete installation you should use OpenWrt’s built-in functionality such as [sysupgrade](/docs/guide-user/installation/generic.sysupgrade) to restore settings, by clearing the JFFS2 partition. Or, if you cannot boot normally, you can wipe or change the JFFS2 partition using OpenWrt’s [failsafe mode](/docs/guide-user/troubleshooting/failsafe_and_factory_reset) (look in your device’s dedicated page for information how to boot into failsafe).
 
 ### broadcom with CFE
 
-If you dig into the "firmware" section you'll find a trx. A trx is just an encapsulation, which looks something like this:
+If you dig into the “firmware” section you’ll find a trx. A trx is just an encapsulation, which looks something like this:
 
 | trx-header |        |       |       |          |      |     |
 |------------|--------|-------|-------|----------|------|-----|
 | HDR0       | length | crc32 | flags | pointers | data |     |
 
-"HDR0" is a magic value to indicate a trx header, rest is 4 byte unsigned values followed by the actual contents. In short, it's a block of data with a length and a checksum. So, our flash usage actually looks something like this:
+“HDR0” is a magic value to indicate a trx header, rest is 4 byte unsigned values followed by the actual contents. In short, it’s a block of data with a length and a checksum. So, our flash usage actually looks something like this:
 
 |     |                         |       |
 |:---:|:-----------------------:|:-----:|
 | CFE | trx containing firmware | NVRAM |
 
-Except that the firmware is generally pretty small and doesn't use the entire space between CFE and NVRAM:
+Except that the firmware is generally pretty small and doesn’t use the entire space between CFE and NVRAM:
 
 |     |              |        |       |
 |:---:|:------------:|:------:|:-----:|
 | CFE | trx firmware | unused | NVRAM |
 
-(***`NOTE`*:** The \<model\>.bin files are nothing more than the generic \*.trx file with an additional header appended to the start to identify the model. The model information gets verified by the vendor's upgrade utilities and only the remaining data -- the trx -- gets written to the flash. When upgrading from within OpenWrt remember to use the \*.trx file.)
+(***`NOTE`*:** The \<model\>.bin files are nothing more than the generic \*.trx file with an additional header appended to the start to identify the model. The model information gets verified by the vendor’s upgrade utilities and only the remaining data – the trx – gets written to the flash. When upgrading from within OpenWrt remember to use the \*.trx file.)
 
 So what exactly is the firmware?
 
@@ -613,21 +613,21 @@ The boot loader really has no concept of filesystems, it pretty much assumes tha
 |:---------------:|:----------------------:|
 | lzma decompress | lzma compressed kernel |
 
-Now, the boot loader boots into an LZMA program which decompresses the kernel into RAM and executes it. It adds one second to the bootup time, but it saves a large chunk of flash space. (And if that wasn't amusing enough, it turns out the boot loader does know gzip compression, so we gzip compressed the LZMA decompression program)
+Now, the boot loader boots into an LZMA program which decompresses the kernel into RAM and executes it. It adds one second to the bootup time, but it saves a large chunk of flash space. (And if that wasn’t amusing enough, it turns out the boot loader does know gzip compression, so we gzip compressed the LZMA decompression program)
 
-Immediately following the kernel is the filesystem. We use SquashFS for this because it's a highly compressed readonly filesystem -- remember that altering the contents of the trx in any way would invalidate the crc, so we put our writable data in a JFFS2 partition, which is outside the trx. This means that our firmware looks like this:
+Immediately following the kernel is the filesystem. We use SquashFS for this because it’s a highly compressed readonly filesystem – remember that altering the contents of the trx in any way would invalidate the crc, so we put our writable data in a JFFS2 partition, which is outside the trx. This means that our firmware looks like this:
 
 |     |                        |               |                       |
 |:---:|:-----------------------|:-------------:|:---------------------:|
-| trx | gzip'd lzma decompress | lzma'd kernel | (SquashFS filesystem) |
+| trx | gzip’d lzma decompress | lzma’d kernel | (SquashFS filesystem) |
 
 And the entire flash usage looks like this -
 
 |     |     |           |               |          |                  |       |
 |:---:|:---:|:---------:|:-------------:|:--------:|:----------------:|:-----:|
-| CFE | trx | gz'd lzma | lzma'd kernel | SquashFS | JFFS2 filesystem | NVRAM |
+| CFE | trx | gz’d lzma | lzma’d kernel | SquashFS | JFFS2 filesystem | NVRAM |
 
-That's about as tight as we can possibly pack things into flash.
+That’s about as tight as we can possibly pack things into flash.
 
 ------------------------------------------------------------------------
 

@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 1006
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-buildserver-virtualbox.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Setting up a build VM in VirtualBox
@@ -29,7 +29,7 @@ Download the newest VirtualBox (VDI) 64-bit Debian image (currently 12 Bookworm)
 3.  Name: OpenWrtDev
 4.  Type: Linux
 5.  Version: Debian (64-bit). See [here](https://superuser.com/questions/866962/why-does-virtualbox-only-have-32-bit-option-no-64-bit-option-on-windows-7) if 64-bit is not available.
-6.  Hard Disk: Select "Use an existing virtual hard disk file" and choose the Debian .vdi file you just unpacked.
+6.  Hard Disk: Select “Use an existing virtual hard disk file” and choose the Debian .vdi file you just unpacked.
 7.  Click Create
 8.  Right click on the OpenWrtDev image and click Settings
 9.  Select General, Advanced, Shared Clipboard: Bidirectional
@@ -69,7 +69,7 @@ nano /etc/apt/sources.list
 
 You are now editing the list of servers to get updates from.
 
-- Delete the lines containing "deb cdrom". Lines can be deleted with ctrl-k.
+- Delete the lines containing “deb cdrom”. Lines can be deleted with ctrl-k.
 - From the last two lines, remove the leading \# and space, and the -updates after bullseye. They should now look like this:
 
 <!-- -->
@@ -89,7 +89,7 @@ reboot
 
 Log in and open the terminal again when it has rebooted.
 
-Click Devices (top line), select the last option (Install Guest Additions). The automatic install does not seem to work, so it doesn't matter if you select cancel or run.
+Click Devices (top line), select the last option (Install Guest Additions). The automatic install does not seem to work, so it doesn’t matter if you select cancel or run.
 
 ``` bash
 su -

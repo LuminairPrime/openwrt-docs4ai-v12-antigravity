@@ -2,10 +2,10 @@
 title: ubus (OpenWrt micro bus architecture)
 module: wiki
 origin_type: wiki_page
-token_count: 6665
+token_count: 6673
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-ubus.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # ubus (OpenWrt micro bus architecture)
@@ -24,7 +24,7 @@ The code is published under [LGPL 2.1 license](https://en.wikipedia.org/wiki/GNU
 
 ## Command-line ubus tool
 
-The `ubus` command line tool allows to interact with the `ubusd` server (with all currently registered services). It's useful for investigating/debugging registered namespaces as well as writing shell scripts. For calling procedures with parameters and returning responses it uses the user-friendly JSON format. Below is an explanation of its commands.
+The `ubus` command line tool allows to interact with the `ubusd` server (with all currently registered services). It’s useful for investigating/debugging registered namespaces as well as writing shell scripts. For calling procedures with parameters and returning responses it uses the user-friendly JSON format. Below is an explanation of its commands.
 
 ### Help output
 
@@ -205,13 +205,13 @@ See the [Postman collection](https://documenter.getpostman.com/view/5972215/TVzN
 
 ### ACLs
 
-While logged in via ssh, you have direct, full access to ubus. When you're accessing the `/ubus` url in uhttpd however, uhttpd first queries whether your call is allowed, and whoever is providing the ubus `session.*` namespace is in charge of implementing the access control:
+While logged in via ssh, you have direct, full access to ubus. When you‘re accessing the ’‘/ubus’’ url in uhttpd however, uhttpd first queries whether your call is allowed, and whoever is providing the ubus `session.*` namespace is in charge of implementing the access control:
 
 ``` bash
 ubus call session access '{ "ubus_rpc_session": "xxxxx", "object": "requested-object", "function": "requested-method" }'
 ```
 
-This happens to be `rpcd` at the moment, with the `http-json` interface, for friendly operation with browser code, but this is just one possible implementation. Because we're using rpcd to implement the ACLs at this time, this allows/requires (depending on your point of view) ACLs to be configured in `/usr/share/rpcd/acl.d/*.json`. The <u>names</u> of the files in `/usr/share/rpcd/acl.d/*.json` don't matter, but the top level keys define roles. The default ACL, listed below, <u>only</u> defines the login methods, so you can log in, but you still wouldn't be able to do anything.
+This happens to be `rpcd` at the moment, with the `http-json` interface, for friendly operation with browser code, but this is just one possible implementation. Because we‘re using rpcd to implement the ACLs at this time, this allows/requires (depending on your point of view) ACLs to be configured in ’‘/usr/share/rpcd/acl.d/\*.json’‘. The <u>names</u> of the files in ’‘/usr/share/rpcd/acl.d/\*.json’’ don’t matter, but the top level keys define roles. The default ACL, listed below, <u>only</u> defines the login methods, so you can log in, but you still wouldn’t be able to do anything.
 
 ``` yaml
 {
@@ -228,7 +228,7 @@ This happens to be `rpcd` at the moment, with the `http-json` interface, for fri
 
 An example of a complicated ACL, allowing quite fine grained access to different ubus modules and methods is [available in the Luci2 project](https://git.openwrt.org/?p=project/luci2/ui.git;a=blob;f=luci2/share/acl.d/luci2.json)
 
-An example of a "security is for suckers" config, where a `superuser` ACL group is defined, allowing unrestricted access to everything, is shown below. This illustrates the usage of `*` definitions in the ACLs, but keep reading for better examples.
+An example of a “security is for suckers” config, where a `superuser` ACL group is defined, allowing unrestricted access to everything, is shown below. This illustrates the usage of `*` definitions in the ACLs, but keep reading for better examples.
 
 Placing this file in `/usr/share/rpcd/acl.d/superuser.json` will help you move forward to the next steps.
 
@@ -283,7 +283,7 @@ Below is an example of an ACL definition that only allows access to some specifi
 }
 ```
 
-**Note:** Before we leave this section, you may have noticed that there's both a `ubus` and a `uci` section, even though ubus has a uci method. The `uci` scope is used for the [uci api](/docs/techref/uci) provided by rpcd to allow defining per-file permissions because using the ubus scope you can only say `uci set` is allowed or not, but not specify that it is allowed to e.g. modify `/etc/config/system` but not `/etc/config/network`. If your application/ACL doesn't need UCI access, you can just leave out the UCI section altogether.
+**Note:** Before we leave this section, you may have noticed that there‘s both a ’‘ubus’’ and a `uci` section, even though ubus has a uci method. The `uci` scope is used for the [uci api](/docs/techref/uci) provided by rpcd to allow defining per-file permissions because using the ubus scope you can only say `uci set` is allowed or not, but not specify that it is allowed to e.g. modify `/etc/config/system` but not `/etc/config/network`. If your application/ACL doesn’t need UCI access, you can just leave out the UCI section altogether.
 
 ### Authentication
 
@@ -319,11 +319,11 @@ $ curl -H 'Content-Type: application/json' -d '{ "jsonrpc": "2.0", "id": 1, "met
 
 The session id `00000000000000000000000000000000` (32 zeros) is a special null-session which only has the rights from the `unauthenticated` access group, only enabling the `session.login` ubus call. A session has a timeout that can be specified when you login, otherwise it defaults to 5 minutes.
 
-If you ever receive a response like `{"jsonrpc":"2.0","id":1,"result":[6]}`, that is a valid jsonrpc response, 6 is the ubus code for `UBUS_STATUS_PERMISSION_DENIED` (you'll get this if you try and login before setting up the `superuser` file, or any file that gives you more rights than just being allowed to attempt logins).
+If you ever receive a response like `{“jsonrpc”:“2.0”,“id”:1,“result”:[6]}`, that is a valid jsonrpc response, 6 is the ubus code for `UBUS_STATUS_PERMISSION_DENIED` (you‘ll get this if you try and login before setting up the ’‘superuser’’ file, or any file that gives you more rights than just being allowed to attempt logins).
 
 To list all active sessions, try `ubus call session list`
 
-The session timeout is automatically reset on every use. There are plans to use these sessions even for luci1, but at present, if you use this interface in a luci1 environment, you'll need to manage sessions yourself.
+The session timeout is automatically reset on every use. There are plans to use these sessions even for luci1, but at present, if you use this interface in a luci1 environment, you’ll need to manage sessions yourself.
 
 ### Actually making calls
 
@@ -352,7 +352,7 @@ The RPC-JSON container format is:
 }
 ```
 
-The "id" key is merely echo'ed by the server, so it needs not be strictly unique, it's mainly intended for client software to easily correlate responses to previously made requests. Its type is either a string or a number, so it can be an UUID, sha1 hash, md5 sum, sequence counter, unix timestamp, etc.
+The “id” key is merely echo’ed by the server, so it needs not be strictly unique, it’s mainly intended for client software to easily correlate responses to previously made requests. Its type is either a string or a number, so it can be an UUID, sha1 hash, md5 sum, sequence counter, unix timestamp, etc.
 
 An example request to read a file `/etc/board.json` which contains device info would be:
 
@@ -361,7 +361,7 @@ $ curl -H 'Content-Type: application/json' -d '{ "jsonrpc": "2.0", "id": 1, "met
 {"jsonrpc":"2.0","id":1,"result":[0,{"data":"{\n\t\"model\": {\n\t\t\"id\": \"innotek-gmbh-virtualbox\",\n\t\t\"name\": \"innotek GmbH VirtualBox\"\n\t},\n\t\"network\": {\n\t\t\"lan\": {\n\t\t\t\"ifname\": \"eth0\",\n\t\t\t\"protocol\": \"static\"\n\t\t}\n\t}\n}\n"}]}
 ```
 
-Here the first param `c1ed6c7b025d0caca723a816fa61b668` is the `ubus_rpc_session` received during the login call. If you received a response like `{"jsonrpc":"2.0","id":1,"error":{"code":-32002,"message":"Access denied"}}` then probably your session token was expired and you need to request a new one.
+Here the first param `c1ed6c7b025d0caca723a816fa61b668` is the `ubus_rpc_session` received during the login call. If you received a response like `{“jsonrpc”:“2.0”,“id”:1,“error”:{“code”:-32002,“message”:“Access denied”}}` then probably your session token was expired and you need to request a new one.
 
 To beautify output you can use [jq](https://stedolan.github.io/jq/) utility:
 
@@ -388,7 +388,7 @@ As you can see in the example the router model is in fact just a OpenWrt runned 
 
 ## Lua module for ubus
 
-This is even possible to use `ubus` in `lua` scripts. Of course it's not possible to use native libraries directly in `lua`, so an extra module has been created. It's simply called `ubus` and is a simple interface between `lua` scripts and the `ubus` (it uses `libubus` internally).
+This is even possible to use `ubus` in `lua` scripts. Of course it‘s not possible to use native libraries directly in ’‘lua’‘, so an extra module has been created. It’s simply called ’‘ubus’’ and is a simple interface between `lua` scripts and the `ubus` (it uses `libubus` internally).
 
 ``` lua
 -- Load module
@@ -434,19 +434,19 @@ As explained earlier, there can be many different daemons (services) registered 
 
 **Path only contains the first context, e.g. network for network.interface.wan**
 
-| path                                          | Description                     | Package      |
-|-----------------------------------------------|---------------------------------|--------------|
-| [dhcp](/docs/guide-developer/ubus/dhcp)       | dhcp server                     | odhcpd       |
-| [file](/docs/guide-developer/ubus/file)       | file                            | rpcd         |
-| [hostapd](/docs/guide-developer/ubus/hostapd) | acesspoints                     | wpad/hostapd |
-| [iwinfo](/docs/guide-developer/ubus/iwinfo)   | wireless informations           | rpcd iwinfo  |
-| [log](/docs/guide-developer/ubus/log)         | logging                         | procd        |
-| [mdns](/docs/guide-developer/ubus/mdns)       | mdns avahi replacement          | mdnsd        |
-| [network](/docs/guide-developer/ubus/network) | network                         | netifd       |
-| [service](/docs/guide-developer/ubus/service) | init/service                    | procd        |
-| [session](/docs/guide-developer/ubus/session) | Session management              | rpcd         |
-| [system](/docs/guide-developer/ubus/system)   | system misc                     | procd        |
-| [uci](/docs/guide-developer/ubus/uci)         | Unified Configuration Interface | rpcd         |
+| path | Description | Package |
+|----|----|----|
+| [dhcp](/docs/guide-developer/ubus/dhcp) | dhcp server | odhcpd |
+| [file](/docs/guide-developer/ubus/file) | file | rpcd |
+| [hostapd](/docs/guide-developer/ubus/hostapd) | acesspoints | wpad/hostapd |
+| [iwinfo](/docs/guide-developer/ubus/iwinfo) | wireless informations | rpcd iwinfo |
+| [log](/docs/guide-developer/ubus/log) | logging | procd |
+| [mdns](/docs/guide-developer/ubus/mdns) | mdns avahi replacement | mdnsd |
+| [network](/docs/guide-developer/ubus/network) | network | netifd |
+| [service](/docs/guide-developer/ubus/service) | init/service | procd |
+| [session](/docs/guide-developer/ubus/session) | Session management | rpcd |
+| [system](/docs/guide-developer/ubus/system) | system misc | procd |
+| [uci](/docs/guide-developer/ubus/uci) | Unified Configuration Interface | rpcd |
 
 ### procd
 
@@ -462,7 +462,7 @@ Project [netifd: Network Interface Daemon](/docs/techref/netifd)
 
 ### rpcd
 
-Project [rpcd: OpenWrt ubus RPC daemon for backend server](/docs/techref/rpcd) is a set of small plugins providing sets of `ubus` procedures in separated namespaces. These plugins are not strictly related to any particular software (like `netifd` or `dhcp`) so it wasn't worth it to implement them as separated projects. rpcd and the desired plugins must be available or installed via opkg. After installing remember to enable and start the service via `service rpcd enable` and `service rpcd start` .
+Project [rpcd: OpenWrt ubus RPC daemon for backend server](/docs/techref/rpcd) is a set of small plugins providing sets of `ubus` procedures in separated namespaces. These plugins are not strictly related to any particular software (like `netifd` or `dhcp`) so it wasn‘t worth it to implement them as separated projects. rpcd and the desired plugins must be available or installed via opkg. After installing remember to enable and start the service via ’‘service rpcd enable’’ and `service rpcd start` .
 
 ![file&nofooter](/page>docs/guide-developer/ubus/file&nofooter) ![iwinfo&nofooter](/page>docs/guide-developer/ubus/iwinfo&nofooter)
 
@@ -470,9 +470,9 @@ Always included in `rpcd`:
 
 ![session&nofooter](/page>docs/guide-developer/ubus/session&nofooter) ![uci&nofooter](/page>docs/guide-developer/ubus/uci&nofooter)
 
-## What's the difference between ubus vs dbus?
+## What’s the difference between ubus vs dbus?
 
-[D-Bus](https://en.wikipedia.org/wiki/D-Bus) is bloated, its C API is very annoying to use and requires writing large amounts of boilerplate code. In fact, the pure C API is so annoying that its own API documentation states: "If you use this low-level API directly, you're signing up for some pain."
+[D-Bus](https://en.wikipedia.org/wiki/D-Bus) is bloated, its C API is very annoying to use and requires writing large amounts of boilerplate code. In fact, the pure C API is so annoying that its own API documentation states: “If you use this low-level API directly, you’re signing up for some pain.”
 
 `ubus` is tiny and has the advantage of being easy to use from regular C code, as well as automatically making all exported API functionality also available to shell scripts with no extra effort.
 

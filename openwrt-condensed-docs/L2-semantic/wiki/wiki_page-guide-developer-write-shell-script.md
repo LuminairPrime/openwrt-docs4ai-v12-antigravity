@@ -2,10 +2,10 @@
 title: Write shell scripts in OpenWrt
 module: wiki
 origin_type: wiki_page
-token_count: 1431
+token_count: 1440
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-write-shell-script.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Write shell scripts in OpenWrt
@@ -46,11 +46,11 @@ For more information, refer to the [shebang](https://en.wikipedia.org/wiki/Sheba
 
 ### Can I change my default shell from ash to bash?
 
-The short answer is "*yes*", but this practice is not recommended.
+The short answer is “*yes*”, but this practice is not recommended.
 
-**WARNING: If you update */etc/passwd* to change the *root* account's default shell to anything other than `#!/bin/sh`, there is a good chance you will be unable to log in to your router via SSH**.
+**WARNING: If you update */etc/passwd* to change the *root* account‘s default shell to anything other than ’‘\#!/bin/sh’’, there is a good chance you will be unable to log in to your router via SSH**.
 
-If you've installed the [OpenWrt bash](/packages/pkgdata/bash) package on your router and then changed your default shell to `#!/bin/bash`, you will be able to login to your device via SSH. However, the risk in doing so is that you may still lock yourself out of your device inadvertently, for example, by upgrading. The working assumption for OpenWrt is that *ash* will be the default shell. If you want to use the *bash* shell regularly, then simply run the *bash* command each time you login to your device.
+If you‘ve installed the [OpenWrt bash](/packages/pkgdata/bash) package on your router and then changed your default shell to ’‘\#!/bin/bash’’, you will be able to login to your device via SSH. However, the risk in doing so is that you may still lock yourself out of your device inadvertently, for example, by upgrading. The working assumption for OpenWrt is that *ash* will be the default shell. If you want to use the *bash* shell regularly, then simply run the *bash* command each time you login to your device.
 
 In the event you are having difficulty accessing your device via SSH, refer to the OpenWrt [failsafe process](/docs/guide-user/troubleshooting/failsafe_and_factory_reset).
 

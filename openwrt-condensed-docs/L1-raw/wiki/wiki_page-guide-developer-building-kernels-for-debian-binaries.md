@@ -10,7 +10,7 @@ If you boot OpenWrt kernel and expects it to start init but you see a kernel pan
 
 OpenWrt userland packages are compiled with soft-FPU instructions by default. (The floating point math is emulated by the compiler during compile time.)
 
-Debian binaries (jessie) are compiled with hard FPU instructions. As most embedded devices do not have FPUs, it's usually necessary for the kernel to emulate them in order for these instructions to be executed correctly. Since OpenWrt makes use of soft-FPU, the FPU emulation is turned off in the kernel by default. Inability to execute FP instructions is a possible reason for the crash.
+Debian binaries (jessie) are compiled with hard FPU instructions. As most embedded devices do not have FPUs, it’s usually necessary for the kernel to emulate them in order for these instructions to be executed correctly. Since OpenWrt makes use of soft-FPU, the FPU emulation is turned off in the kernel by default. Inability to execute FP instructions is a possible reason for the crash.
 
 To compile the kernel with FPU emulation, in kernel configuration check that you set CONFIG_MIPS_FPU_EMULATOR=y. See [use-buildsystem#Kernel configuration (optional)](/docs/guide-developer/toolchain/use-buildsystem#Kernel configuration (optional)).
 

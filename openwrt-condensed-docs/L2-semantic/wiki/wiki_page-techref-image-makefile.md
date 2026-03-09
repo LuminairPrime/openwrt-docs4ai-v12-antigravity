@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 1304
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-image-makefile.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # image/Makefile Details

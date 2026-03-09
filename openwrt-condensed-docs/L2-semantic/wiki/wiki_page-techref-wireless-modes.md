@@ -2,10 +2,10 @@
 title: Wireless Modes
 module: wiki
 origin_type: wiki_page
-token_count: 348
+token_count: 346
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-wireless-modes.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Wireless Modes
@@ -22,7 +22,7 @@ has a section with `Supported interface modes`
 
 ## AP
 
-AP ... Access Point Also called "master" mode.
+AP … Access Point Also called “master” mode.
 
 ## AP/vlan
 
@@ -60,5 +60,5 @@ Alternative name: managed mode Mode when connected to an AP.
 
 ## Links
 
-     * Mode list taken from [[http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/nl80211.h|include/uapi/linux/nl80211.h]]
-     * linux-wireless mailing list
+- Mode list taken from [include/uapi/linux/nl80211.h](http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/nl80211.h)
+- linux-wireless mailing list

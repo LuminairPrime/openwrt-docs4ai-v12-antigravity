@@ -2,10 +2,10 @@
 title: OpenWrt SELinux policy development, customization, and testing
 module: wiki
 origin_type: wiki_page
-token_count: 8662
+token_count: 8670
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-selinux-policy-development.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # OpenWrt SELinux policy development, customization, and testing
@@ -22,25 +22,25 @@ This example assumes using Fedora 34 GNU/Linux for image building, and that ther
 
 The purpose of this exercise is to help familiarize potential contributors with the procedure of SELinux policy development for OpenWrt. OpenWrt can be configured and assembled in many ways, and the more scenarios are tested and supported the better. Please see Wish List for a list of known configurations that are not yet currently addressed and that need attention. Also see Feedback Checklist for a list of requested information (and instructions to gather this information) to determine and test whether the policy configuration is accurate and comprehensive.
 
-In this example we're going to start by assembling the OpenWrt SELinux policy. By default, OpenWrt provides a generic policy with the aim to include support for all known common functionality. The goal of this default policy is to cover as many aspects of OpenWrt as possible and to make it "just work" by default on as many devices and device configurations as possible. The downside of this default policy is that, because it is so generic, it is also somewhat inefficient: The policy might include rules for components and functionalitty that you may not have installed or use and thereby it may require more space than strictly needed. Ideally, you would pick and choose a selection of modules appropriate and relevant for your target device's setup. (The goal is to eventually make assembling OpenWrt SELinux policy from available modules as easy as assembling OpenWrt images with the OpenWrt Image Builder.) Once we have assembled and deployed OpenWrt SELinux policy appropriate to our target device, we are going to work on extending functionality by adding policy for a simple `Hello World` shell script. Once tested, we're going to build an image with the resulting policy integrated, and deploy that to our target device.
+In this example we‘re going to start by assembling the OpenWrt SELinux policy. By default, OpenWrt provides a generic policy with the aim to include support for all known common functionality. The goal of this default policy is to cover as many aspects of OpenWrt as possible and to make it “just work” by default on as many devices and device configurations as possible. The downside of this default policy is that, because it is so generic, it is also somewhat inefficient: The policy might include rules for components and functionalitty that you may not have installed or use and thereby it may require more space than strictly needed. Ideally, you would pick and choose a selection of modules appropriate and relevant for your target device’s setup. (The goal is to eventually make assembling OpenWrt SELinux policy from available modules as easy as assembling OpenWrt images with the OpenWrt Image Builder.) Once we have assembled and deployed OpenWrt SELinux policy appropriate to our target device, we are going to work on extending functionality by adding policy for a simple ’‘Hello World’’ shell script. Once tested, we’re going to build an image with the resulting policy integrated, and deploy that to our target device.
 
 Eventually, when everything works as intended and the policy you created is useful to the general public, you may consider submitting a patch with your changes to OpenWrt, so that all interested parties can benefit from your hard work.
 
 ## Installing and setting up build requirements
 
-We're going to start by creating an OpenWrt Image Builder (IB) archive that can be used to assemble OpenWrt factory and sysupgrade images with included SELinux support. We have to ensure that we have all required build dependencies installed on our build system. In addition to the usual required host packages, we also need the `secilc` program, so that we can compile SELinux policy written in [Common Intermediate Language (CIL)](https://github.com/SELinuxProject/selinux/blob/master/secilc/docs/README.md).
+We‘re going to start by creating an OpenWrt Image Builder (IB) archive that can be used to assemble OpenWrt factory and sysupgrade images with included SELinux support. We have to ensure that we have all required build dependencies installed on our build system. In addition to the usual required host packages, we also need the ’‘secilc’’ program, so that we can compile SELinux policy written in [Common Intermediate Language (CIL)](https://github.com/SELinuxProject/selinux/blob/master/secilc/docs/README.md).
 
     [kcinimod@brutus ~]$ sudo dnf install gcc-c++ git make bc make patch wget unzip tar bzip2 gettext ncurses-devel perl-FindBin perl-Data-Dumper perl-Thread-Queue perl-base findutils which diffutils file perl-File-Copy openssl-devel flex libxslt intltool zlib-devel rsync secilc
 
 ### Clone OpenWrt source code using git
 
-Now that we have the build requirements taken care of, we can get the sources for OpenWrt. In this example, we'll clone OpenWrt from its mirror on Github:
+Now that we have the build requirements taken care of, we can get the sources for OpenWrt. In this example, we’ll clone OpenWrt from its mirror on Github:
 
     [kcinimod@brutus ~]$ git clone https://github.com/openwrt/openwrt.git
 
 #### Addressing feeds
 
-We'll now update and install all available feeds:
+We’ll now update and install all available feeds:
 
     [kcinimod@brutus ~]$ ./openwrt/scripts/feeds update -a
     [kcinimod@brutus ~]$ ./openwrt/scripts/feeds install -a
@@ -58,11 +58,11 @@ After a short while a menu appears. We will address the Linksys WRT1900ACS targe
       Subtarget (Marvell Armada 37x/38x/XP)  --->
       Target Profile (Linksys WRT1900ACS v1)  --->
 
-Select the "Build OpenWrt Image Builder" option from the menu.
+Select the “Build OpenWrt Image Builder” option from the menu.
 
       [*] Build the OpenWrt Image Builder
 
-Next, we'll enable SELinux in the "Global Build Settings" submenu.
+Next, we’ll enable SELinux in the “Global Build Settings” submenu.
 
       Global build settings  --->
           [*] Enable SELinux (NEW)
@@ -88,9 +88,9 @@ There is a good chance that the selinux-policy enclosed n this image is slightly
 
 As an example, we will however exclude an optional module that is not depended on by any other modules to give you an idea of how you would go about assembling and building the policy with a customized module selection. Picking and choosing modules to install can be tricky, as modules may have dependencies on other modules. It is advised that you test locally whether all dependencies of your selection of modules can be resolved.
 
-Depending on how integrated the component you want to target is, it is wise to set the default SELinux mode to "permissive", at least during the policy development phase. Even though this reasoning does not really apply to this contrived example, we will default to permissive mode for now for illustrative purposes.
+Depending on how integrated the component you want to target is, it is wise to set the default SELinux mode to “permissive”, at least during the policy development phase. Even though this reasoning does not really apply to this contrived example, we will default to permissive mode for now for illustrative purposes.
 
-At this point, you are essentially forking the policy. Publish your forked Git repository and ensure that the forked Git repository is accessible with the HTTPS protocol. You can for example use GitLab or Github for this but we'll use Github in this example.
+At this point, you are essentially forking the policy. Publish your forked Git repository and ensure that the forked Git repository is accessible with the HTTPS protocol. You can for example use GitLab or Github for this but we’ll use Github in this example.
 
 ### Creating a new selinux-policy-myfork repository on Github
 
@@ -115,13 +115,13 @@ I created a new empty `override/selinux-policy-myfork.git` repository on Github.
 
 One of our goals has been achieved: We forked the OpenWrt selinux-policy straight from upstream, and are working with an up-to-date policy snapshot as of now. To continue, we would like to build the whole policy minus the sandbox.cil module. To that end, we will add a target to ~/selinux-policy-myfork/Makefile that can be used to achieve the desired effect. Before pushing the result to Github, we will ensure that the policy actually builds. Edit ~/selinux-policy-myfork/Makefile and make the following changes.
 
-Add a "myfork" target - Change this line ...:
+Add a “myfork” target - Change this line …:
 
 ``` Makefile
 .PHONY: all clean minimal policy check install
 ```
 
-... to read like this instead:
+… to read like this instead:
 
 ``` Makefile
 .PHONY: all clean minimal myfork policy check install
@@ -133,20 +133,20 @@ Define which modules to enclose - locate the following line in the file:
 polvers = 31
 ```
 
-... and insert this block right **after** it:
+… and insert this block right **after** it:
 
 ``` Makefile
 modulesmyfork = $(shell find src -type f -name '*.cil' \
         ! -name sandbox.cil -printf '%p ')
 ```
 
-Now, define the "myfork" target - locate this line:
+Now, define the “myfork” target - locate this line:
 
 ``` Makefile
 policy: policy.$(polvers)
 ```
 
-... and insert this block **right before**:
+… and insert this block **right before**:
 
 ``` Makefile
 myfork: myfork.$(polvers)
@@ -174,11 +174,11 @@ First, we create a local feeds directory (example ~/mypackages):
     [kcinimod@brutus selinux-policy-myfork]$ cd ~
     [kcinimod@brutus ~]$ mkdir mypackages
 
-Now we recursively copy `~/selinux-policy-myfork/support/selinux-policy-XXXX` to the local feeds' `~/mypackages` directory and rename it to `selinux-policy-myfork`:
+Now we recursively copy `~/selinux-policy-myfork/support/selinux-policy-XXXX` to the local feeds’ `~/mypackages` directory and rename it to `selinux-policy-myfork`:
 
     [kcinimod@brutus ~]$ cp -r selinux-policy-myfork/support/selinux-policy-XXXX mypackages/selinux-policy-myfork
 
-We will need to replace the PKG_NAME variable's value next, which will determine the name of the package that will be generated:
+We will need to replace the PKG_NAME variable’s value next, which will determine the name of the package that will be generated:
 
     [kcinimod@brutus ~]$ sed -i 's/PKG_NAME:=.*/PKG_NAME:=selinux-policy-myfork/' mypackages/selinux-policy-myfork/Makefile
 
@@ -194,7 +194,7 @@ And we alse replace PKG_SOURCE_VERSION (use the commit ID of your latest commit)
 
     [kcinimod@brutus ~]$ sed -i 's/PKG_SOURCE_VERSION:=.*/PKG_SOURCE_VERSION:=4b8d8c06c5f1dc8641b2b08b44d7fde955e2b9db/' mypackages/selinux-policy-myfork/Makefile
 
-Replace PKG_MIRROR_HASH (we'll skip this during development):
+Replace PKG_MIRROR_HASH (we’ll skip this during development):
 
     [kcinimod@brutus ~]$ sed -i 's/PKG_MIRROR_HASH:=.*/PKG_MIRROR_HASH:=skip/' mypackages/selinux-policy/myfork/Makefile
 
@@ -222,7 +222,7 @@ Replace define/Package/description:
 
     [kcinimod@brutus ~]$ sed -i 's/XXXX SELinux security policy designed specifically for OpenWrt/Myfork SELinux security policy designed specifically for OpenWrt/' mypackages/selinux-policy-myfork/Makefile
 
-Replace Build/Compile/Default (we'll use our new "myfork" target):
+Replace Build/Compile/Default (we’ll use our new “myfork” target):
 
     [kcinimod@brutus ~]$ sed -i 's#$(call Build/Compile/Default,policy)#$(call Build/Compile/Default,myfork)#' mypackages/selinux-policy-myfork/Makefile
 
@@ -230,12 +230,12 @@ Replace the final occurrence of selinux-policy-XXXX:
 
     [kcinimod@brutus ~]$ sed -i 's/selinux-policy-XXXX/selinux-policy-myfork/' mypackages/selinux-policy-myfork/Makefile
 
-Change the "mode from config" to "permissive", and change the policy model to selinux-policy-myfork:
+Change the “mode from config” to “permissive”, and change the policy model to selinux-policy-myfork:
 
     [kcinimod@brutus ~]$ sed -i 's/SELINUX=.*/SELINUX=permissive/' mypackages/selinux-policy-myfork/files/selinux-config
     [kcinimod@brutus ~]$ sed -i 's/SELINUXTYPE=.*/SELINUXTYPE=selinux-policy-myfork/' mypackages/selinux-policy-myfork/files/selinux-config
 
-Add/update the "mypackages" custom feed and selinux-policy-myfork:
+Add/update the “mypackages” custom feed and selinux-policy-myfork:
 
     [kcinimod@brutus ~]$ echo "src-link custom ${HOME}/mypackages" >> openwrt/feeds.conf.default
     [kcinimod@brutus ~]$ ./openwrt/scripts/feeds update custom
@@ -246,7 +246,7 @@ After these modifications have succeeded, we have to perform `menuconfig` again,
     [kcinimod@brutus ~]$ cd ~/openwrt
     [kcinimod@brutus openwrt]$ make -j$(($(nproc) + 1)) menuconfig
 
-Now we'll enable selinux-policy-myfork from the "Base system" submenu.
+Now we’ll enable selinux-policy-myfork from the “Base system” submenu.
 
       Base system  --->
           <*> selinux-policy-myfork.................. Myfork SELinux policy for OpenWrt
@@ -305,11 +305,11 @@ Give the device a moment to reboot and log back into it over ssh. Verify that yo
 
 ## Policy development overview
 
-The next step will be to extend the policy by targeting a simple "Hello World" shell script. I will not get into the details of writing SELinux policy in this exercise. The policy is written in **Common Intermediate Language** and I am working on documenting that. You can try to find help in [\#selinux on the freenode IRC network](irc://irc.freenode.org/#selinux), but if you need assistance or have any questions related to OpenWrt selinux-policy and SELinux policy/CIL in particular, then I can be reached on the [OFTC IRC network in the \#openwrt-devel](irc://irc.oftc.net/#openwrt-devel) channel under the IRC nickname **grift**.
+The next step will be to extend the policy by targeting a simple “Hello World” shell script. I will not get into the details of writing SELinux policy in this exercise. The policy is written in **Common Intermediate Language** and I am working on documenting that. You can try to find help in [\#selinux on the freenode IRC network](irc://irc.freenode.org/#selinux), but if you need assistance or have any questions related to OpenWrt selinux-policy and SELinux policy/CIL in particular, then I can be reached on the [OFTC IRC network in the \#openwrt-devel](irc://irc.oftc.net/#openwrt-devel) channel under the IRC nickname **grift**.
 
-### Confining "Hello World"
+### Confining “Hello World”
 
-We will be creating a simple script: `/root/helloworld`. It simply prints the output of `echo "Hello from: $(id -Z)"` to standard output and exits. Then, we will develop a policy for this script at runtime and test the result "on-device". Once the policy has been verified to work as intended, we will deploy a sysupgrade image with the resulting customization enclosed, and we will change the default SELinux mode back to "enforcing". This simple example will hopefully be illustrative enough to get you started. Please use the knowledge gained to help improve the policy, so that everyone can benefit.
+We will be creating a simple script: `/root/helloworld`. It simply prints the output of `echo “Hello from: $(id -Z)”` to standard output and exits. Then, we will develop a policy for this script at runtime and test the result “on-device”. Once the policy has been verified to work as intended, we will deploy a sysupgrade image with the resulting customization enclosed, and we will change the default SELinux mode back to “enforcing”. This simple example will hopefully be illustrative enough to get you started. Please use the knowledge gained to help improve the policy, so that everyone can benefit.
 
 #### Creating and testing the script
 
@@ -318,12 +318,12 @@ First, we need to create the script that our policy will interact with:
     root@OpenWrt:~# printf '#!/bin/sh\n echo "hello from: $(id -Z)\n"' > /root/helloworld
     root@OpenWrt:~# chmod +x /root/helloworld
 
-To see what it does at this stage, let's run it:
+To see what it does at this stage, let’s run it:
 
     root@OpenWrt:~# /root/helloworld
     hello from: u:r:sys.subj
 
-The script works, but the output of the script indicates that it currently operates within the "unconfined" `u:r:sys.subj` context. We would like the script to be contained, thereby applying the principle of least privilege to this process by subjecting it to our modified SELinux policy.
+The script works, but the output of the script indicates that it currently operates within the “unconfined” `u:r:sys.subj` context. We would like the script to be contained, thereby applying the principle of least privilege to this process by subjecting it to our modified SELinux policy.
 
 We can write a basic skeleton policy for this script off-device, using our cloned `selinux-policy-myfork` repository, then build and test that, and copy the compiled `policy.31` file (along with the updated `file_contexts` file) to the device. Then, we can run the `load_policy` command to apply the updated policy to the running system, and use that procedure to test and refine the policy until it works as we need it to.
 
@@ -358,15 +358,15 @@ We perform both these operations here, before re-executing our script:
     root@OpenWrt:~# /root/helloworld
     hello from: u:r:helloworld.subj
 
-The test concluded that the specified domain transition from `u:r:sys.subj` to `u:r:helloworld.subj` took place, due to our custom policy having taken effect. Since we are still operating in "permissive" mode for development purposes, we can use the `dmesg` command to see which permissions would have been denied if we had instead been operating in "enforcing" mode.
+The test concluded that the specified domain transition from `u:r:sys.subj` to `u:r:helloworld.subj` took place, due to our custom policy having taken effect. Since we are still operating in “permissive” mode for development purposes, we can use the `dmesg` command to see which permissions would have been denied if we had instead been operating in “enforcing” mode.
 
     root@OpenWrt:~# dmesg | grep -i denied
 
-The resulting avc denials can be interpreted and translated to policy, that we can then append to our modifications, and then test again. Eventually, no new avc denials should be printed to dmesg when testing in "oermissive" mode, indicating that the resulting process has all the permissions and contexts assigned that it needs to function. Once we arrive at that point, the update should be ready for real-worl use.
+The resulting avc denials can be interpreted and translated to policy, that we can then append to our modifications, and then test again. Eventually, no new avc denials should be printed to dmesg when testing in “oermissive” mode, indicating that the resulting process has all the permissions and contexts assigned that it needs to function. Once we arrive at that point, the update should be ready for real-worl use.
 
 We will now append some of the rules we were able to identify from the output of the `dmesg | grep -i` denied command. Some of these might not be obvious to you at this point. Suffice to say that rules can be (and in fact often are) grouped for common patterns, and with sufficient experience, you learn to recognise these patterns and how to correlate them to provided macros and templates commonly used to address these issues.
 
-There is another gotcha you should be aware of: There are rules present in the policy that instruct SELinux to "silently" block specified events. This functionality can be useful if you want to block some access on purpose without SELinux printing avc denials. However, sometimes, knowing these events actually occurred (and were blocked) might actually be needed. The `secilc` compiler allows you to compile the policy with these "dontaudit" rules removed via the `-D` or `--disable-dontaudit` switches, but that's beyond the scope of this exercise. For now, suffice to say that `helloworld` wants to operate on the terminal (as it needs to print the output to a terminal) but the current policy has rules that tell SELinux to silently block this access. We need to change this to keep our policy-confined program working:
+There is another gotcha you should be aware of: There are rules present in the policy that instruct SELinux to “silently” block specified events. This functionality can be useful if you want to block some access on purpose without SELinux printing avc denials. However, sometimes, knowing these events actually occurred (and were blocked) might actually be needed. The `secilc` compiler allows you to compile the policy with these “dontaudit” rules removed via the `-D` or `–disable-dontaudit` switches, but that‘s beyond the scope of this exercise. For now, suffice to say that ’‘helloworld’’ wants to operate on the terminal (as it needs to print the output to a terminal) but the current policy has rules that tell SELinux to silently block this access. We need to change this to keep our policy-confined program working:
 
     [kcinimod@brutus selinux-policy-myfork]$ cat >> src/agent/helloworld.cil <<EOF
     (in .helloworld ;; insert into existing helloworld container
@@ -391,7 +391,7 @@ Following the same procedure as before, copy over the `policy.31` and `file_cont
 
     root@OpenWrt:~# dmesg | grep -i denied
 
-The above dmesg invocation prints one more avc denial in permissive mode, so let's try this in enforcing mode:
+The above dmesg invocation prints one more avc denial in permissive mode, so let’s try this in enforcing mode:
 
     root@OpenWrt:~# dmesg -c
     root@OpenWrt:~# setenforce 1
@@ -417,14 +417,14 @@ Next, we will build a new ipk package including our recent work, and also create
 
 For that to work, we need to adjust two things in our local build artifacts:
 
-\* The `~/mypackages/selinux-policy-myfork/Makefile` **PKG_SOURCE_VERSION** has to be updated to point to the new latest git commit ID \* The `~/mypackages/selinux-policy-myfork/files/selinux-config` has to be updated to change the mode from "permissive" to "enforcing".
+\* The `~/mypackages/selinux-policy-myfork/Makefile` **PKG_SOURCE_VERSION** has to be updated to point to the new latest git commit ID \* The `~/mypackages/selinux-policy-myfork/files/selinux-config` has to be updated to change the mode from “permissive” to “enforcing”.
 
 Replace **PKG_SOURCE_VERSION** (use the commit ID of your latest commit):
 
     [kcinimod@brutus selinux-policy-myfork]$ cd ~
     [kcinimod@brutus ~]$ sed -i 's/PKG_SOURCE_VERSION:=4b8d8c06c5f1dc8641b2b08b44d7fde955e2b9db/PKG_SOURCE_VERSION:=c5e28890e61bed077477bcc526b8fb6639728c93/' mypackages/selinux-policy-myfork/Makefile
 
-Change the "mode from config" to enforcing:
+Change the “mode from config” to enforcing:
 
     [kcinimod@brutus ~]$ sed -i 's/SELINUX=.*/SELINUX=enforcing/' mypackages/selinux-policy-myfork/files/selinux-config
 
@@ -462,4 +462,4 @@ After the device has booted up again, our policy should be enforcing least privi
 
 ## In closing
 
-This wraps up the exercise. Remember that this is meant to illustrate the SELinux policy development (and deployment) workflow in broad strokes. To be able to contribute your work back your policy, you need to adhere to a number of established style rules. I suggest that you take a close look at the existing policy, to identify patterns and clues on how to make your policy feel familiar to someone who's already familiar with pre-existing upstream policy code. To help with that, see if you can find a module that closely resembles yours, and compare and contrast the two in order to find ways to improve and align your module with existing best practices. If you need help, feel free to just ask [on IRC](irc://irc.oftc.net/#openwrt-devel)! Happy policy hacking! :)
+This wraps up the exercise. Remember that this is meant to illustrate the SELinux policy development (and deployment) workflow in broad strokes. To be able to contribute your work back your policy, you need to adhere to a number of established style rules. I suggest that you take a close look at the existing policy, to identify patterns and clues on how to make your policy feel familiar to someone who’s already familiar with pre-existing upstream policy code. To help with that, see if you can find a module that closely resembles yours, and compare and contrast the two in order to find ways to improve and align your module with existing best practices. If you need help, feel free to just ask [on IRC](irc://irc.oftc.net/#openwrt-devel)! Happy policy hacking! :)

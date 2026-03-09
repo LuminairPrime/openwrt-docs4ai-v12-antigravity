@@ -2,15 +2,15 @@
 
 [BusyBox](https://en.wikipedia.org/wiki/BusyBox) is used for several system utilities in OpenWrt like `ash` shell, `cp`, `ls`, `echo`, `ping` and many others. It provides tiny replacements with fewer options for most of the utilities from [GNU Core Utilities](https://en.wikipedia.org/wiki/GNU Core Utilities), [GNU Inetutils](https://www.gnu.org/software/inetutils/) and other essential tools like `gzip`.
 
-All this utilities are compiled as "applets" into a single binary file `/bin/busybox`.
+All this utilities are compiled as “applets” into a single binary file `/bin/busybox`.
 
 ## Identify OpenWrt version through udhcp
 
 When an OpenWrt system tries to obtain an IP using DHCP on its WAN interface, it adds a Vendor-Class option that contains the Busybox version:
 
-`Vendor-Class Option 60, length 12: "udhcp 1.28.3"`
+`Vendor-Class Option 60, length 12: “udhcp 1.28.3”`
 
-This can be used to estimate which OpenWrt version is running on a router if you don't have access to the router itself.
+This can be used to estimate which OpenWrt version is running on a router if you don’t have access to the router itself.
 
 | OpenWrt version | Busybox version |
 |:----------------|:----------------|

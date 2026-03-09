@@ -1,7 +1,7 @@
 # MTD
 
-|                                                                                                                                                                     |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|  |
+|----|
 | FIXME This page is a Work In Progress. The goal is to make it similar to [opkg](/docs/guide-user/additional-software/opkg) and then link to it as often as possible |
 
 # MTD
@@ -14,32 +14,32 @@
 
 ### Writing to MTD
 
-|                       |                                                      |
-|:----------------------|:-----------------------------------------------------|
-| `unlock <dev>`        | unlock the device                                    |
-| `refresh <dev>`       | refresh mtd partition                                |
-| `erase <dev>`         | erase all data on device                             |
-| `write <imagefile>|-` | write \<imagefile\> (use - for stdin) to device      |
-| `jffs2write <file>`   | append \<file\> to the jffs2 partition on the device |
-| `fixtrx <dev>`        | fix the checksum in a trx header on first boot       |
+|  |  |
+|:---|:---|
+| `unlock <dev>` | unlock the device |
+| `refresh <dev>` | refresh mtd partition |
+| `erase <dev>` | erase all data on device |
+| `write <imagefile>|-` | write \<imagefile\> (use - for stdin) to device |
+| `jffs2write <file>` | append \<file\> to the jffs2 partition on the device |
+| `fixtrx <dev>` | fix the checksum in a trx header on first boot |
 
 ### Options
 
-|                                                 |                                                                                                                                                                        |
-|:------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-q`                                            | quiet mode (once: no \[w\] on writing, twice: no status messages)                                                                                                      |
-| `-n`                                            | write without first erasing the blocks                                                                                                                                 |
-| `-r`                                            | reboot after successful command                                                                                                                                        |
-| `-f`                                            | force write without trx checks                                                                                                                                         |
-| `-e <device>`                                   | erase \<device\> before executing the command                                                                                                                          |
-| `-d <name>`                                     | directory for jffs2write, defaults to "tmp"                                                                                                                            |
-| `-j <name>`                                     | integrate \<file\> into jffs2 data when writing an image                                                                                                               |
-| `-o offset`                                     | offset of the image header in the partition(for fixtrx)                                                                                                                |
-| `-F <part>[:<size>[:<entrypoint>]][,<part>...]` | alter the fis partition table to create new partitions replacing the partitions provided as argument to the write command (only valid together with the write command) |
+|  |  |
+|:---|:---|
+| `-q` | quiet mode (once: no \[w\] on writing, twice: no status messages) |
+| `-n` | write without first erasing the blocks |
+| `-r` | reboot after successful command |
+| `-f` | force write without trx checks |
+| `-e <device>` | erase \<device\> before executing the command |
+| `-d <name>` | directory for jffs2write, defaults to “tmp” |
+| `-j <name>` | integrate \<file\> into jffs2 data when writing an image |
+| `-o offset` | offset of the image header in the partition(for fixtrx) |
+| `-F <part>[:<size>[:<entrypoint>]][,<part>…]` | alter the fis partition table to create new partitions replacing the partitions provided as argument to the write command (only valid together with the write command) |
 
 ## Examples
 
-Download `linux.bin` from Internet (it's not safe to do so, here is for demonstration purpose only), then write `linux.bin` to a MTD partition labeled as `linux` (could be `mtd4`) and reboot afterwards:
+Download `linux.bin` from Internet (it‘s not safe to do so, here is for demonstration purpose only), then write ’‘linux.bin’’ to a MTD partition labeled as `linux` (could be `mtd4`) and reboot afterwards:
 
     cd /tmp
     wget http://www.example.org/linux.bin
@@ -56,7 +56,7 @@ You can checks your mtd partitions from proc :
     mtd0: 003f0000 00010000 "firmware"
     mtd1: 00010000 00010000 "u-boot-env"
 
-(it's not safe to do so, here is for demonstration purpose only),
+(it’s not safe to do so, here is for demonstration purpose only),
 
 then write `flash-image.bin` to a MTD partition labeled as `spi0.0` (could be `mtd0` or `firmware`) and reboot afterwards :
 
@@ -66,16 +66,16 @@ then write `flash-image.bin` to a MTD partition labeled as `spi0.0` (could be `m
 
 ## mtd vs dd
 
-The differences between `dd` (disc dump) and `mtd` are ... [TODO](/docs/techref/flash#nand-specific_tools_for_reading_and_writing_to_raw_nand)
+The differences between `dd` (disc dump) and `mtd` are … [TODO](/docs/techref/flash#nand-specific_tools_for_reading_and_writing_to_raw_nand)
 
 ## mtd on vendor-firmware
 
-`mtd` can even be used with vendor-firmware, as long as the kernel had mtd-support and not using something "home-brewed". When the vendor is not shipping the binary it can probably transferred via `scp`, `netcat`, `tftp`, `ftp`, `http`onto the board. The original binary from the OpenWrt-package might not run on the vendor-os, but linking it static should do the trick. With OpenWrt-21.02 I was using a small hack to to let the buildroot create a static binary:
+`mtd` can even be used with vendor-firmware, as long as the kernel had mtd-support and not using something “home-brewed”. When the vendor is not shipping the binary it can probably transferred via `scp`, `netcat`, `tftp`, `ftp`, `http`onto the board. The original binary from the OpenWrt-package might not run on the vendor-os, but linking it static should do the trick. With OpenWrt-21.02 I was using a small hack to to let the buildroot create a static binary:
 
     sed -i -e "s/^LDFLAGS += /LDFLAGS += -static /" package/system/mtd/src/Makefile
     make package/mtd/compile
 
-This patches the mtd source to include the "-static" option when building the binary. This way the binary gets all dependent library-code embedded to make it run itself, as long as the correct CPU-target is used. The new binary can be extracted from the resulting package or just copied from `build_dir/target-<ARCH>/linux-<TARGET>-<SUBTARGET>/mtd`.
+This patches the mtd source to include the “-static” option when building the binary. This way the binary gets all dependent library-code embedded to make it run itself, as long as the correct CPU-target is used. The new binary can be extracted from the resulting package or just copied from `build_dir/target-<ARCH>/linux-<TARGET>-<SUBTARGET>/mtd`.
 
 ## Notes
 

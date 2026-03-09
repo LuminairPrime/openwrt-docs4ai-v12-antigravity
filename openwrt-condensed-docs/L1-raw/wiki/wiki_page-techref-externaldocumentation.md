@@ -69,7 +69,7 @@ Official documentation: <http://www.samba.org/samba/docs/>
 
 ### µHTTPd (New BSD License)
 
-Since 10.03 'Backfire' OpenWrt utilizes µHTTPd instead of httpd included in Busybox. <https://dev.openwrt.org/browser/trunk/package/uhttpd/> (install `uhttpd`)
+Since 10.03 ‘Backfire’ OpenWrt utilizes µHTTPd instead of httpd included in Busybox. <https://dev.openwrt.org/browser/trunk/package/uhttpd/> (install `uhttpd`)
 
 ### httpd (Busybox) (GPLv2)
 

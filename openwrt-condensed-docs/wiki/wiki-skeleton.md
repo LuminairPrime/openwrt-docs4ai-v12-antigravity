@@ -1,7 +1,7 @@
 # wiki (Skeleton Semantic Map)
 
 > **Contains:** Headers and function signatures for wiki.
-> **Generated:** 2026-03-08T12:16:54.678819+00:00
+> **Generated:** 2026-03-09T09:44:02.577905+00:00
 
 ---
 
@@ -65,6 +65,16 @@
 ### Making binary drivers work
 ### Understanding the firmware format
 ### Writing a flash map driver
+#include <asm/io.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/mtd/map.h>
+#include <linux/mtd/mtd.h>
+#include <linux/mtd/partitions.h>
+#include <linux/vmalloc.h>
+#define WINDOW_ADDR 0x1FC00000  /* Real address of the flash */
+#define WINDOW_SIZE 0x400000    /* Size of flash */
+#define BUSWIDTH 2      /* Buswidth */
 
 # Adding a new device
 ## Learn by example
@@ -283,7 +293,7 @@
 ### Documentation
 ## Links
 
-# Frequent PR mistakes or "How to prevent my PR from getting delayed for sure"
+# Frequent PR mistakes or “How to prevent my PR from getting delayed for sure”
 ## 1. Add a commit message
 ## 2. Add a Signed-off-by with your real name
 ## 3. Do not multi-post or re-post PRs
@@ -660,7 +670,7 @@
 #### Building a selinux-policy-myfork ipk package
 #### Deploying sysupgrade image with customized selinux-policy-myfork
 ## Policy development overview
-### Confining "Hello World"
+### Confining “Hello World”
 #### Creating and testing the script
 #### Extend selinux-policy-myfork with basic skeleton for helloworld
 ## In closing
@@ -715,7 +725,6 @@
 ## Check if a tool is available
 
 # OpenWrt – operating system architecture
-### What's the difference between ubus vs dbus?
 
 # Mounting Block Devices
 ## Overview
@@ -876,7 +885,7 @@
 ## BIN-Header
 ## TP-LINK BIN Header
 
-# Hotplug -- Legacy
+# Hotplug – Legacy
 #### What is hotplug?
 #### How it works
 ## Configuration
@@ -951,6 +960,18 @@
 ## Procd replaces init
 ## Life and death of a Chaos Calmer system
 
+# Init Scripts
+# Init Scripts
+## Example Init Script
+#!/bin/sh /etc/rc.common
+# Example script
+# Copyright (C) 2007 OpenWrt.org
+
+
+### Other functions
+### Custom commands
+## Enable and disable
+
 # Internal Layout D-Link DIR-825
 
 # libnl and libnl-tiny – Technical Reference
@@ -980,7 +1001,7 @@
 ## Encompassed Packages
 
 # LuCI2 (OpenWrt web user interface)
-### NOTE: This page currently mixes the five+ years old abandoned original "luci2" and the new JavaScript based standard LuCI implementation. Information on this page can be partially misleading
+### NOTE: This page currently mixes the five+ years old abandoned original “luci2” and the new JavaScript based standard LuCI implementation. Information on this page can be partially misleading
 ## Implementation details
 ### Menu
 ### Templates
@@ -1043,7 +1064,7 @@
 ### Common
 ### Sourced rather than executed
 ### Executed with no parameters
-### Executed with parameter 'switch2jffs'
+### Executed with parameter ‘switch2jffs’
 ### hook no_fo
 # Preinit Operation
 ## Main Preinit Script
@@ -1105,7 +1126,7 @@
 
 
 #### Notes
-### Must-do's
+### Must-do’s
 ### 0) Before failsafe
 
 
@@ -1192,7 +1213,7 @@
 ### procd
 ### netifd
 ### rpcd
-## What's the difference between ubus vs dbus?
+## What’s the difference between ubus vs dbus?
 ## Examples
 ### FHEM
 #### User mapping

@@ -2,10 +2,10 @@
 title: "libnl and libnl-tiny \u2013 Technical Reference"
 module: wiki
 origin_type: wiki_page
-token_count: 545
+token_count: 541
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-libnl.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # libnl and libnl-tiny – Technical Reference
@@ -35,11 +35,11 @@ The `libnl-tiny` package is a stripped down version of libnl, included by defaul
 
 The code is maintained directly in the OpenWRT code tree, see <http://git.openwrt.org/?p=openwrt.git;a=tree;f=package/libs/libnl-tiny>
 
-| Name         | Size | Description                                                   |
-|--------------|------|---------------------------------------------------------------|
-| `libnl-tiny` | 14K  | Drop-in replacement for most of `libnl-core` and `libnl-genl` |
+| Name | Size | Description |
+|----|----|----|
+| `libnl-tiny` | 14K | Drop-in replacement for most of `libnl-core` and `libnl-genl` |
 
-`libnl-tiny` replaces the most commonly used parts of `libnl-core` and `libnl-genl`. The API is a bit more limited, but compatible for most applications. The ABI is different, but that doesn't matter much.
+`libnl-tiny` replaces the most commonly used parts of `libnl-core` and `libnl-genl`. The API is a bit more limited, but compatible for most applications. The ABI is different, but that doesn’t matter much.
 
 Any package that can easily work with `libnl-tiny` instead of `libnl` should be changed to make use of it, since `libnl-tiny` is usually part of the default package set.
 

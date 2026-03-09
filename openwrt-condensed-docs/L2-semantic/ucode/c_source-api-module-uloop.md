@@ -5,9 +5,12 @@ origin_type: c_source
 token_count: 8838
 version: unknown
 source_file: L1-raw/ucode/c_source-api-module-uloop.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 upstream_path: lib/uloop.c
 language: c
+ai_summary: "ucode bindings for the OpenWrt uloop event loop. Enables asynchronous programming, recursive timers, network socket monitoring, and child process management within ucode scripts."
+ai_when_to_use: "Essential for non-blocking ucode applications, periodic background tasks, and event-driven network programming."
+ai_related_topics: ["uloop.timer", "uloop.fd_add", "uloop.run", "uloop.process"]
 ---
 # ucode module: uloop
 

@@ -167,12 +167,15 @@ def summarize(content, fname):
             time.sleep(5)
     return None
 
-l2_dir = os.path.join(OUTDIR, "L2-semantic")
+l2_dir = config.L2_SEMANTIC_WORKDIR
 l1_raw_dir = config.L1_RAW_WORKDIR # We need hashes from L1 meta
 
-targets = []
-for module in ["ucode", "luci"]:
-    targets.extend(glob.glob(os.path.join(l2_dir, module, "*.md")))
+for module in ["ucode", "luci", "procd", "uci"]:
+    m_dir = os.path.join(l2_dir, module)
+    if os.path.isdir(m_dir):
+        for f in os.listdir(m_dir):
+            if f.endswith(".md"):
+                targets.append(os.path.join(m_dir, f))
 
 to_process = []
 for fpath in targets:

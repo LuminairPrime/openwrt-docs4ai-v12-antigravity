@@ -61,7 +61,7 @@ Increase the log level for hostapd:
     #  3 = notification
     #  4 = warning"
 
-... the default is "informational messages". The example below shows you how to change this to "debugging".
+… the default is “informational messages”. The example below shows you how to change this to “debugging”.
 
 Check the log level currently being used:
 
@@ -72,7 +72,7 @@ root@OpenWrt:~# ps | grep hostapd
  7019 root      1448 S    grep hostapd
 ```
 
-let say for the sake of argument you're only interested in addressing a problem with the phy0 hostapd. First check the current level for this hostapd:
+let say for the sake of argument you’re only interested in addressing a problem with the phy0 hostapd. First check the current level for this hostapd:
 
 ``` bash
 root@OpenWrt:~# grep _level /var/run/hostapd-phy0.conf 
@@ -80,7 +80,7 @@ logger_syslog_level=2
 logger_stdout_level=2
 ```
 
-... log level 2 is selected. Let's change this:
+… log level 2 is selected. Let’s change this:
 
 ``` bash
 root@OpenWrt:~# uci set wireless.radio0.log_level=1
@@ -91,7 +91,7 @@ logger_syslog_level=1
 logger_stdout_level=1
 ```
 
-... and we can see that the level has been changed. The logread command will now show brief debug messages like those below:
+… and we can see that the level has been changed. The logread command will now show brief debug messages like those below:
 
 ``` bash
 Tue Apr 22 11:35:41 2014 daemon.debug hostapd: wlan0: STA 20:16:d8:db:aa:56 MLME: MLME-REASSOCIATE.indication(20:16:d8:db:aa:56)
@@ -105,7 +105,7 @@ Tue Apr 22 11:35:41 2014 daemon.debug hostapd: wlan0: STA 20:16:d8:db:aa:56 WPA:
 Tue Apr 22 11:35:41 2014 daemon.debug hostapd: wlan0: STA 20:16:d8:db:aa:56 WPA: received EAPOL-Key frame (4/4 Pairwise)
 ```
 
-... you may want to then setup remote logging via syslog to another computer by setting a logfile (warning - this won't be auto-rotated, so make sure it doesn't fill up a vital filesystem).
+… you may want to then setup remote logging via syslog to another computer by setting a logfile (warning - this won’t be auto-rotated, so make sure it doesn’t fill up a vital filesystem).
 
 ``` bash
 uci set system.@system[0].log_file=[path-to-my-logfile]
@@ -113,7 +113,7 @@ uci commit
 [reboot required]
 ```
 
-or alternatively, if you're able to, it might be better to use system.@system\[0\].log_ip to log to a remote machine (which must be running an appropriate listener e.g. rsyslogd - see <https://forum.openwrt.org/viewtopic.php?id=11912>).
+or alternatively, if you’re able to, it might be better to use system.@system\[0\].log_ip to log to a remote machine (which must be running an appropriate listener e.g. rsyslogd - see <https://forum.openwrt.org/viewtopic.php?id=11912>).
 
 If you wish to debug on the command line instead, you may be able to do-so using a command like this:
 
@@ -121,7 +121,7 @@ If you wish to debug on the command line instead, you may be able to do-so using
 kill `cat /var/run/wifi-phy0.pid` ; /usr/sbin/hostapd -dd -P /var/run/wifi-phy0.pid  /var/run/hostapd-phy0.conf
 ```
 
-... use the output of ps above to create the necessary commandline - remove the '-B' argument to stop hostapd forking into the background, and add '-dd' to verbose debug to stdout.
+… use the output of ps above to create the necessary commandline - remove the ‘-B’ argument to stop hostapd forking into the background, and add ‘-dd’ to verbose debug to stdout.
 
 depending on your hardware and interface state, it may be necessary to create or re-create the relevant wlan device before starting hostapd e.g.
 
@@ -132,21 +132,21 @@ iw phy phy0 interface add wlan0 type managed
 
 ## Add and modify compiler debug flags
 
-:!: The "Compile with debug" entry in advanced developer menu enables "-g3" compile option.
+:!: The “Compile with debug” entry in advanced developer menu enables “-g3” compile option.
 
 :!: You have to disable \_sstrip\_ to keep debug information.
 
-Note, if you just want to build a single package unstripped, try, "make package/foo/compile STRIP=true" Also, unstripped binaries are placed in "staging_dir/target-\*/root-\*/" where your host side tools can use them. (Remember, gdbserver can attach to the stripped binary, while gdb loads the unstripped binary) see [gdb](/docs/guide-developer/gdb)
+Note, if you just want to build a single package unstripped, try, “make package/foo/compile STRIP=true” Also, unstripped binaries are placed in “staging_dir/target-\*/root-\*/” where your host side tools can use them. (Remember, gdbserver can attach to the stripped binary, while gdb loads the unstripped binary) see [gdb](/docs/guide-developer/gdb)
 
-Alternatively: You can add or modify "Custom Target Options" like add "-g3 -ggdb3"
+Alternatively: You can add or modify “Custom Target Options” like add “-g3 -ggdb3”
 
-:!: Be aware there are default compiler options defined in include/target.mk for example ("-Os -pipe")
+:!: Be aware there are default compiler options defined in include/target.mk for example (“-Os -pipe”)
 
 :!: Some packets might overwrite or not use the flags. Check your compile log.
 
 Additional tips:
 
 - check with different gcc versions
-- There is "-O0" to disable compiler optimizations.
-- "-Wall -Wextra" might provide useful warnings
+- There is “-O0” to disable compiler optimizations.
+- “-Wall -Wextra” might provide useful warnings
 - see <https://gcc.gnu.org/bugs/>

@@ -2,10 +2,10 @@
 title: Adding new device support
 module: wiki
 origin_type: wiki_page
-token_count: 2908
+token_count: 2917
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-add-new-device.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Adding new device support
@@ -23,14 +23,14 @@ If you already solved the puzzle and are looking for device support submission g
 
 ## GPIOs
 
-Most of devices use [GPIOs](/docs/techref/hardware/port.gpio) for controlling LEDs and buttons. There aren't any generic GPIOs numbers, so OpenWrt has to use device specific mappings. It means we need to find out GPIOs for every controllable LED and button on every supported device.
+Most of devices use [GPIOs](/docs/techref/hardware/port.gpio) for controlling LEDs and buttons. There aren’t any generic GPIOs numbers, so OpenWrt has to use device specific mappings. It means we need to find out GPIOs for every controllable LED and button on every supported device.
 
 ### GPIO LEDs
 
 If LED is controlled by GPIO, direction has to be set to `out` and we need to know the polarity:
 
-- If LED turns on for value 1, it's active high
-- If LED turns on for value 0, it's active low
+- If LED turns on for value 1, it’s active high
+- If LED turns on for value 0, it’s active low
 
 A single GPIO can be tested in the following way:
 
@@ -82,7 +82,7 @@ while [ $gpio -lt $max ] ; do
 done
 ```
 
-- Save the above content as a file `gpio-test.sh` & then transfer inside router's `/tmp` directory, or copy above content & paste inside `vi` editor in router & save as `gpio-test.sh` file.
+- Save the above content as a file `gpio-test.sh` & then transfer inside router‘s ’‘/tmp’’ directory, or copy above content & paste inside `vi` editor in router & save as `gpio-test.sh` file.
 - to make it executable, run: `chmod +x /tmp/gpio-test.sh`
 
 ### GPIO buttons
@@ -114,10 +114,10 @@ while [ $gpio -lt $max ] ; do
 done
 ```
 
-- Save the above content as a file `gpio-dump.sh` & then transfer inside router's `/tmp` directory, or copy above content & paste inside `vi` editor in router & save as `gpio-dump.sh` file
+- Save the above content as a file `gpio-dump.sh` & then transfer inside router‘s ’‘/tmp’’ directory, or copy above content & paste inside `vi` editor in router & save as `gpio-dump.sh` file
 - to make it executable, run: `chmod +x /tmp/gpio-dump.sh`
 
-If GPIO value changes from 1 to 0 while pressing the button, it's active low. Otherwise it's active high.
+If GPIO value changes from 1 to 0 while pressing the button, it’s active low. Otherwise it’s active high.
 
 Example table:
 
@@ -132,7 +132,7 @@ For getting MAC addresses, EEPROM and other calibration data for your board, you
 
 If you are reviewing the code for initializing a board similar to your own and you see this idium: KSEG1ADDR(0x1fff0000), the number at first appears to be magic but it is logical if you understand two things. Firstly, Atheros SoCs using NOR flash wire it to the physical address 0x1f000000 (there are no guarantees about where the flash will be wired for your board but this is a common location). You cannot rely on the address given in the bootloader, you might see 0xbf000000 but this is probably also a virtual address. If your board wires flash to these memory locations, you may obviously access flash using KSEG1ADDR(0x1f000000 + OFFSET_FROM_BEGIN) but in the event that you have to access data which you know will exist at the very end of the flash, you can use a trick to make your code compatible with multiple sizes of flash memory.
 
-Often flash will be mapped to a full 16MB of address space no matter whether it is 4MB, 8MB or 16MB so in this case KSEG1ADDR(0x20000000 - OFFSET_FROM_END) will work for accessing things which you know to be a certain distance from the end of the flash memory. When you see KSEG1ADDR(0x1fff0000), on devices with 4MB or 8MB of flash, it's fair to guess that it's using this trick to reference the flash which resides 64k below the end of the flash (where Atheros Radio Test data is stored).
+Often flash will be mapped to a full 16MB of address space no matter whether it is 4MB, 8MB or 16MB so in this case KSEG1ADDR(0x20000000 - OFFSET_FROM_END) will work for accessing things which you know to be a certain distance from the end of the flash memory. When you see KSEG1ADDR(0x1fff0000), on devices with 4MB or 8MB of flash, it’s fair to guess that it’s using this trick to reference the flash which resides 64k below the end of the flash (where Atheros Radio Test data is stored).
 
 ## Examples
 
@@ -142,7 +142,7 @@ If you have the OEM sourcecode for your [bcm63xx](/docs/techref/hardware/soc/soc
 
 - Look for your Board Id at `shared/opensource/boardparms/boardparms.c`
 - Adapt the `imagetag.c` to create a different tag (see `shared/opensource/inlude/bcm963xx/bcmTag.h` in the GPL tar for the layout)
-- Finally xor the whole image with '12345678' (the ascii string, not hex).
+- Finally xor the whole image with ‘12345678’ (the ascii string, not hex).
 
 (from <https://forum.openwrt.org/viewtopic.php?pid=123105#p123105>)
 
@@ -150,10 +150,10 @@ For creating the OpenWrt firmware your [bcm63xx](/docs/techref/hardware/soc/soc.
 
 1.  Obtain the [source and follow the compile procedure](/docs/guide-developer/toolchain/start) with the make menuconfig as last step.
 2.  During **menuconfig** select the correct target system.
-3.  Next generate the board_bcm963xx.c file for the selected platform with all board parameters execute the following command:  
-    `make kernel_menuconfig`
-4.  Add the board-id to the ./target/linux/brcm63xx/image/Makefile.  
-    **Example**  
+3.  Next generate the board_bcm963xx.c file for the selected platform with all board parameters execute the following command:\
+        make kernel_menuconfig
+4.  Add the board-id to the ./target/linux/brcm63xx/image/Makefile.\
+    **Example**\
     \<code\> \# Davolink DV2020
 
 <!-- -->
@@ -219,9 +219,8 @@ At a minimum, you need to make the following changes to make a basic build, all 
 - Reference the new machine name in `files/arch/mips/include/asm/mach-ralink/machine.h`
 - Add your board to `base-files/lib/ramips.sh` for userspace scripts to read the board name
 
-Then you'll want to modify some of these files depending on your board's features:
+Then you‘ll want to modify some of these files depending on your board’s features: \* ’‘base-files/etc/diag.sh’’ to set a LED which OpenWRT should blink on bootup
 
-- `base-files/etc/diag.sh` to set a LED which OpenWRT should blink on bootup
 - `base-files/lib/upgrade/platform.sh` to allow sysupgrade to work on your board
 - `base-files/etc/uci-defaults/network` to configure default network interface settings, particularly MAC addresses
 - `base-files/etc/uci-defaults/leds` if you have configurable LEDs which should default to a behavior, like a WLAN activity LED
@@ -238,6 +237,6 @@ Example commits:
 
 After add a new board, you may should clean the `tmp` folder first. \<code\> cd trunk rm -rf tmp make menuconfig \</code\>
 
-If you have added a device profile, and it isn't showing up in "make menuconfig" try touching the main target makefile
+If you have added a device profile, and it isn’t showing up in “make menuconfig” try touching the main target makefile
 
     touch target/linux/*/Makefile

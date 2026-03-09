@@ -148,4 +148,4 @@ Faster build time can be achieved by enabling multiple build jobs. In case of qu
 
 If build process is successful, your firmware images will be located on `bin/target-platform/`.
 
-If your hardware-specific image name could not be found, it's possible that you added too many packages that don't fit your hardware flash memory. Try reducing packages and restart the build process if such case happens.
+If your hardware-specific image name could not be found, it’s possible that you added too many packages that don’t fit your hardware flash memory. Try reducing packages and restart the build process if such case happens.

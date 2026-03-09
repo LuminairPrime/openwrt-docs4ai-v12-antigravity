@@ -2,10 +2,10 @@
 title: Create a Cmake package in OpenWrt
 module: wiki
 origin_type: wiki_page
-token_count: 630
+token_count: 634
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-creating-a-cmake-package-in-openwrt.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Create a Cmake package in OpenWrt
@@ -14,7 +14,7 @@ In the [Meson tutorial](/docs/guide-developer/creating_a_meson_based_package), w
 
 ## CMakeLists.txt
 
-To begin, let's create a CMake project. The `main.c` file for this project will be the same as the one in the Meson tutorial, which includes a single `"Hello, World"` program. However, in order to use CMake, we need to include a `CMakeLists.txt` file. The most basic CMake file is presented here for simplicity.
+To begin, let‘s create a CMake project. The ’‘main.c’’ file for this project will be the same as the one in the Meson tutorial, which includes a single `“Hello, World”` program. However, in order to use CMake, we need to include a `CMakeLists.txt` file. The most basic CMake file is presented here for simplicity.
 
 ``` cmake
 cmake_minimum_required(VERSION 3.1...3.27)

@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 3087
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-flash.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Flash memory
@@ -103,7 +103,7 @@ One may encounter syslog messages that can safely be ignored. These messages are
 
 Explanation: (quoted from [FS#1871, closing comment by Jonas Gorski](https://bugs.openwrt.org/index.php?do=details&task_id=1871))
 
-> The first few blocks of a NAND flash are guaranteed good to ensure that a bootloader stored there can never get corrupted, so it will get written without valid ECC data (the SoC won't check the ECC anyway).
+> The first few blocks of a NAND flash are guaranteed good to ensure that a bootloader stored there can never get corrupted, so it will get written without valid ECC data (the SoC won’t check the ECC anyway).
 
 \>
 
@@ -129,7 +129,7 @@ While reading or writing raw files on NAND flash you might encounter a similar o
     ECC: 1 corrected bitflip(s) at offset 0x01ddc800
     ....
 
-These lines with "ECC: 1 corrected bitflip blablabla" may sound like errors or issues but they are not.
+These lines with “ECC: 1 corrected bitflip blablabla” may sound like errors or issues but they are not.
 
 Note how it says “correctED bitflips”, and not “correctABLE bitflips”.
 

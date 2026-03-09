@@ -1,8 +1,8 @@
 # Boot/Init Requirements
 
-|                                                                   |                                                                                                                           |
-|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| ![48px-dialog-warning.svg.png](/meta/48px-dialog-warning.svg.png) | This is not a reference document, it's an old design document that, at least in part, led to [procd](/docs/techref/procd) |
+|  |  |
+|----|----|
+| <img src="/meta/48px-dialog-warning.svg.png" data-query="?nolink" alt="48px-dialog-warning.svg.png" /> | This is not a reference document, it’s an old design document that, at least in part, led to [procd](/docs/techref/procd) |
 
 # Boot/Init Requirements
 
@@ -10,30 +10,30 @@ This article attempts to state what the initscripts must and should do for the n
 
 ## Boot/Preinit
 
-The Boot process currently consists of the kernel bootstrap (not discussed here), preinit, and init. Preinit takes care of things that init can't function without, while init is responsible for starting up the rest of the system.
+The Boot process currently consists of the kernel bootstrap (not discussed here), preinit, and init. Preinit takes care of things that init can’t function without, while init is responsible for starting up the rest of the system.
 
 On a Debian desktop system there is an analogue to preinit, which uses initramfs to bring up the system enough to the point init can operate. Unfortunately initramfs is not an option on openwrt because it wastes too much space. The binaries and scripts in an initramfs cannot be retained for use in the booted system, unless they are copied to RAM (tmpfs) (if anyone know otherwise and can point out how, please contact the devs), which is why preinit exists.
 
-Preinit looks to linux like the final boot stage to init on the rootfs. Preinit then mounts the root file system, does `pivot_root` to the rootfs, and then use the real init to replace itself. Basically it transforms intself into the 'real' init and rootfs.
+Preinit looks to linux like the final boot stage to init on the rootfs. Preinit then mounts the root file system, does `pivot_root` to the rootfs, and then use the real init to replace itself. Basically it transforms intself into the ‘real’ init and rootfs.
 
 ### Goals
 
 - Reduce preinit as much as possible so that init does most of the work
 - Maintain failsafe ability, so that if mounting, etc, rootfs fails, or init makes system inaccessible, that there is a way to get into the device and fix it.
-- Not start hotplug at all in preinit ... for that matter no processes except the real init should cross the preinit/init boundary.
-- Be configurable...it should be possible to configure rootfs mount, init start and anything else that can happen after the jffs2 is mounted (and therefore a writable config is available)
-- LED and network message functionality should be available to switchinit (which runs a script to shutdown process and make some other process than the current init PID 1, e.g. for doing a safer sysupgrade, and firstboot ('factory reset'))
+- Not start hotplug at all in preinit … for that matter no processes except the real init should cross the preinit/init boundary.
+- Be configurable…it should be possible to configure rootfs mount, init start and anything else that can happen after the jffs2 is mounted (and therefore a writable config is available)
+- LED and network message functionality should be available to switchinit (which runs a script to shutdown process and make some other process than the current init PID 1, e.g. for doing a safer sysupgrade, and firstboot (‘factory reset’))
 - Support /opt type deployments as well as extroot (that is, extra packages on /opt rather than by replacing the jffs2 rootfs)
-- No open file descriptors/references on the old rootfs when init is executed on the target rootfs (this is why we don't just mount/pivot in init).
+- No open file descriptors/references on the old rootfs when init is executed on the target rootfs (this is why we don’t just mount/pivot in init).
 
 #### Notes
 
-- JFFS2 Formatting must be done on a fully booted system, because on some routers (like the Fon with NOR flash), formatting takes a significant amount of time during which the router would be unavailable for use). That means preinit can't be where the formatting happens.
+- JFFS2 Formatting must be done on a fully booted system, because on some routers (like the Fon with NOR flash), formatting takes a significant amount of time during which the router would be unavailable for use). That means preinit can’t be where the formatting happens.
 - Ideally the firstboot script will take the router back to state exactly like after flashing without configuration saved), including the needs for formatting jffs2
 - Restoring the configuration needs to be done after the rootfs is mounted, but before most configuration is used (most configuration is used in init or init-launched hotplug).
-- Saving the configuration should save the jffs2 (for squashfs)/or boot rootfs config not the config on external root. This is because the external root will still be available on the external storage after flashing, but the internal (jff2 or other boot rootfs) won't.
+- Saving the configuration should save the jffs2 (for squashfs)/or boot rootfs config not the config on external root. This is because the external root will still be available on the external storage after flashing, but the internal (jff2 or other boot rootfs) won’t.
 
-### Must-do's
+### Must-do’s
 
 1.  Allow failsafe
 2.  If initramfs, do initramfs, skip rest of this list

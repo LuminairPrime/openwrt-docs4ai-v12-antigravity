@@ -2,10 +2,10 @@
 title: "UCI (Unified Configuration Interface) \u2013 Technical Reference"
 module: wiki
 origin_type: wiki_page
-token_count: 3974
+token_count: 3991
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-uci.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # UCI (Unified Configuration Interface) – Technical Reference
@@ -20,8 +20,8 @@ Source code is available here <http://git.openwrt.org/project/uci.git>
 
 <table>
 <tbody>
-<tr class="odd">
-<td><img src="/meta/icons/tango/dialog-information.png" alt="dialog-information.png" /></td>
+<tr>
+<td><img src="/meta/icons/tango/dialog-information.png" data-query="?nolink" alt="dialog-information.png" /></td>
 <td>UCI configuration files are located in the directory <strong><code>/etc/config/</code></strong><br />
 Their documentation can be accessed online in the OpenWrt-Wiki under <a href="/docs/guide-user/base-system/uci">UCI configuration files</a>.</td>
 </tr>
@@ -41,19 +41,19 @@ Both are maintained in the same git as UCI.
 
 The functionality is provided by the two packages `uci` and `libuci`. The package `libuci-lua` is also available.
 
-| Name       | Size in Bytes | Description                                                                                                                        |
-|:-----------|---------------|------------------------------------------------------------------------------------------------------------------------------------|
-| uci        | 7196          | Utility for the Unified Configuration Interface (UCI)                                                                              |
-| libuci     | 18765         | C library for the Unified Configuration Interface (UCI)                                                                            |
-| libuci-lua | ~6000         | libuci-plugin for [Lua](https://en.wikipedia.org/wiki/Lua (programming language)), e.g. [luci](/docs/techref/luci) makes use of it |
+| Name | Size in Bytes | Description |
+|:---|----|----|
+| uci | 7196 | Utility for the Unified Configuration Interface (UCI) |
+| libuci | 18765 | C library for the Unified Configuration Interface (UCI) |
+| libuci-lua | ~6000 | libuci-plugin for [Lua](https://en.wikipedia.org/wiki/Lua (programming language)), e.g. [luci](/docs/techref/luci) makes use of it |
 
 ### Installed Files
 
 #### uci
 
-| path/file          | file type    | Description                                         |
-|:-------------------|--------------|:----------------------------------------------------|
-| /sbin/uci          | binary       | uci executable                                      |
+| path/file | file type | Description |
+|:---|----|:---|
+| /sbin/uci | binary | uci executable |
 | /lib/config/uci.sh | shell script | Shell script compatibility wrappers for `/sbin/uci` |
 
 #### libuci
@@ -79,7 +79,7 @@ This obviously does not apply to people using text editors, but to scripts, GUIs
 
 ## CLI Usage
 
-Let's create a new section in `/etc/config/firewall` that looks like that:
+Let‘s create a new section in ’‘/etc/config/firewall’’ that looks like that:
 
     config zone 'guest_zone'
         option enabled '1'
@@ -126,8 +126,8 @@ If you want to access or modify uci configuration via ubus, [rpcd implements thi
 
 The LuCI frontend most commonly interacts with UCI via [uci.js](https://openwrt.github.io/luci/jsapi/LuCI.uci.html). This pretends that it has ordinary get/set methods, but these get/set methods do not make calls of the backend, as it maintains its own staged changes (i.e. separate from the staged changes on the backend). The basic flow is:
 
-- `uci.load('someconfig')` \# loads all of someconfig into memory via ubus
-- `uci.set('someconfig', 'somesection', 'someoption', 'somevalue')` \# adds to the list of changes to someconfig (similar to how staged changes work in the backend)
+- `uci.load(‘someconfig’)` \# loads all of someconfig into memory via ubus
+- `uci.set(‘someconfig’, ‘somesection’, ‘someoption’, ‘somevalue’)` \# adds to the list of changes to someconfig (similar to how staged changes work in the backend)
 - `uci.save()` \# stage the changes in the backend via ubus
 - `uci.apply()` \# apply the changes in the backend, but with a 10 sec automatic rollback if not confirmed, implemented via ubus
 
@@ -139,7 +139,11 @@ However, the standard frontend handleSave/handleSaveApply methods do \_not\_ cal
 
 ## Lua Bindings for UCI
 
-For those who like lua, UCI can be accessed in your code via the package libuci-lua. Just install the package then, in your lua code do `require("uci")`
+For those who like lua, UCI can be accessed in your code via the package libuci-lua. Just install the package then, in your lua code do
+
+``` lua
+require("uci")
+```
 
 ## API
 
@@ -217,7 +221,7 @@ x:delete("config", "section")
 x:delete("network", "wan6")
 ```
 
-Add new anonymous section "type" and return its name:
+Add new anonymous section “type” and return its name:
 
 ``` lua
 x:add("config", "type")
@@ -230,7 +234,7 @@ x:add("config", "type")
 cfg0e3777
 ```
 
-Add new section "name" with type "type":
+Add new section “name” with type “type”:
 
 ``` lua
 x:set("config", "name", "type")
@@ -239,7 +243,7 @@ x:set("config", "name", "type")
 x:set("network", "wan6", "interface")
 ```
 
-Iterate over all section of type "type" and invoke a callback function:
+Iterate over all section of type “type” and invoke a callback function:
 
 ``` lua
 x:foreach("config", "type", function(s) ... end)
@@ -247,12 +251,12 @@ x:foreach("config", "type", function(s) ... end)
 
 In the preceding example, s is a table containing all options and two special properties:
 
-     * ''s['.type']'' -> section type
-     * ''s['.name']''  -> section name
+- `s[‘.type’]` -\> section type
+- `s[‘.name’]` -\> section name
 
-If the callback function returns `false` \[NB: <u>not</u> `nil`!\], `foreach()` will terminate at that point without iterating over any remaining sections. `foreach()` returns `true` if at least one section exists and the callback function didn't raise an error for it; `false` otherwise.
+If the callback function returns `false` \[NB: <u>not</u> `nil`!\], `foreach()` will terminate at that point without iterating over any remaining sections. `foreach()` returns `true` if at least one section exists and the callback function didn‘t raise an error for it; ’‘false’’ otherwise.
 
-Here's another example:
+Here’s another example:
 
 ``` lua
 > -- real world example from interpreter:
@@ -310,11 +314,11 @@ commits (saves) the changed configuration to the corresponding file in `/etc/con
 x:commit("config")
 ```
 
-That's basically all you need.
+That’s basically all you need.
 
 #### About uci structure
 
-It took me some time to understand the difference between "section" and "type". Let's start with an example:
+It took me some time to understand the difference between “section” and “type”. Let’s start with an example:
 
     #uci show system
     system.@system[0]=system
@@ -323,9 +327,9 @@ It took me some time to understand the difference between "section" and "type". 
     system.@rdate[0]=rdate
     system.@rdate[0].server=ac-ntp0.net.cmu.edu ptbtime1.ptb.de ac-ntp1.net.cmu.edu ntp.xs4all.nl ptbtime2.ptb.de cudns.cit.cornell.edu ptbtime3.ptb.de
 
-Here, `x:get("system","@rdate[0]","server")` won't work. rdate is a type, not a section.
+Here, `x:get(“system”,“@rdate[0]”,“server”)` won’t work. rdate is a type, not a section.
 
-Here is the return of `x:get_all("system")`:
+Here is the return of `x:get_all(“system”)`:
 
 ``` lua
 {
@@ -355,13 +359,13 @@ Here is the return of `x:get_all("system")`:
 }
 ```
 
-`[".type"]` gives the type of the section;
+`[“.type”]` gives the type of the section;
 
-`[".name"]` gives the real name of the section (note that these names are auto-generated);
+`[“.name”]` gives the real name of the section (note that these names are auto-generated);
 
-`[".index"]` is the index of the list (starting from 1);
+`[“.index”]` is the index of the list (starting from 1);
 
-From what I know, there seem to be no way to access `"@rdate[0]"` directly. You have to iterate with `x:foreach` to list all the elements of a given type.
+From what I know, there seem to be no way to access `“@rdate[0]”` directly. You have to iterate with `x:foreach` to list all the elements of a given type.
 
 I use the following function:
 
@@ -375,7 +379,7 @@ function getConfType(conf,type)
 end
 ```
 
-`getConfType("system","rdate")` returns:
+`getConfType(“system”,“rdate”)` returns:
 
 ``` lua
 {
@@ -397,7 +401,7 @@ end
 }
 ```
 
-So if you want to modify `system.@rdate[0].server` you need to iterate the type, retrieve the section name `[".name"]` and then call:
+So if you want to modify `system.@rdate[0].server` you need to iterate the type, retrieve the section name `[“.name”]` and then call:
 
 ``` lua
 x:set("system","cfg04e10c","server","zzz.com")
@@ -445,7 +449,9 @@ Execute ldconfig as root to apply the changes to /etc/ld.so.conf
 
 **Setup library search paths using `Using LD_LIBRARY_PATH`**
 
-Alternatively, just `export LD_LIBRARY_PATH=<where/you/installed/the/.so>`
+Alternatively, just
+
+    export LD_LIBRARY_PATH=<where/you/installed/the/.so>
 
 **Building your own application**
 

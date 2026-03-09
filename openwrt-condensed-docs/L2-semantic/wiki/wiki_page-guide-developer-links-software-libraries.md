@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 692
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-links-software-libraries.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Links to Libraries
@@ -14,7 +14,7 @@ Here we could place links to light-build libraries you could link against:
 
 ## C standard library
 
-- [GNU C Library](https://en.wikipedia.org/wiki/GNU C Library) (LGPL) "working horse", up-to-date, heavily worked on, most commonly used on non-embedded Linux distributions
+- [GNU C Library](https://en.wikipedia.org/wiki/GNU C Library) (LGPL) “working horse”, up-to-date, heavily worked on, most commonly used on non-embedded Linux distributions
   - License LGPL:
 - [Embedded GLIBC](https://en.wikipedia.org/wiki/Embedded GLIBC) (LGPL) is an abstraction of the glibc, and more configurable and embedded friendly
   - License LGPL:

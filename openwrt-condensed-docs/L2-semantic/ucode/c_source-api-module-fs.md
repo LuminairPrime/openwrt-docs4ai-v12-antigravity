@@ -5,9 +5,12 @@ origin_type: c_source
 token_count: 11943
 version: unknown
 source_file: L1-raw/ucode/c_source-api-module-fs.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 upstream_path: lib/fs.c
 language: c
+ai_summary: "Native filesystem access module for ucode. Implements robust, low-level POSIX-style operations including atomic file writes, directory traversal, file stat, and symbolic link management."
+ai_when_to_use: "Use for all ucode-based filesystem interactions on OpenWrt, especially when atomicity or precise permission control is required."
+ai_related_topics: ["fs.readfile", "fs.writefile", "fs.stat", "fs.opendir", "fs.realpath"]
 ---
 # ucode module: fs
 

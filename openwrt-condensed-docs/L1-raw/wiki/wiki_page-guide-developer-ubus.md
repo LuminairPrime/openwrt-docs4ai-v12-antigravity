@@ -10,16 +10,16 @@ See [uBus Technical Reference](/docs/techref/ubus)
 
 **Path only contains the first context. E.g. network for network.interface.wan**
 
-| path                                          | Description                     | Package      |
-|-----------------------------------------------|---------------------------------|--------------|
-| [dhcp](/docs/guide-developer/ubus/dhcp)       | dhcp server                     | odhcpd       |
-| [file](/docs/guide-developer/ubus/file)       | file                            | rpcd         |
-| [hostapd](/docs/guide-developer/ubus/hostapd) | acesspoints                     | wpad/hostapd |
-| [iwinfo](/docs/guide-developer/ubus/iwinfo)   | wireless informations           | rpcd iwinfo  |
-| [log](/docs/guide-developer/ubus/log)         | logging                         | procd        |
-| [mdns](/docs/guide-developer/ubus/mdns)       | mdns avahi replacement          | mdnsd        |
-| [network](/docs/guide-developer/ubus/network) | network                         | netifd       |
-| [service](/docs/guide-developer/ubus/service) | init/service                    | procd        |
-| [session](/docs/guide-developer/ubus/session) | Session management              | rpcd         |
-| [system](/docs/guide-developer/ubus/system)   | system misc                     | procd        |
-| [uci](/docs/guide-developer/ubus/uci)         | Unified Configuration Interface | rpcd         |
+| path | Description | Package |
+|----|----|----|
+| [dhcp](/docs/guide-developer/ubus/dhcp) | dhcp server | odhcpd |
+| [file](/docs/guide-developer/ubus/file) | file | rpcd |
+| [hostapd](/docs/guide-developer/ubus/hostapd) | acesspoints | wpad/hostapd |
+| [iwinfo](/docs/guide-developer/ubus/iwinfo) | wireless informations | rpcd iwinfo |
+| [log](/docs/guide-developer/ubus/log) | logging | procd |
+| [mdns](/docs/guide-developer/ubus/mdns) | mdns avahi replacement | mdnsd |
+| [network](/docs/guide-developer/ubus/network) | network | netifd |
+| [service](/docs/guide-developer/ubus/service) | init/service | procd |
+| [session](/docs/guide-developer/ubus/session) | Session management | rpcd |
+| [system](/docs/guide-developer/ubus/system) | system misc | procd |
+| [uci](/docs/guide-developer/ubus/uci) | Unified Configuration Interface | rpcd |

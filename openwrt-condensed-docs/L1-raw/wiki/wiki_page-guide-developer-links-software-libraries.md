@@ -4,7 +4,7 @@ Here we could place links to light-build libraries you could link against:
 
 ## C standard library
 
-- [GNU C Library](https://en.wikipedia.org/wiki/GNU C Library) (LGPL) "working horse", up-to-date, heavily worked on, most commonly used on non-embedded Linux distributions
+- [GNU C Library](https://en.wikipedia.org/wiki/GNU C Library) (LGPL) “working horse”, up-to-date, heavily worked on, most commonly used on non-embedded Linux distributions
   - License LGPL:
 - [Embedded GLIBC](https://en.wikipedia.org/wiki/Embedded GLIBC) (LGPL) is an abstraction of the glibc, and more configurable and embedded friendly
   - License LGPL:

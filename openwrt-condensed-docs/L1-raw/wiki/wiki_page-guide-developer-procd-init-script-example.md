@@ -1,7 +1,7 @@
 # Create a sample procd init script
 
-\<WRAP center round info 80%\> This article is a mostly verbatim copy of [this archived article](https://web.archive.org/web/20220518121856/https://joostoostdijk.com/posts/service-configuration-with-procd), all credit goes to the original author, **Joost Oostdijk**  
-It was adapted to use an equivalent shell script instead of NodeJS JavaScript, because it's lighter and better for a simple testing setup on most OpenWrt devices. \</WRAP\>
+\<WRAP center round info 80%\> This article is a mostly verbatim copy of [this archived article](https://web.archive.org/web/20220518121856/https://joostoostdijk.com/posts/service-configuration-with-procd), all credit goes to the original author, **Joost Oostdijk**\
+It was adapted to use an equivalent shell script instead of NodeJS JavaScript, because it’s lighter and better for a simple testing setup on most OpenWrt devices. \</WRAP\>
 
 Procd init scripts gives us many nice to use features by default such as a restart strategy and the ability to store and read configuration from the UCI system.
 
@@ -83,7 +83,7 @@ This will install a symlink for us in directory /etc/rc.d/ called S95myservice (
 
     $ ls -la /etc/rc.d/S*
 
-...
+…
 
 It is useful to be able to influence the order of startup of services, if our service would be dependent on the network we’d make sure that the START sequence ‘index’ is at least 1 more than the START sequence of the network service.
 
@@ -217,48 +217,59 @@ With that line in place we are able to restart the service whenever only our con
 
 There are a couple of more options that can be configured in a procd scripts ‘instance block’ that might be handy to know about. I’ll list a few here, but this is by no means covering everything.
 
-- **respawn**  
-  respawn your service automatically when it terminates for some reason.  
-  `procd_set_param respawn \
+- **respawn**\
+  respawn your service automatically when it terminates for some reason.\
+  ``` bash
+  procd_set_param respawn \
         ${respawn_threshold:-3600} \
-        ${respawn_timeout:-5} ${respawn_retry:-5}`  
+        ${respawn_timeout:-5} ${respawn_retry:-5}
+  ```
+
+  \
   In this example we respawn if process terminates sooner than respawn_threshold, it is considered crashed and after 5 retries the service is stopped. However, if it terminates later than respawn_threshold, it would be respawned indefinitely.
 
 <!-- -->
 
-- **pidfile**  
-  Configure where to store the pid file  
-  `procd_set_param pidfile $PIDFILE`
+- **pidfile**\
+  Configure where to store the pid file\
+  ``` bash
+  procd_set_param pidfile $PIDFILE
+  ```
 
 <!-- -->
 
-- **env vars**  
-  Pass environment variables to your process with  
-  `procd_set_param env A_VAR=avalue`
+- **env vars**\
+  Pass environment variables to your process with\
+  ``` bash
+  procd_set_param env A_VAR=avalue
+  ```
 
 <!-- -->
 
-- **ulimit**  
-  If you need to set resource limits for your process you can use  
-  `procd_set_param limits core="unlimited"`  
-  To see the system wide settings for ulimt on an OpenWrt device you can run  
-  `$ ulimit -a
-  -f: file size (blocks)             unlimited
-  -t: cpu time (seconds)             unlimited
-  -d: data seg size (kb)             unlimited
-  -s: stack size (kb)                8192
-  -c: core file size (blocks)        0
-  -m: resident set size (kb)         unlimited
-  -l: locked memory (kb)             64
-  -p: processes                      475
-  -n: file descriptors               1024
-  -v: address space (kb)             unlimited
-  -w: locks                          unlimited
-  -e: scheduling priority            0
-  -r: real-time priority             0
-  `
-- **user**  
-  To change the user that runs the service you can use  
-  \<code\> procd_set_param user nobody \</code\>  
-  Default OpenWrt only has a ‘root’ user or ‘nobody’ as the process owner.  
+- **ulimit**\
+  If you need to set resource limits for your process you can use\
+  ``` bash
+  procd_set_param limits core="unlimited"
+  ```
+
+  \
+  To see the system wide settings for ulimt on an OpenWrt device you can run\
+      $ ulimit -a
+      -f: file size (blocks)             unlimited
+      -t: cpu time (seconds)             unlimited
+      -d: data seg size (kb)             unlimited
+      -s: stack size (kb)                8192
+      -c: core file size (blocks)        0
+      -m: resident set size (kb)         unlimited
+      -l: locked memory (kb)             64
+      -p: processes                      475
+      -n: file descriptors               1024
+      -v: address space (kb)             unlimited
+      -w: locks                          unlimited
+      -e: scheduling priority            0
+      -r: real-time priority             0
+- **user**\
+  To change the user that runs the service you can use\
+  \<code\> procd_set_param user nobody \</code\>\
+  Default OpenWrt only has a ‘root’ user or ‘nobody’ as the process owner.\
   You can add users with the usual linux way, see [Create a non-privileged user in OpenWrt](/docs/guide-user/security/secure.access#create_a_non-privileged_user_in_openwrt) or if you are creating an actual package you can use [buildpackage defines](/docs/guide-developer/packages#buildpackage_defines) to make OpenWrt generate the user when the package is installed.

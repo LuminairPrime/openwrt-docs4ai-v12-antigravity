@@ -46,7 +46,7 @@ The target can be a local git kernel repository.
 
 :!: You should patch your tree to contain OpenWrt changes - builds might fail to compile or fail at boot.
 
-:!: Musl libc need patches to kernel headers that fix redifinitions errors with user space headers. uclibc and glibc don't need these changes.
+:!: Musl libc need patches to kernel headers that fix redifinitions errors with user space headers. uclibc and glibc don’t need these changes.
 
 Example:
 
@@ -69,20 +69,20 @@ see <http://wiki.musl-libc.org/wiki/Building_Busybox>
 
 ### Make sequence
 
-Top command `make world` calls the following sequence of the commands:  
-`make target/compile`  
-`make package/cleanup`  
-`make package/compile`  
-`make package/install`  
-`make package/preconfig`  
-`make target/install`  
+Top command `make world` calls the following sequence of the commands:\
+`make target/compile`\
+`make package/cleanup`\
+`make package/compile`\
+`make package/install`\
+`make package/preconfig`\
+`make target/install`\
 `make package/index`
 
-You may run each command independently. For example, if the process of compilation of packages stops on error, you may fix the problem and next continue without cleanup:  
-`make package/compile`  
-`make package/install`  
-`make package/preconfig`  
-`make target/install`  
+You may run each command independently. For example, if the process of compilation of packages stops on error, you may fix the problem and next continue without cleanup:\
+`make package/compile`\
+`make package/install`\
+`make package/preconfig`\
+`make target/install`\
 `make package/index`
 
 see [packages](/docs/guide-developer/packages)

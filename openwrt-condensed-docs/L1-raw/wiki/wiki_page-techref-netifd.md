@@ -57,10 +57,10 @@ It boils down to the fact that the current network and interface setup mechanism
 - limited featureset of the ash shell which will not allow for complex interface operations like e.g. calculating [ULAs](https://en.wikipedia.org/wiki/Unique local address)
 - you name it
 
-`Netifd` will be able to manage even complex interface configurations with a mix of bonding, vlans, bridges, etc. and handle the dependencies between interfaces properly - and of course all that without adding unnecessary bloat.  
+`Netifd` will be able to manage even complex interface configurations with a mix of bonding, vlans, bridges, etc. and handle the dependencies between interfaces properly - and of course all that without adding unnecessary bloat.\
 AFAIK there are no alternatives to netifd, e.g. [connman](https://connman.net/) seems to be centered around one specifific use case only: having a mobile device access the internet through multiple connections. Connman is based on dbus.
 
-The following is a brief conversation from IRC regarding hints on how netifd is involved with wifi interface startup and variables used. It 'documents' my frustration with trying to add a new uci variable (utf8_ssid), and I don't think the answers contained should be lost:
+The following is a brief conversation from IRC regarding hints on how netifd is involved with wifi interface startup and variables used. It ‘documents’ my frustration with trying to add a new uci variable (utf8_ssid), and I don’t think the answers contained should be lost:
 
     [20:20:06]  <jow> ldir: its complicated
     [20:20:29]  <jow>   ldir: upon start, netifd scans all wireless handlers in /lib/netifd/wireless/

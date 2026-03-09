@@ -15,7 +15,7 @@ The source code for the drivers already integrated into the mainline kernel can 
 
 - -\> <http://kernel.org/>
 
-In OpenWRT, all kernel module package filenames begin with kmod-.  
+In OpenWRT, all kernel module package filenames begin with kmod-.\
 The modprobe command is not available in at least some firmware version of OpenWrt. Use insmod instead.
 
 ## Learning more

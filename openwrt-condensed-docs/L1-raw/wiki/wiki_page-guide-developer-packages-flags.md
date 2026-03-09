@@ -37,7 +37,7 @@ Typically you should only add additional options to compile flags.
 
     TARGET_CFLAGS+= -Wall
 
-Example: Support multiple library versions via .../usr/lib/libname-v1/ or .../usr/lib/libname-v2/ and select them.
+Example: Support multiple library versions via …/usr/lib/libname-v1/ or …/usr/lib/libname-v2/ and select them.
 
 :!: BUG CXXFLAGS can contain wrong options because GCC/G++ accept different ones.
 

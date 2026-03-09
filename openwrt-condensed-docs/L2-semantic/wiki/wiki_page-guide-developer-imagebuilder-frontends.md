@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 1344
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-imagebuilder-frontends.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Image Builder frontends
@@ -24,7 +24,7 @@ Based on original Attended Sysupgrade interface from <https://sudhanshu16.github
 
 ### Chef Online Imagebuilder / Attended Sysupgrade(asu)
 
-Javascript app that connects to a Attendedsysupgrade server via an API, this is a work in progress. It's frontend resembles the Firmware Selector although provides customization options such as package selection.
+Javascript app that connects to a Attendedsysupgrade server via an API, this is a work in progress. It’s frontend resembles the Firmware Selector although provides customization options such as package selection.
 
 Web-based asu frontends:
 
@@ -83,7 +83,7 @@ Code: <https://redmine.tetaneutral.net/projects/git-tetaneutral-net/repository/o
 
 ## lime-sdk cooker
 
-The "LibreMesh software development kit" uses the OpenWRT SDK and ImageBuilder to generate (cook) LibreMesh packages and firmware. If you want to create your own LibreMesh flavor because you need some specific configuration or you just want to have control over your binaries, the cooker is your friend!
+The “LibreMesh software development kit” uses the OpenWRT SDK and ImageBuilder to generate (cook) LibreMesh packages and firmware. If you want to create your own LibreMesh flavor because you need some specific configuration or you just want to have control over your binaries, the cooker is your friend!
 
 Command-line interface, but can also be used with [Chef](https://github.com/libremesh/chef/).
 

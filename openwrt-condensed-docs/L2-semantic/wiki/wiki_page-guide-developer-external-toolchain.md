@@ -2,17 +2,17 @@
 title: External Toolchain
 module: wiki
 origin_type: wiki_page
-token_count: 409
+token_count: 408
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-external-toolchain.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # External Toolchain
 
 ## Use OpenWrt as External Toolchain
 
-Using an external toolchain reduce build time when starting with a cleaned-up source tree. Useful when using an automated build system like Hudson/Tinderbox.  
+Using an external toolchain reduce build time when starting with a cleaned-up source tree. Useful when using an automated build system like Hudson/Tinderbox.\
 
 ### Step 1: Build Toolchain
 
@@ -24,13 +24,14 @@ Alternatively you can download precompiled toolchain from openwrt download page 
 
 1.  Checkout OpenWrt into directory **openwrt**
 2.  Follow normal instruction for openwrt prereq
-3.  Use the utility script to setup your buildroot `   ./scripts/ext-toolchain.sh \
-                --toolchain TOOLCHAIN_FILE_LOCATION \
-                --config TARGET_NAME (example ipq806x/generic)
-      `
+3.  Use the utility script to setup your buildroot
+           ./scripts/ext-toolchain.sh \
+                    --toolchain TOOLCHAIN_FILE_LOCATION \
+                    --config TARGET_NAME (example ipq806x/generic)
+          
 4.  Use your buildroot like a normal one. Edit your config with `make menuconfig` and run `make` to compile your image
 
-If you want to update a .config to use an external toolchain you can use the `--overwrite-config`. For example:
+If you want to update a .config to use an external toolchain you can use the `–overwrite-config`. For example:
 
        ./scripts/ext-toolchain.sh \
                 --toolchain TOOLCHAIN_FILE_LOCATION \

@@ -1,26 +1,62 @@
 {
-    "mock-hash-fs-123": {
-        "summary": "Mock summary for ucode fs. It handles file reads and writes.",
-        "when_to_use": "Use this when your script needs direct filesystem access on OpenWrt.",
+    "5347b438": {
+        "summary": "OpenWrt system process manager init.d script API. Provides standard functions for service management, process supervisor configuration, and jail/sandbox settings within /etc/init.d/ scripts.",
+        "when_to_use": "Use when writing or modifying OpenWrt init scripts to manage daemon lifecycles, service triggers, and process isolation.",
         "related_topics": [
-            "fs.readfile",
-            "fs.writefile"
+            "procd_add_reload_trigger",
+            "procd_open_instance",
+            "procd_set_param",
+            "procd_close_instance"
         ]
     },
-    "mock-hash-fs-789": {
-        "summary": "Mock summary for ucode fs (UPDATED). This handles atomic writes.",
-        "when_to_use": "Essential for reliable ucode filesystem operations.",
+    "15c8ec11": {
+        "summary": "Native filesystem access module for ucode. Implements robust, low-level POSIX-style operations including atomic file writes, directory traversal, file stat, and symbolic link management.",
+        "when_to_use": "Use for all ucode-based filesystem interactions on OpenWrt, especially when atomicity or precise permission control is required.",
         "related_topics": [
             "fs.readfile",
-            "fs.writefile"
+            "fs.writefile",
+            "fs.stat",
+            "fs.opendir",
+            "fs.realpath"
+        ]
+    },
+    "8276580d": {
+        "summary": "ucode bindings for the OpenWrt uloop event loop. Enables asynchronous programming, recursive timers, network socket monitoring, and child process management within ucode scripts.",
+        "when_to_use": "Essential for non-blocking ucode applications, periodic background tasks, and event-driven network programming.",
+        "related_topics": [
+            "uloop.timer",
+            "uloop.fd_add",
+            "uloop.run",
+            "uloop.process"
+        ]
+    },
+    "3412fda2": {
+        "summary": "Unified Configuration Interface (UCI) bindings for ucode. Provides a comprehensive API for reading, writing, and applying OpenWrt system configurations directly from ucode scripts.",
+        "when_to_use": "Use to programmatically manage system settings, parse config sections, and integrate custom services with the OpenWrt UCI ecosystem.",
+        "related_topics": [
+            "uci.get",
+            "uci.set",
+            "uci.sections",
+            "uci.commit",
+            "uci.cursor"
+        ]
+    },
+    "76f8e711": {
+        "summary": "UCI default configuration schema for networking and QoS services. Defines the standard structure for interface-to-class mapping and bandwidth prioritization rules on OpenWrt.",
+        "when_to_use": "Refer to this schema when configuring traffic shaping or quality-of-service parameters to ensure compatibility with the system defaults.",
+        "related_topics": [
+            "uci.qos",
+            "uci.network",
+            "traffic-shaping"
         ]
     },
     "mock-hash-xhr-456": {
-        "summary": "Mock summary for LuCI XHR. It provides AJAX capabilities.",
-        "when_to_use": "Essential for creating dynamic web interfaces in LuCI.",
+        "summary": "LuCI JavaScript AJAX utility (XHR). Provides a legacy but widely used wrapper for performing asynchronous HTTP requests within LuCI web interfaces.",
+        "when_to_use": "Use when maintaining existing LuCI views that require data fetching without full page reloads.",
         "related_topics": [
             "LuCI.xhr.get",
-            "LuCI.xhr.post"
+            "LuCI.xhr.post",
+            "LuCI.xhr.poll"
         ]
     }
 }

@@ -5,7 +5,7 @@ origin_type: wiki_page
 token_count: 391
 version: N/A
 source_file: L1-raw/wiki/wiki_page-guide-developer-build-mpd-full-pulse.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # Building MPD-full with PulseAudio
@@ -14,7 +14,7 @@ More information about building from source: [OpenWrt Buildroot - Usage](/docs/g
 
 First you need to follow the HowtoBuild [MPD-full building from source](/docs/guide-developer/build.mpd-full)
 
-Based on the following reference: [BB + MPD-full + PulseAudio, unable to build](https://forum.openwrt.org/viewtopic.php?pid=287809#p287809)  
+Based on the following reference: [BB + MPD-full + PulseAudio, unable to build](https://forum.openwrt.org/viewtopic.php?pid=287809#p287809)\
 
 ### 18.06.02
 
@@ -29,7 +29,7 @@ Detect the area in the Makefile involved with the full MPD installation. Add `+p
       PROVIDES:=mpd
       VARIANT:=full
 
-Edit the --disable-pulse to **--enable-pulse**
+Edit the –disable-pulse to **–enable-pulse**
 
          --disable-nfs \
          --disable-openal \

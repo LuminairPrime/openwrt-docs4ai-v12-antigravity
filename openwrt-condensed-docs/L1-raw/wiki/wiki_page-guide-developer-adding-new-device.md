@@ -83,19 +83,19 @@ After edit the files above, you need to touch the makefiles
 
 ## Patches
 
-The patches-\* subdirectories contain the kernel patches applied for every target.  
-All patches should be named 'NNN-lowercase_shortname.patch' and sorted into the following categories:
+The patches-\* subdirectories contain the kernel patches applied for every target.\
+All patches should be named ‘NNN-lowercase_shortname.patch’ and sorted into the following categories:
 
-**0xx** - upstream backports  
-**1xx** - code awaiting upstream merge  
-**2xx** - kernel build / config / header patches  
-**3xx** - architecture specific patches  
-**4xx** - mtd related patches (subsystem and drivers)  
-**5xx** - filesystem related patches  
-**6xx** - generic network patches  
-**7xx** - network / phy driver patches  
-**8xx** - other drivers  
-**9xx** - uncategorized other patches  
+**0xx** - upstream backports\
+**1xx** - code awaiting upstream merge\
+**2xx** - kernel build / config / header patches\
+**3xx** - architecture specific patches\
+**4xx** - mtd related patches (subsystem and drivers)\
+**5xx** - filesystem related patches\
+**6xx** - generic network patches\
+**7xx** - network / phy driver patches\
+**8xx** - other drivers\
+**9xx** - uncategorized other patches\
 \<WRAP center round tip 80%\> All patches must be written in a way that they are potentially upstreamable, meaning:
 
 1.  they must contain a **proper subject**
@@ -110,7 +110,7 @@ Test firmware images without writing them to flash by using ramdisk images.
 
 In **make menuconfig** select **Target Images** and then you can select the **ramdisk** option.
 
-This will create an image with kernel + initramfs, that will have **initramfs** in the name. The resulting image can be loaded in the device through the bootloader's tftp function and should boot to a prompt without relying on flash/filesystem support.
+This will create an image with kernel + initramfs, that will have **initramfs** in the name. The resulting image can be loaded in the device through the bootloader’s tftp function and should boot to a prompt without relying on flash/filesystem support.
 
 ## Tips and tricks
 
@@ -157,7 +157,7 @@ With [nmrpflash](https://github.com/jclehner/nmrpflash) many Netgear devices can
 
 ### Collecting relevant data
 
-On [WikiDevi](https://wikidevi.com/wiki/Main_Page) lots of information can be found, e.g. the FCC ID is very useful when searching for documentation, datasheets and internal photo's (to be able to distinguish used chips without having to open the casing).
+On [WikiDevi](https://wikidevi.com/wiki/Main_Page) lots of information can be found, e.g. the FCC ID is very useful when searching for documentation, datasheets and internal photo’s (to be able to distinguish used chips without having to open the casing).
 
 Typically one can use the following commands:
 

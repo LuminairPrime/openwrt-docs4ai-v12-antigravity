@@ -2,7 +2,7 @@
 
 ## Introduction
 
-UEFI boot has been required for years now, boards that only support UEFI are common, and Intel has stated back in 2017 that "legacy" BIOS will no longer be supported after 2020.[^1][^2]
+UEFI boot has been required for years now, boards that only support UEFI are common, and Intel has stated back in 2017 that “legacy” BIOS will no longer be supported after 2020.[^1][^2]
 
 To accommodate this, the OpenWrt build system generates UEFI bootable images.
 

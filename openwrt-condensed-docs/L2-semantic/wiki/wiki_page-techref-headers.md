@@ -2,10 +2,10 @@
 title: TRX vs. TRX2 vs. BIN
 module: wiki
 origin_type: wiki_page
-token_count: 1469
+token_count: 1470
 version: N/A
 source_file: L1-raw/wiki/wiki_page-techref-headers.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 language: text
 ---
 # TRX vs. TRX2 vs. BIN
@@ -93,16 +93,16 @@ FIXME (which bin header?)
      |           try3                |           res3                |
      +---------------------------------------------------------------+
 
-- magic: firmware magic depends on board etc. s.th. like '3G2V' or 'W54U'
+- magic: firmware magic depends on board etc. s.th. like ‘3G2V’ or ‘W54U’
 - res1: reserved for extra magic??
 - char fwdate\[3\]: fwdate\[0\]: Year, fwdate\[1\]: Month, fwdate\[2\]: Day
 - fwvern: version informations a.b.c.
-- ID: fix "U2ND"
+- ID: fix “U2ND”
 - hw_ver: depends on board
 - s/n: depends on board
 - flags:
 - stable: Marks the firmware stable, this is 0xFF in the image and will be written to 0x73 by the running system once it completed booting.
-- try1-3: 0xFF in firmware image. CFE will set try1 to 0x74 on first boot and continue with try2 and try3 unless "stable" was written by the running image. After writing try3 and the stable flag was not written yet, the CFE assumes that the image is broken and starts a TFTP server
+- try1-3: 0xFF in firmware image. CFE will set try1 to 0x74 on first boot and continue with try2 and try3 unless “stable” was written by the running image. After writing try3 and the stable flag was not written yet, the CFE assumes that the image is broken and starts a TFTP server
 - res3: unused?
 
 ## TP-LINK BIN Header

@@ -4,7 +4,7 @@ Whereas desktop distributions use [glib](https://en.wikipedia.org/wiki/GLib)+[db
 
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th></th>
 <th style="text-align: center;">Desktop Distributions</th>
 <th></th>
@@ -16,7 +16,7 @@ Whereas desktop distributions use [glib](https://en.wikipedia.org/wiki/GLib)+[db
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Typical main memory size</td>
 <td style="text-align: center;"><strong>&lt;color red&gt;128 MiB&lt;/color&gt;</strong> to 16 GiB (or more)</td>
 <td></td>
@@ -27,7 +27,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td>?</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Supported instruction sets</td>
 <td style="text-align: center;">almost anything</td>
 <td></td>
@@ -37,7 +37,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>non-volatile storage space</td>
 <td style="text-align: center;">100 MiB</td>
 <td></td>
@@ -48,7 +48,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td>?</td>
 </tr>
-<tr class="even">
+<tr>
 <td><a href="https://en.wikipedia.org/wiki/Kernel (computing)">kernel</a></td>
 <td style="text-align: center;"><strong><code>Linux kernel</code></strong></td>
 <td></td>
@@ -58,7 +58,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>:::</td>
 <td style="text-align: center;">FOSS and binary drivers</td>
 <td></td>
@@ -68,7 +68,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr>
 <td><a href="https://en.wikipedia.org/wiki/C standard library">C standard library</a></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/GNU C Library">glibc</a></td>
 <td></td>
@@ -78,7 +78,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td>glibc + <a href="https://en.wikipedia.org/wiki/Hybris (software)">libhybris</a></td>
 <td>eglibc 2.15</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><a href="https://en.wikipedia.org/wiki/init">init</a></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/init">init</a><br />
 <a href="https://en.wikipedia.org/wiki/Upstart">Upstart</a><br />
@@ -90,7 +90,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td><code>systemd</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/rsyslog">rsyslog</a> / <a href="https://en.wikipedia.org/wiki/syslog-ng">syslog-ng</a></td>
 <td>:::</td>
@@ -100,7 +100,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td>:::</td>
 </tr>
-<tr class="odd">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/watchdog">watchdog</a></td>
 <td>:::</td>
@@ -110,7 +110,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td>:::</td>
 </tr>
-<tr class="even">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/udev">udev</a></td>
 <td>:::</td>
@@ -120,7 +120,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td>:::</td>
 </tr>
-<tr class="odd">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/cron">cron</a></td>
 <td>:::</td>
@@ -130,7 +130,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td>:::</td>
 </tr>
-<tr class="even">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/at (Unix)">atd</a></td>
 <td>:::</td>
@@ -140,7 +140,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td></td>
 <td>:::</td>
 </tr>
-<tr class="odd">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/D-Bus">D-Bus</a></td>
 <td></td>
@@ -150,7 +150,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td>?</td>
 <td>D-Bus</td>
 </tr>
-<tr class="even">
+<tr>
 <td>network configuration</td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/NetworkManager">NetworkManager</a> + GUI</td>
 <td></td>
@@ -161,7 +161,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td>?</td>
 <td>ConnMan</td>
 </tr>
-<tr class="odd">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/GLib">GLib</a><br />
 (GObject, Glib, GModule, GThread, GIO)</td>
@@ -172,7 +172,7 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td>?</td>
 <td>Qt-based?</td>
 </tr>
-<tr class="even">
+<tr>
 <td></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/PulseAudio">PulseAudio</a></td>
 <td></td>
@@ -182,13 +182,13 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 <td>PulseAudio</td>
 <td>PulseAudio</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><a href="https://en.wikipedia.org/wiki/Package management system">Package management system</a></td>
 <td style="text-align: center;"><a href="https://en.wikipedia.org/wiki/dpkg">dpkg</a>/<a href="https://en.wikipedia.org/wiki/Advanced Packaging Tool">APT</a><br />
 <a href="https://en.wikipedia.org/wiki/RPM Package Manager">RPM</a>/<a href="https://en.wikipedia.org/wiki/Yellowdog Updater, Modified">yum</a><br />
 <a href="https://en.wikipedia.org/wiki/Portage (software)">portage</a><br />
 <a href="https://en.wikipedia.org/wiki/pacman (package manager)">pacman</a><br />
-...</td>
+…</td>
 <td></td>
 <td style="text-align: center;"><code>opkg</code></td>
 <td></td>
@@ -198,21 +198,19 @@ min <strong>&lt;color red&gt;340 MiB&lt;/color&gt;</strong> for Android 4.0</td>
 </tr>
 </tbody>
 </table>
-<aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
 <li id="fn1"><p>yes, <em>heavily</em> stripped OpenWrt can run on 16 or even 8MiB<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>yes, 4MiB and 2MiB possible<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
-</aside>
+</section>
 
-### What's the difference between ubus vs dbus?
-
-`dbus` is bloated, its C API is very annoying to use and requires writing large amounts of boilerplate code. In fact, the pure C API is so annoying that its own API documentation states: "If you use this low-level API directly, you're signing up for some pain."
+==== What‘s the difference between ubus vs dbus? ==== ’‘dbus’’ is bloated, its C API is very annoying to use and requires writing large amounts of boilerplate code. In fact, the pure C API is so annoying that its own API documentation states: “If you use this low-level API directly, you’re signing up for some pain.”
 
 `ubus` is tiny and has the advantage of being easy to use from regular C code, as well as automatically making all exported API functionality also available to shell scripts with no extra effort.
 
-"Of course, NetworkManager should be renamed to ***`"unetwork"`***, dbus to ***`"ubus"`***, PulseAudio to ***`"usound"`***, and X.Org-Server/Wayland-Compositor to ***`"udisplay"`***; and then indescribable happiness would come down to all people of this world." – [Lennart Poettering](http://lists.freedesktop.org/archives/dbus/2010-April/012545.html)
+“Of course, NetworkManager should be renamed to ***`”unetwork”`***, dbus to ***`”ubus”`***, PulseAudio to ***`”usound”`***, and X.Org-Server/Wayland-Compositor to ***`”udisplay”`***; and then indescribable happiness would come down to all people of this world.” – [Lennart Poettering](http://lists.freedesktop.org/archives/dbus/2010-April/012545.html)
 
 ------------------------------------------------------------------------
 

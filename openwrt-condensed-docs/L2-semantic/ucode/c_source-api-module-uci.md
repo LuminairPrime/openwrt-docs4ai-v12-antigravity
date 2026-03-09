@@ -5,9 +5,12 @@ origin_type: c_source
 token_count: 8826
 version: unknown
 source_file: L1-raw/ucode/c_source-api-module-uci.md
-last_pipeline_run: '2026-03-08T12:10:34.419257+00:00'
+last_pipeline_run: '2026-03-08T12:28:19.750121+00:00'
 upstream_path: lib/uci.c
 language: c
+ai_summary: "Unified Configuration Interface (UCI) bindings for ucode. Provides a comprehensive API for reading, writing, and applying OpenWrt system configurations directly from ucode scripts."
+ai_when_to_use: "Use to programmatically manage system settings, parse config sections, and integrate custom services with the OpenWrt UCI ecosystem."
+ai_related_topics: ["uci.get", "uci.set", "uci.sections", "uci.commit", "uci.cursor"]
 ---
 # ucode module: uci
 

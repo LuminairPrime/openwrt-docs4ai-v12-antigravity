@@ -6,7 +6,7 @@ This page provides additional guidelines for adding device support.
 
 These guidelines are no rules, but may help you to improve the experience for both yourself and the reviewers when you submit a device support patch. Beyond that, they may just describe recommended and/or frequently applied practice throughout OpenWrt.
 
-What's actually *required* will depend on who is reviewing your submission, though.
+What’s actually *required* will depend on who is reviewing your submission, though.
 
 ## Commit message
 
@@ -16,7 +16,7 @@ For device support commits, the commit message needs to contain at least the Spe
 
 Beyond that, it is recommended to add an overview of the MAC address assignment that you evaluated (see MAC address section below for further details).
 
-Additional information is always helpful: While you shouldn't tell every detail of your struggle to support the device, it is generally a good idea to provide information that might help other developers in the future to understand why you did things as you did them.
+Additional information is always helpful: While you shouldn’t tell every detail of your struggle to support the device, it is generally a good idea to provide information that might help other developers in the future to understand why you did things as you did them.
 
 ## DTS files
 
@@ -28,19 +28,19 @@ A very abundant license for DTS(I) files is:
 
     // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 
-Please don't add a full-text license, but choose the appropriate identifier for it.
+Please don’t add a full-text license, but choose the appropriate identifier for it.
 
 ### dts-v1
 
 The `/dts-v1/;` identifier must only be defined once and needs to be before any other content (except the license).
 
-For several targets, it's already defined in the parent/SoC-based DTSI file, and does not need to be included a second time then.
+For several targets, it’s already defined in the parent/SoC-based DTSI file, and does not need to be included a second time then.
 
 ### Model/device name
 
-**Naming of the device should be consistent.** Many targets enforce that programmatically anyway, but if that's not the case please be consistent in your naming anyway.
+**Naming of the device should be consistent.** Many targets enforce that programmatically anyway, but if that’s not the case please be consistent in your naming anyway.
 
-If your model property contains a "v1", then your compatible should as well. Try to avoid abbreviations, these might cause confusion. The easiest way is to just create the compatible from the model by converting everything to lower case and replacing every space by a hyphen:
+If your model property contains a “v1”, then your compatible should as well. Try to avoid abbreviations, these might cause confusion. The easiest way is to just create the compatible from the model by converting everything to lower case and replacing every space by a hyphen:
 
         model = "TP-Link TL-WR841N v14";
         compatible = "tplink,tl-wr841n-v14", "mediatek,mt7628an-soc";
@@ -53,7 +53,7 @@ Indent style for DTS files is **tabs-only**.
 
 To enhance readability, it is recommended to separate all blocks by empty lines. Despite, it may be helpful to structure properties into groups separated by empty lines.
 
-For the status property, a frequent practice is to put it as a node's first line and add an empty line afterwards.
+For the status property, a frequent practice is to put it as a node’s first line and add an empty line afterwards.
 
 ### LEDs
 
@@ -106,13 +106,13 @@ Occationally, you might be tempted to use wildcards in a case like the following
 While this technically could be replaced by `vendor_model-*` to make your code shorter, this is generally not a good idea, because:
 
 - You never know whether a different model will come up later that will be different, but fall within your wildcard
-- Wildcard will prevent effective searching: If you e.g. want to grep for all settings applied to `vendor_model-v1`, grepping won't work because it won't match the wildcard definition. However, you cannot possibly guess the wildcard used in many cases.
+- Wildcard will prevent effective searching: If you e.g. want to grep for all settings applied to `vendor_model-v1`, grepping won’t work because it won’t match the wildcard definition. However, you cannot possibly guess the wildcard used in many cases.
 
 ## MAC addresses
 
-In general, it is safest to define MAC addresses the same way as the vendor does it on it's device. Don't invent your own MAC address assignment scheme.
+In general, it is safest to define MAC addresses the same way as the vendor does it on it’s device. Don’t invent your own MAC address assignment scheme.
 
-This may produce overlapping MAC addresses e.g. for LAN and one WiFi interface for several vendors, but that's still better than having overlapping MAC addresses with another device when using OpenWrt in a network afterwards (consecutive addresses in real world networks do happen).
+This may produce overlapping MAC addresses e.g. for LAN and one WiFi interface for several vendors, but that’s still better than having overlapping MAC addresses with another device when using OpenWrt in a network afterwards (consecutive addresses in real world networks do happen).
 
 Further reading on MAC address setup is found here: [Device support: MAC address setup](/docs/guide-developer/mac.address)
 
@@ -144,7 +144,7 @@ Example 2:
 
 ### Data source
 
-When defining MAC addresses in board.d and hotplug.d files, calculate them based on the flash locations and *not* relative to other interfaces. The numbering of interfaces may change, and then the address would be calculated incorrectly ...
+When defining MAC addresses in board.d and hotplug.d files, calculate them based on the flash locations and *not* relative to other interfaces. The numbering of interfaces may change, and then the address would be calculated incorrectly …
 
 For example
 
@@ -156,7 +156,7 @@ will always yield the same address while
 
 might be wrong if eth0/eth1 are swapped.
 
-So, effectively, don't chain assignments, but read from the upmost data source where possible.
+So, effectively, don’t chain assignments, but read from the upmost data source where possible.
 
 Try to always use hex locations (0x0 instead of 0) and lower-case characters for consistency.
 
