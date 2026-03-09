@@ -1,0 +1,2236 @@
+
+================================================================================
+FILE: openwrt-docs4ai-00-pipeline.yml
+================================================================================
+name: openwrt-docs4ai pipeline (v12)
+
+on:
+  schedule:
+    - cron: "0 4 1 * *"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      skip_wiki:
+        description: 'Skip wiki scraping'
+        type: boolean
+        default: false
+      skip_buildroot:
+        description: 'Skip buildroot/examples extraction'
+        type: boolean
+        default: false
+      skip_ai:
+        description: 'Skip AI summarization'
+        type: boolean
+        default: false
+      max_ai_files:
+        description: 'Max files for AI summarization'
+        type: number
+        default: 40
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  PUBLISH_DIR: openwrt-condensed-docs
+  WORKDIR: ${{ github.workspace }}/tmp
+  OUTDIR: ${{ github.workspace }}/staging
+
+jobs:
+  # ── Phase 1: Setup & Clone ───────────────────────────
+  initialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r .github/scripts/requirements.txt
+      - name: Create directories
+        run: mkdir -p "$WORKDIR"
+      - name: Clone repositories
+        env:
+          SKIP_BUILDROOT: ${{ inputs.skip_buildroot || 'false' }}
+          GITHUB_ENV: ${{ github.env }}
+        run: python .github/scripts/openwrt-docs4ai-01-clone-repos.py
+      - name: Upload L0 Repos & Manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: L0-repos
+          path: |
+            ${{ env.WORKDIR }}/repo-*
+            ${{ env.WORKDIR }}/repo-manifest.json
+          retention-days: 1
+
+  # ── Phase 2: Extraction (Matrix) ─────────────────────
+  extract:
+    needs: initialize
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        script: [
+          "02a-scrape-wiki.py",
+          "02b-scrape-ucode.py",
+          "02c-scrape-jsdoc.py",
+          "02d-scrape-core-packages.py",
+          "02e-scrape-example-packages.py",
+          "02f-scrape-procd-api.py",
+          "02g-scrape-uci-schemas.py",
+          "02h-scrape-hotplug-events.py"
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          pip install -r .github/scripts/requirements.txt
+          sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
+          npm install -g jsdoc-to-markdown
+      - name: Cache Wiki Metadata
+        if: matrix.script == '02a-scrape-wiki.py'
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WORKDIR }}/.cache
+          key: wiki-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            wiki-cache-${{ runner.os }}-
+      - name: Download L0
+        uses: actions/download-artifact@v4
+        with:
+          name: L0-repos
+          path: ${{ env.WORKDIR }}
+      - name: Extract ${{ matrix.script }}
+        env:
+          SKIP_WIKI: ${{ inputs.skip_wiki || 'false' }}
+          SKIP_BUILDROOT: ${{ inputs.skip_buildroot || 'false' }}
+        run: python .github/scripts/openwrt-docs4ai-${{ matrix.script }}
+      - name: Upload L1 Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: L1-${{ matrix.script }}
+          path: ${{ env.WORKDIR }}/L1-raw/
+          retention-days: 1
+
+  # ── Phase 3-5: Normalize, Assemble, Validate ─────────
+  process:
+    needs: extract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r .github/scripts/requirements.txt
+      - name: Download L0 (for manifest/registry)
+        uses: actions/download-artifact@v4
+        with:
+          name: L0-repos
+          path: ${{ env.WORKDIR }}
+      - name: Download all L1 results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: L1-*
+          path: ${{ env.WORKDIR }}/L1-raw/
+          merge-multiple: true
+      - name: Cache AI Summaries
+        uses: actions/cache@v4
+        with:
+          path: ai-summaries-cache.json
+          key: ai-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ai-cache-${{ runner.os }}-
+      - name: Prepare Baseline
+        run: |
+          mkdir -p baseline
+          if [ -f "$PUBLISH_DIR/signature-inventory.json" ]; then
+            cp "$PUBLISH_DIR/signature-inventory.json" baseline/
+            echo "Baseline inventory found and staged."
+          else
+            echo "No baseline inventory found in $PUBLISH_DIR."
+          fi
+      - name: Normalize L2
+        run: python .github/scripts/openwrt-docs4ai-03-normalize-semantic.py
+      - name: "AI summaries (Optional)"
+        env:
+          SKIP_AI: ${{ inputs.skip_ai || 'false' }}
+          MAX_AI_FILES: ${{ inputs.max_ai_files || '40' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/openwrt-docs4ai-04-generate-ai-summaries.py
+      - name: Assemble L3/L4
+        run: python .github/scripts/openwrt-docs4ai-05-assemble-references.py
+      - name: Generate L3/L5 Maps
+        run: |
+          python .github/scripts/openwrt-docs4ai-06a-generate-llms-txt.py
+          python .github/scripts/openwrt-docs4ai-06b-generate-agents-md.py
+          python .github/scripts/openwrt-docs4ai-06c-generate-ide-schemas.py
+          python .github/scripts/openwrt-docs4ai-06d-generate-changelog.py
+          python .github/scripts/openwrt-docs4ai-07-generate-index-html.py
+      - name: Validate
+        run: python .github/scripts/openwrt-docs4ai-08-validate.py
+      - name: Upload Final Staging
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-staging
+          path: ${{ env.OUTDIR }}
+
+  # ── Phase 6-7: Deploy ────────────────────────────────
+  deploy:
+    needs: process
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download Staging
+        uses: actions/download-artifact@v4
+        with:
+          name: final-staging
+          path: ${{ env.OUTDIR }}
+      - name: Promote & Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "Promoting staging to $PUBLISH_DIR"
+          rsync -a --delete "$OUTDIR/" "$GITHUB_WORKSPACE/$PUBLISH_DIR/"
+          git add "$PUBLISH_DIR/"
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "docs: v12 auto-update $(date -u +%Y-%m-%d)"
+            git push
+          fi
+      - name: Prepare Public Pages
+        run: |
+          mkdir -p public
+          # Exclude L1/L2 intermediate layers from public site
+          rsync -a --exclude="L1-raw" --exclude="L2-semantic" "$OUTDIR/" public/
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+================================================================================
+FILE: openwrt-docs4ai-01-clone-repos.py
+================================================================================
+"""
+openwrt-docs4ai-01-clone-repos.py
+
+"""
+import os
+import sys
+import subprocess
+import shutil
+sys.stdout.reconfigure(line_buffering=True)
+WORKDIR = os.environ.get("WORKDIR", os.path.join(os.getcwd(), "tmp"))
+SKIP_BUILDROOT = os.environ.get("SKIP_BUILDROOT", "false").lower() == "true"
+GITHUB_ENV = os.environ.get("GITHUB_ENV")
+os.makedirs(WORKDIR, exist_ok=True)
+def run(cmd, **kwargs):
+    """Run a command and exit on failure."""
+    """Get the short commit hash of a cloned repo."""
+    result = subprocess.run(
+        ["git", "-C", repo_dir, "rev-parse", "--short", "HEAD"],
+        capture_output=True, text=True
+    )
+    return result.stdout.strip() if result.returncode == 0 else "unknown"
+def set_env(name, value):
+    """Write an env var to GITHUB_ENV for subsequent CI steps."""
+    """Clone a git repo into WORKDIR. Supports sparse checkout."""
+    dest_path = os.path.join(WORKDIR, dest)
+    if os.path.isdir(dest_path):
+        print(f"[01] Removing existing {dest}/")
+        shutil.rmtree(dest_path, ignore_errors=True)
+    print(f"[01] Cloning {label}...")
+    if sparse_paths:
+        run(["git", "clone", "--depth=1", "--filter=blob:none", "--sparse", url, dest_path])
+        run(["git", "-C", dest_path, "sparse-checkout", "set"] + sparse_paths)
+    else:
+        run(["git", "clone", "--depth=1", url, dest_path])
+    commit = get_commit(dest_path)
+    print(f"[01] OK: {label} @ {commit}")
+    return commit
+print("[01] Phase 1: Clone upstream repositories")
+ucode_commit = clone_repo(
+    "https://github.com/jow-/ucode.git",
+    "repo-ucode", "ucode"
+)
+set_env("UCODE_COMMIT", ucode_commit)
+luci_commit = clone_repo(
+    "https://github.com/openwrt/luci.git",
+    "repo-luci", "LuCI"
+)
+set_env("LUCI_COMMIT", luci_commit)
+if not SKIP_BUILDROOT:
+    openwrt_commit = clone_repo(
+        "https://github.com/openwrt/openwrt.git",
+        "repo-openwrt", "OpenWrt buildroot (sparse)",
+        sparse_paths=[
+            "package/network", "package/kernel", "package/utils",
+            "package/system", "package/libs", "package/firmware",
+            "package/boot", "package/multimedia", "include", "scripts"
+        ]
+    )
+    set_env("OPENWRT_COMMIT", openwrt_commit)
+else:
+    print("[01] SKIP: OpenWrt buildroot clone (SKIP_BUILDROOT=true)")
+print("[01] Phase 1 complete.")
+================================================================================
+FILE: openwrt-docs4ai-02a-scrape-wiki.py
+================================================================================
+"""
+Purpose: Scrape OpenWrt wiki pages to pure markdown format (L1 target).
+Phase: Extraction
+"""
+import os
+import re
+import time
+import datetime
+import subprocess
+import sys
+import json
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+try:
+    import requests
+except ImportError:
+    print("[02a] FAIL: 'requests' package not installed")
+    sys.exit(1)
+if config.SKIP_WIKI:
+    print("[02a] SKIP: Wiki scraping disabled (SKIP_WIKI=true)")
+    sys.exit(0)
+print("[02a] Scrape OpenWrt wiki (crawl namespace indexes, last 2 years)")
+DELAY = 1.5
+CUTOFF = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(days=730)
+NAMESPACES = [
+    ("/docs/techref/", "docs%3Atechref"),
+    ("/docs/guide-developer/", "docs%3Aguide-developer"),
+    ("/docs/guide-user/base-system/uci/", "docs%3Aguide-user%3Abase-system%3Auci"),
+]
+MANDATORY_PAGES = [
+    "/docs/techref/ubus",
+]
+SKIP_PATTERNS = [
+    "/toh/", "/inbox/", "/meta/", "/playground/", "changelog", "release_notes"
+]
+session = requests.Session()
+CACHE_DIR = os.path.join(config.WORKDIR, ".cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+CACHE_FILE = os.path.join(CACHE_DIR, "wiki-lastmod.json")
+def load_cache():
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, 'r') as f:
+            try:
+                return json.load(f)
+            except:
+                return {}
+    return {}
+def save_cache(cache):
+    with open(CACHE_FILE, 'w') as f:
+        json.dump(cache, f)
+def path_to_filename(url_path):
+    parts = url_path.strip("/").split("/")
+    if parts and parts[0] == "docs":
+        parts = parts[1:]
+    if parts and parts[-1] == "start":
+        parts = parts[:-1]
+    slug = "-".join(p for p in parts if p)
+    slug = re.sub(r"[^a-z0-9-]", "-", slug.lower())
+    slug = re.sub(r"-+", "-", slug).strip("-")
+    return slug if slug else "misc"
+def fetch_page_lastmod(url):
+    try:
+        r = session.head(url, timeout=15, allow_redirects=True)
+        lm = r.headers.get("Last-Modified")
+        if lm:
+            try:
+                from email.utils import parsedate_to_datetime
+                dt = parsedate_to_datetime(lm)
+                return datetime.datetime(dt.year, dt.month, dt.day)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return None
+cache = load_cache()
+discovered_pages = set(MANDATORY_PAGES)
+for prefix, idx_param in NAMESPACES:
+    index_url = f"https://openwrt.org{prefix}start?do=index&idx={idx_param}"
+    print(f"[02a] Fetching namespace index: {prefix}")
+    time.sleep(DELAY)
+    try:
+        resp = session.get(index_url, timeout=30)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"[02a] WARN: Could not fetch index for {prefix}: {e}")
+        continue
+    html = resp.text
+    for m in re.finditer(r'href="([^"#?]*)"', html):
+        href = m.group(1)
+        path = None
+        if href.startswith("https://openwrt.org"):
+            path = href.replace("https://openwrt.org", "")
+        elif href.startswith("/docs/"):
+            path = href
+        else:
+            continue
+        if not path.startswith(prefix): continue
+        if path.rstrip("/").endswith("/start"): continue
+        if any(pat in path for pat in SKIP_PATTERNS): continue
+        if re.match(r'^/[a-z]{2}(-[a-z]+)?/', path): continue
+        if "/_export/" in path or "/_detail/" in path or "/_media/" in path: continue
+        discovered_pages.add(path)
+if not discovered_pages:
+    print("[02a] WARN: No wiki pages discovered.")
+    sys.exit(1)
+saved = 0
+skipped_old = 0
+skipped_unchanged = 0
+failed = 0
+for path in sorted(discovered_pages):
+    if saved >= config.WIKI_MAX_PAGES:
+        print(f"[02a] WARN: Reached WIKI_MAX_PAGES={config.WIKI_MAX_PAGES} cap. Stopping.")
+        break
+    url = f"https://openwrt.org{path}"
+    slug = path_to_filename(path)
+    time.sleep(DELAY)
+    last_mod = fetch_page_lastmod(url)
+    if last_mod and last_mod < CUTOFF and path not in MANDATORY_PAGES:
+        skipped_old += 1
+        continue
+    last_mod_str = last_mod.isoformat() if last_mod else "unknown"
+    if cache.get(url) == last_mod_str and last_mod_str != "unknown":
+        fpath = os.path.join(config.L1_RAW_WORKDIR, "wiki", f"wiki_page-{slug}.md")
+        if os.path.exists(fpath):
+            skipped_unchanged += 1
+            continue
+    time.sleep(DELAY)
+    raw_url = f"{url}?do=export_raw"
+    try:
+        r = session.get(raw_url, timeout=20)
+        r.raise_for_status()
+        raw_content = r.text
+    except Exception as e:
+        print(f"[02a] FAIL: {path} ({e})")
+        failed += 1
+        continue
+    html_error_signatures = [
+        "404 Not Found", "Cloudflare", "Access Denied", "<!DOCTYPE", "<html", 
+        "Just a moment...", "Checking your browser", "Service Temporarily Unavailable",
+        "Rate limit exceeded", "captcha", "This topic does not exist"
+    ]
+    if any(sig in raw_content for sig in html_error_signatures) or not raw_content.strip():
+        print(f"[02a] WARN: HTML error signature or ghost page detected for {path}. Skipping.")
+        failed += 1
+        continue
+    try:
+        result = subprocess.run(
+            ["pandoc", "-f", "dokuwiki", "-t", "gfm", "--wrap=none"],
+            input=raw_content, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=30
+        )
+        md = result.stdout or ""
+    except Exception as e:
+        print(f"[02a] FAIL: pandoc error for {path} ({e})")
+        failed += 1
+        continue
+    md = re.sub(r"\n{3,}", "\n\n", md).strip()
+    if len(md) < 200:
+        continue
+    title_m = re.search(r"^#+ (.+)$", md, re.MULTILINE)
+    title = title_m.group(1).strip() if title_m else path.split("/")[-1]
+    md = re.sub(r"^#+ .+\n\n?", "", md, count=1)
+    final_content = f"# {title}\n\n{md}"
+    metadata = {
+        "extractor": "02a-scrape-wiki.py",
+        "origin_type": "wiki_page",
+        "module": "wiki",
+        "slug": slug,
+        "original_url": url,
+        "language": "text",
+        "fetch_status": "success",
+        "extraction_timestamp": datetime.datetime.now(datetime.UTC).isoformat()
+    }
+    extractor.write_l1_markdown("wiki", "wiki_page", slug, final_content, metadata)
+    cache[url] = last_mod_str
+    saved += 1
+    print(f"[02a] OK: {slug} [{last_mod_str}] -- {title[:55]}")
+save_cache(cache)
+print(f"[02a] Complete: {saved} fetched, {skipped_unchanged} unchanged, {skipped_old} too old, {failed} failed.")
+if saved == 0 and skipped_unchanged == 0:
+    print("[02a] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
+================================================================================
+FILE: openwrt-docs4ai-02b-scrape-ucode.py
+================================================================================
+"""
+Purpose: Generate ucode language and module API documentation using jsdoc2md into L1.
+Phase: Extraction
+"""
+import os
+import subprocess
+import glob
+import datetime
+import sys
+import re
+import shutil
+import tempfile
+import html
+import json
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+print("[02b] Generate ucode documentation (JSDoc)")
+repo_ucode = os.path.join(config.WORKDIR, "repo-ucode")
+if not os.path.exists(repo_ucode):
+    print(f"[02b] SKIP: {repo_ucode} not found")
+    sys.exit(0)
+jsdoc2md = shutil.which("jsdoc2md") or shutil.which("jsdoc2md.cmd")
+if not jsdoc2md:
+    print("[02b] FAIL: jsdoc2md not found in PATH — skipping ucode JSDoc steps")
+    sys.exit(1)
+if os.path.isfile(os.path.join(repo_ucode, "package.json")):
+    subprocess.run(["npm", "install", "--silent"], cwd=repo_ucode,
+                   shell=(os.name == "nt"), capture_output=True)
+repo_url = "https://github.com/jow-/ucode"
+saved = 0
+print("[02b] Processing tutorials...")
+for src in sorted(glob.glob(os.path.join(repo_ucode, "docs", "tutorial-*.md"))):
+    base = os.path.basename(src)
+    slug = re.sub(r'tutorial-[0-9]*-', 'ucode-tutorial-', base).replace(".md", "")
+    with open(src, "r", encoding="utf-8") as fh:
+        lines = fh.readlines()
+    title = "Tutorial"
+    for line in lines:
+        if line.startswith("#"):
+            title = line.strip("# \n")
+            break
+    rel_src = src.replace(repo_ucode + os.sep, "").replace("\\", "/")
+    md_body = "".join(lines[1:] if lines and lines[0].startswith("#") else lines)
+    final_content = f"# {title}\n\n> **Live docs:** https://ucode.mein.io/{os.path.basename(src).replace('.md', '')}.html\n\n---\n\n{md_body}"
+    metadata = {
+        "extractor": "02b-scrape-ucode.py",
+        "origin_type": "readme", # Using readme for markdown prose guide
+        "module": "ucode",
+        "slug": slug,
+        "original_url": None,
+        "language": "text",
+        "upstream_path": rel_src,
+        "fetch_status": "success",
+        "extraction_timestamp": datetime.datetime.now(datetime.UTC).isoformat()
+    }
+    extractor.write_l1_markdown("ucode", "readme", slug, final_content, metadata)
+    saved += 1
+    print(f"[02b] OK: {slug}")
+print("[02b] Processing modules...")
+srcs = sorted(glob.glob(os.path.join(repo_ucode, "lib", "*.js")) +
+              glob.glob(os.path.join(repo_ucode, "lib", "*.c")))
+plugin_path = os.path.abspath(os.path.join(repo_ucode, "jsdoc", "c-transpiler")).replace('\\', '/')
+for src in srcs:
+    mod = os.path.splitext(os.path.basename(src))[0]
+    is_c = src.endswith(".c")
+    with tempfile.TemporaryDirectory() as tempd:
+        temp_c = os.path.join(tempd, os.path.basename(src))
+        shutil.copy2(src, temp_c)
+        ephemeral_conf = os.path.join(tempd, "jsdoc-ephemeral.json")
+        with open(ephemeral_conf, "w", encoding="utf-8") as cw:
+            if is_c:
+                cw.write('{"source": {"includePattern": ".+\\\\.c(pp)?$"}, "plugins": ["' + plugin_path.replace("\\", "\\\\") + '"]}')
+            else:
+                cw.write('{}') # For standard JS files jsdoc2md
+        cmd = [jsdoc2md, "--heading-depth", "2", "--global-index-format", "none",
+               "--configure", "jsdoc-ephemeral.json", "--files", os.path.basename(temp_c)]
+        res = subprocess.run(cmd, capture_output=True, text=True, cwd=tempd, encoding="utf-8")
+    stdout = res.stdout or ""
+    stderr = res.stderr or ""
+    if stderr:
+        with open(os.path.join(config.WORKDIR, "jsdoc-ucode.err"), "a", encoding="utf-8") as err_f:
+            err_f.write(f"Stderr for {mod}:\n{stderr}\n")
+    output = stdout.strip()
+    word_count = len(output.split())
+    if not output or word_count < 15:
+        print(f"[02b] SKIP: {mod} (too short, {word_count} words)")
+        continue
+    output = re.sub(r'<pre class="prettyprint[^"]*"><code>', '```c\n' if is_c else '```javascript\n', output)
+    output = output.replace('</code></pre>', '\n```')
+    output = re.sub(r'</?code>', '`', output)
+    output = re.sub(r'</?p>', '', output)
+    output = re.sub(r'</?(?:dl|dt|dd|ul|li|table|thead|tbody|tr|th|td|h[1-6])[^>]*>', '', output)
+    output = html.unescape(output)
+    output = re.sub(r'\n{3,}', '\n\n', output)
+    slug = f"api-module-{mod}"
+    title = f"ucode module: {mod}"
+    final_content = f"# {title}\n\n> **Live docs:** https://ucode.mein.io/module-{mod}.html\n\n---\n\n{output}"
+    rel_src_fwd = src.replace(repo_ucode + os.sep, "").replace("\\", "/")
+    origin_type = "c_source" if is_c else "js_source"
+    language = "c" if is_c else "javascript"
+    metadata = {
+        "extractor": "02b-scrape-ucode.py",
+        "origin_type": origin_type,
+        "module": "ucode",
+        "slug": slug,
+        "original_url": None,
+        "language": language,
+        "upstream_path": rel_src_fwd,
+        "fetch_status": "success",
+        "extraction_timestamp": datetime.datetime.now(datetime.UTC).isoformat()
+    }
+    extractor.write_l1_markdown("ucode", origin_type, slug, final_content, metadata)
+    saved += 1
+    print(f"[02b] OK: {slug}")
+if os.path.exists(os.path.join(config.WORKDIR, "jsdoc-ucode.err")):
+    print("\n=== jsdoc warnings/errors (ucode) ===")
+    with open(os.path.join(config.WORKDIR, "jsdoc-ucode.err"), "r", encoding="utf-8") as err_f:
+        print(err_f.read())
+    print("=== end jsdoc warnings ===")
+    os.remove(os.path.join(config.WORKDIR, "jsdoc-ucode.err"))
+print("[02b] Complete.")
+if saved == 0:
+    print("[02b] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
+================================================================================
+FILE: openwrt-docs4ai-02c-scrape-jsdoc.py
+================================================================================
+"""
+Purpose: Generate LuCI JavaScript API documentation using jsdoc2md into L1.
+Phase: Extraction
+"""
+import os
+import subprocess
+import glob
+import datetime
+import sys
+import re
+import shutil
+import html
+import json
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+print("[02c] Generate LuCI JS API documentation (JSDoc)")
+repo_luci = os.path.join(config.WORKDIR, "repo-luci")
+if not os.path.exists(repo_luci):
+    print(f"[02c] SKIP: {repo_luci} not found")
+    sys.exit(0)
+jsdoc2md = shutil.which("jsdoc2md") or shutil.which("jsdoc2md.cmd")
+if not jsdoc2md:
+    print("[02c] FAIL: jsdoc2md not found in PATH — skipping LuCI JSDoc steps")
+    sys.exit(1)
+live_base = "https://openwrt.github.io/luci/jsapi"
+print("[02c] Processing LuCI JS API source files...")
+target_dir = os.path.join(repo_luci, "modules", "luci-base", "htdocs", "luci-static", "resources")
+file_count = 0
+skip_count = 0
+failed_count = 0
+luci_srcs = []
+for root, _, files in os.walk(target_dir):
+    for file in files:
+        if file.endswith(".js"):
+            luci_srcs.append(os.path.join(root, file))
+luci_srcs.sort()
+for src in luci_srcs:
+    filename = os.path.basename(src)
+    mod = os.path.splitext(filename)[0]
+    relpath = os.path.relpath(src, repo_luci).replace("\\", "/")
+    cmd = [jsdoc2md, "--heading-depth", "2", "--global-index-format", "none", "--files", relpath]
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=repo_luci, encoding="utf-8")
+    stdout = res.stdout or ""
+    stderr = res.stderr or ""
+    if stderr:
+        with open(os.path.join(config.WORKDIR, "jsdoc-luci.err"), "a", encoding="utf-8") as err_f:
+            err_f.write(f"Stderr for {mod}:\n{stderr}\n")
+    output = stdout.strip()
+    word_count = len(output.split())
+    if not output or word_count < 15:
+        print(f"[02c] SKIP: {mod} (too short, {word_count} words)")
+        skip_count += 1
+        continue
+    output = re.sub(r'<pre class="prettyprint[^"]*"><code>', '```javascript\n', output)
+    output = output.replace('</code></pre>', '\n```')
+    output = re.sub(r'</?code>', '`', output)
+    output = re.sub(r'</?p>', '', output)
+    output = re.sub(r'</?(?:dl|dt|dd|ul|li|table|thead|tbody|tr|th|td|h[1-6]|a(?:\s+[^>]*)?|/a)[^>]*>', '', output)
+    output = html.unescape(output)
+    output = re.sub(r'\n{3,}', '\n\n', output)
+    live_url = f"{live_base}/LuCI.html" if mod == "luci" else f"{live_base}/LuCI.{mod}.html"
+    slug = f"api-{mod}"
+    title = f"LuCI API: {mod}"
+    final_content = f"# {title}\n\n> **Live docs:** {live_url}\n\n---\n\n{output}"
+    metadata = {
+        "extractor": "02c-scrape-jsdoc.py",
+        "origin_type": "js_source",
+        "module": "luci",
+        "slug": slug,
+        "original_url": None,
+        "language": "javascript",
+        "upstream_path": relpath,
+        "fetch_status": "success",
+        "extraction_timestamp": datetime.datetime.now(datetime.UTC).isoformat()
+    }
+    extractor.write_l1_markdown("luci", "js_source", slug, final_content, metadata)
+    member_count = output.count("##")
+    file_count += 1
+    print(f"[02c] OK: {slug} ({member_count} members)")
+if file_count == 0 and len(luci_srcs) > 0:
+    print("[02c] WARN: 0 files generated individually. Running whole-directory fallback.")
+    target_rel = os.path.relpath(target_dir, repo_luci).replace("\\", "/")
+    cmd = [jsdoc2md, "--heading-depth", "2", "--global-index-format", "none", "--files", f"{target_rel}/**/*.js"]
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=repo_luci, encoding="utf-8")
+    output = res.stdout.strip()
+    if output:
+        output = re.sub(r'<pre class="prettyprint[^"]*"><code>', '```javascript\n', output)
+        output = output.replace('</code></pre>', '\n```')
+        output = re.sub(r'</?code>', '`', output)
+        output = re.sub(r'</?p>', '', output)
+        output = re.sub(r'</?(?:dl|dt|dd|ul|li|table|thead|tbody|tr|th|td|h[1-6]|a(?:\s+[^>]*)?|/a)[^>]*>', '', output)
+        output = html.unescape(output)
+        output = re.sub(r'\n{3,}', '\n\n', output)
+        final_content = f"# LuCI API: All\n\n{output}"
+        metadata = {
+            "extractor": "02c-scrape-jsdoc.py",
+            "origin_type": "js_source",
+            "module": "luci",
+            "slug": "api-all",
+            "original_url": None,
+            "language": "javascript",
+            "upstream_path": target_rel,
+            "fetch_status": "success",
+            "extraction_timestamp": datetime.datetime.now(datetime.UTC).isoformat()
+        }
+        extractor.write_l1_markdown("luci", "js_source", "api-all", final_content, metadata)
+        file_count += 1
+        print("[02c] OK: api-all.md")
+if os.path.exists(os.path.join(config.WORKDIR, "jsdoc-luci.err")):
+    print("\n=== jsdoc warnings/errors (LuCI) ===")
+    with open(os.path.join(config.WORKDIR, "jsdoc-luci.err"), "r", encoding="utf-8") as err_f:
+        print(err_f.read())
+    print("=== end jsdoc warnings ===")
+    os.remove(os.path.join(config.WORKDIR, "jsdoc-luci.err"))
+print(f"[02c] Complete: {file_count} files generated, {skip_count} skipped.")
+if file_count == 0:
+    print("[02c] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
+================================================================================
+FILE: openwrt-docs4ai-02d-scrape-core-packages.py
+================================================================================
+"""
+Purpose: Extract package documentation from the OpenWrt buildroot source tree.
+Phase: Extraction
+"""
+import os
+import re
+import glob
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+SKIP_BUILDROOT = os.environ.get("SKIP_BUILDROOT", "false").lower() == "true"
+if SKIP_BUILDROOT:
+    print("[02d] SKIP: Package metadata extraction (SKIP_BUILDROOT=true)")
+    sys.exit(0)
+print("[02d] Extract OpenWrt core package documentation")
+REPO = os.path.join(config.WORKDIR, "repo-openwrt")
+TS = datetime.datetime.now(datetime.UTC).isoformat()
+REPO_URL = "https://github.com/openwrt/openwrt"
+if not os.path.isdir(REPO):
+    print("[02d] FAIL: Buildroot repo not found")
+    sys.exit(1)
+def extract_makefile_meta(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            text = f.read()
+    except Exception:
+        return {}
+    fields = {}
+    for key in ["PKG_NAME", "PKG_VERSION", "PKG_SOURCE_URL",
+                "PKG_MAINTAINER", "PKG_LICENSE"]:
+        m = re.search(
+            rf'^{key}\s*[?:+]?=\s*(.+?)(?=\n[A-Z_]|\Z)',
+            text, re.MULTILINE | re.DOTALL
+        )
+        if m:
+            val = re.sub(r"\s+", " ", m.group(1).replace("\\\n", " ")).strip()
+            if val and not val.startswith("$("):
+                fields[key] = val[:200]
+    m = re.search(
+        r'^PKG_DESCRIPTION\s*[?:+]?=\s*(.+?)(?=\n[A-Z]|\Z)',
+        text, re.MULTILINE | re.DOTALL
+    )
+    if m:
+        fields["DESCRIPTION"] = re.sub(
+            r"\s+", " ", m.group(1).replace("\\\n", " ")
+        ).strip()[:500]
+    block_m = re.search(
+        r'define Package/[^\n]+\n(.*?)^endef',
+        text, re.MULTILINE | re.DOTALL
+    )
+    if block_m:
+        block = block_m.group(1)
+        d = re.search(
+            r'DESCRIPTION\s*:?=\s*(.+?)(?=\n\s*[A-Z]|\Z)', block, re.DOTALL
+        )
+        if d:
+            desc = re.sub(r"\s+", " ", d.group(1).replace("\\\n", " ")).strip()
+            if desc:
+                fields.setdefault("DESCRIPTION", desc[:500])
+    return fields
+def extract_readme(pkg_dir):
+    for name in ["README.md", "README", "README.txt"]:
+        p = os.path.join(pkg_dir, name)
+        if os.path.isfile(p):
+            try:
+                with open(p, encoding="utf-8", errors="replace") as f:
+                    content = f.read().strip()
+                if len(content) > 50:
+                    return content
+            except Exception:
+                pass
+    return None
+total_pkgs = 0
+outputs_generated = 0
+for cat_path in sorted(glob.glob(os.path.join(REPO, "package", "*"))):
+    if not os.path.isdir(cat_path):
+        continue
+    category = os.path.basename(cat_path)
+    entries = []
+    for pkg_path in sorted(glob.glob(os.path.join(cat_path, "*"))):
+        if not os.path.isdir(pkg_path):
+            continue
+        pkg_name = os.path.basename(pkg_path)
+        meta = extract_makefile_meta(os.path.join(pkg_path, "Makefile"))
+        readme = extract_readme(pkg_path)
+        if not meta and not readme:
+            continue
+        entries.append({"name": pkg_name, "meta": meta, "readme": readme})
+    if not entries:
+        continue
+    total_pkgs += len(entries)
+    cat_src_url = f"{REPO_URL}/tree/master/package/{category}"
+    slug = f"category-{category}"
+    content_lines = []
+    content_lines.append(f"# OpenWrt Buildroot: {category} packages\n")
+    content_lines.append(f"> **Source:** {cat_src_url}\n---\n")
+    for e in entries:
+        m = e["meta"]
+        content_lines.append(f"## {e['name']}\n")
+        if m.get("DESCRIPTION"):
+            content_lines.append(f"{m['DESCRIPTION']}\n")
+        rows = []
+        if m.get("PKG_VERSION"):    rows.append(f"| Version | {m['PKG_VERSION']} |")
+        if m.get("PKG_LICENSE"):    rows.append(f"| License | {m['PKG_LICENSE']} |")
+        if m.get("PKG_MAINTAINER"): rows.append(f"| Maintainer | {m['PKG_MAINTAINER']} |")
+        if m.get("PKG_SOURCE_URL"): rows.append(f"| Source URL | {m['PKG_SOURCE_URL'][:120]} |")
+        if rows:
+            content_lines.append("| Field | Value |\n|---|---|\n" + "\n".join(rows) + "\n")
+        if e["readme"]:
+            content = e["readme"]
+            truncated = len(content) > 2000
+            content_lines.append("**README:**\n")
+            content_lines.append(extractor.wrap_code_block("README", content[:2000], "markdown"))
+            if truncated:
+                pkg_url = f"{REPO_URL}/tree/master/package/{category}/{e['name']}"
+                content_lines.append(f"\n> *(README truncated — [view full file]({pkg_url}))*\n")
+        pkg_url = f"{REPO_URL}/tree/master/package/{category}/{e['name']}"
+        content_lines.append(f"\n> Source: {pkg_url}\n---\n")
+    metadata = {
+        "extractor": "02d-scrape-core-packages.py",
+        "origin_type": "makefile_meta",
+        "module": "openwrt-core",
+        "slug": slug,
+        "original_url": None,
+        "language": "makefile",
+        "upstream_path": f"package/{category}",
+        "fetch_status": "success",
+        "extraction_timestamp": TS
+    }
+    extractor.write_l1_markdown("openwrt-core", "makefile_meta", slug, "\n".join(content_lines), metadata)
+    outputs_generated += 1
+    print(f"[02d] OK: {category} ({len(entries)} packages)")
+mk_entries = []
+for mk_file in sorted(glob.glob(os.path.join(REPO, "include", "*.mk"))):
+    try:
+        with open(mk_file, encoding="utf-8", errors="replace") as f:
+            text = f.read()
+    except Exception:
+        continue
+    fname_mk = os.path.basename(mk_file)
+    comments = []
+    for line in text.splitlines()[:100]:
+        if line.startswith("#"):
+            cleaned = line.lstrip("# ").strip()
+            if cleaned:
+                comments.append(cleaned)
+        elif comments:
+            break
+    if len(comments) >= 2:
+        mk_entries.append((fname_mk, "\n".join(comments)))
+if mk_entries:
+    slug = "include-mk"
+    content_lines = []
+    content_lines.append("# OpenWrt Buildroot: Build System Include Files\n")
+    content_lines.append(f"> **Source:** {REPO_URL}/tree/master/include\n")
+    content_lines.append("Core build system Makefile fragments.\n\n---\n")
+    for fname_mk, doc in mk_entries:
+        content_lines.append(f"## {fname_mk}\n")
+        content_lines.append(extractor.wrap_code_block("Documentation", doc, "text"))
+        content_lines.append(f"\n> Source: {REPO_URL}/blob/master/include/{fname_mk}\n---\n")
+    metadata = {
+        "extractor": "02d-scrape-core-packages.py",
+        "origin_type": "makefile_meta",
+        "module": "openwrt-core",
+        "slug": slug,
+        "original_url": None,
+        "language": "makefile",
+        "upstream_path": "include/",
+        "fetch_status": "success",
+        "extraction_timestamp": TS
+    }
+    extractor.write_l1_markdown("openwrt-core", "makefile_meta", slug, "\n".join(content_lines), metadata)
+    outputs_generated += 1
+    print(f"[02d] OK: include-mk ({len(mk_entries)} documented)")
+print(f"[02d] Complete: {total_pkgs} packages across {outputs_generated} outputs.")
+if outputs_generated == 0:
+    print("[02d] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
+================================================================================
+FILE: openwrt-docs4ai-02e-scrape-example-packages.py
+================================================================================
+"""
+Purpose: Copy and wrap curated LuCI application examples from the LuCI repo to L1 format.
+Phase: Extraction
+"""
+import os
+import sys
+import re
+import datetime
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+SKIP_BUILDROOT = os.environ.get("SKIP_BUILDROOT", "false").lower() == "true"
+if SKIP_BUILDROOT:
+    print("[02e] SKIP: Example extraction (SKIP_BUILDROOT=true)")
+    sys.exit(0)
+print("[02e] Extract curated LuCI application examples")
+SRC = os.path.join(config.WORKDIR, "repo-luci", "applications")
+TS = datetime.datetime.now(datetime.UTC).isoformat()
+LUCI_URL = "https://github.com/openwrt/luci/tree/master/applications"
+APPS = {
+    "luci-app-example": "Hello world / baseline — minimum viable app; ucode<->JS bridge, ACL, UCI form, rpcd scaffolding",
+    "luci-app-commands": "HTTP API / controller — custom endpoints in ucode/controller/, URL parsing, secure popen execution",
+    "luci-app-ddns": "Standard config app — service state (init_enabled), rpcd microbus, deep UCI read/write",
+    "luci-app-dockerman": "Advanced / streaming — UNIX socket communication, HTTP streaming, large JSON, multi-file ucode",
+}
+if not os.path.isdir(SRC):
+    print("[02e] FAIL: repo-luci not found")
+    sys.exit(1)
+outputs_generated = 0
+for app, desc in APPS.items():
+    app_dir = os.path.join(SRC, app)
+    if not os.path.isdir(app_dir):
+        print(f"[02e] WARN: {app} not found at {app_dir} — skipping")
+        continue
+    print(f"[02e] Extracting {app}...")
+    uc_count = 0
+    js_count = 0
+    for root, _, files in os.walk(app_dir):
+        for fname in sorted(files):
+            if not (fname.endswith(".uc") or fname.endswith(".js")):
+                continue
+            src_file = os.path.join(root, fname)
+            try:
+                with open(src_file, encoding="utf-8", errors="replace") as f:
+                    content = f.read()
+            except Exception:
+                continue
+            rel = os.path.relpath(src_file, app_dir).replace("\\", "/")
+            slug = f"{app}-{rel.replace('/', '-')}"
+            slug = re.sub(r'[^a-zA-Z0-9-]', '-', slug).lower()
+            is_uc = fname.endswith(".uc")
+            lang = "ucode" if is_uc else "javascript"
+            if is_uc:
+                uc_count += 1
+            else:
+                js_count += 1
+            final_content = extractor.wrap_code_block(fname, content, lang)
+            metadata = {
+                "extractor": "02e-scrape-example-packages.py",
+                "origin_type": "example_app",
+                "module": "luci-examples",
+                "slug": slug,
+                "original_url": None,
+                "language": lang,
+                "upstream_path": f"applications/{app}/{rel}",
+                "fetch_status": "success",
+                "extraction_timestamp": TS
+            }
+            extractor.write_l1_markdown("luci-examples", "example_app", slug, final_content, metadata)
+            outputs_generated += 1
+    print(f"[02e] OK: {app} ({uc_count} .uc, {js_count} .js)")
+print(f"[02e] Complete: {outputs_generated} total extracted.")
+if outputs_generated == 0:
+    print("[02e] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
+================================================================================
+FILE: openwrt-docs4ai-02f-scrape-procd-api.py
+================================================================================
+"""
+Purpose: Scrape the openwrt procd shell API documentation from procd.sh comments.
+Phase: Extraction
+"""
+import os
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+print("[02f] Scrape procd init.d API documentation")
+procd_sh_path = os.path.join(config.WORKDIR, "repo-openwrt", "package", "system", "procd", "files", "procd.sh")
+if not os.path.isfile(procd_sh_path):
+    print(f"[02f] SKIP: procd.sh not found at {procd_sh_path}")
+    sys.exit(0)
+try:
+    with open(procd_sh_path, "r", encoding="utf-8", errors="replace") as f:
+        lines = f.readlines()
+except Exception as e:
+    print(f"[02f] FAIL: Could not read {procd_sh_path}: {e}")
+    sys.exit(1)
+doc_lines = []
+for line in lines:
+    if line.startswith("#"):
+        doc_lines.append(line.lstrip("#").strip())
+    elif not line.strip():
+        continue
+    else:
+        break # stopped being comments
+markdown_content = "\n".join(doc_lines).strip()
+if not markdown_content:
+    print("[02f] FAIL: Could not extract documentation from procd.sh")
+    sys.exit(1)
+ts = datetime.datetime.now(datetime.UTC).isoformat()
+slug = "procd-api"
+final_content = f"# procd init.d API Reference\n\n> **Extracted from:** `procd.sh` block comments\n\n"
+final_content += extractor.wrap_code_block("procd.sh", markdown_content, "bash")
+metadata = {
+    "extractor": "02f-scrape-procd-api.py",
+    "origin_type": "header_api",
+    "module": "procd",
+    "slug": slug,
+    "original_url": None,
+    "language": "bash",
+    "upstream_path": "package/system/procd/files/procd.sh",
+    "fetch_status": "success",
+    "extraction_timestamp": ts
+}
+extractor.write_l1_markdown("procd", "header_api", slug, final_content, metadata)
+print(f"[02f] OK: Wrote {slug} ({len(doc_lines)} lines)")
+print("[02f] Complete.")
+================================================================================
+FILE: openwrt-docs4ai-02g-scrape-uci-schemas.py
+================================================================================
+"""
+Purpose: Scrape the openwrt UCI configuration schemas from package defaults.
+Phase: Extraction
+"""
+import os
+import glob
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+print("[02g] Scrape UCI default configurations")
+package_dir = os.path.join(config.WORKDIR, "repo-openwrt", "package")
+if not os.path.isdir(package_dir):
+    print(f"[02g] SKIP: repository not found at {package_dir}")
+    sys.exit(0)
+schema_files = []
+for root, dirs, files in os.walk(package_dir):
+    if "etc" in dirs:
+        etc_config_dir = os.path.join(root, "etc", "config")
+        if os.path.isdir(etc_config_dir):
+            for f in os.listdir(etc_config_dir):
+                full_path = os.path.join(etc_config_dir, f)
+                if os.path.isfile(full_path):
+                    schema_files.append((f, full_path))
+if not schema_files:
+    print("[02g] FAIL: No UCI schema files found")
+    sys.exit(1)
+ts = datetime.datetime.now(datetime.UTC).isoformat()
+saved = 0
+for schema_name, fpath in schema_files:
+    try:
+        with open(fpath, "r", encoding="utf-8", errors="replace") as f:
+            content = f.read()
+        if "config " not in content:
+            continue
+        rel_path = os.path.relpath(fpath, os.path.join(config.WORKDIR, "repo-openwrt")).replace("\\", "/")
+        slug = f"schema-{schema_name}"
+        final_content = f"# UCI Default Schema: {schema_name}\n\n"
+        final_content += f"> **Source:** `{rel_path}`\n\n"
+        final_content += extractor.wrap_code_block(schema_name, content.strip(), "uci")
+        metadata = {
+            "extractor": "02g-scrape-uci-schemas.py",
+            "origin_type": "uci_schema",
+            "module": "uci",
+            "slug": slug,
+            "original_url": None,
+            "language": "uci",
+            "upstream_path": rel_path,
+            "fetch_status": "success",
+            "extraction_timestamp": ts
+        }
+        extractor.write_l1_markdown("uci", "uci_schema", slug, final_content, metadata)
+        saved += 1
+    except Exception as e:
+        print(f"[02g] WARN: Could not process {fpath}: {e}")
+print(f"[02g] Complete: Wrote {saved} UCI default schemas")
+if saved == 0:
+    print("[02g] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
+================================================================================
+FILE: openwrt-docs4ai-02h-scrape-hotplug-events.py
+================================================================================
+"""
+Purpose: Scrape OpenWrt netifd and core hotplug.d event handlers.
+Phase: Extraction
+"""
+import os
+import glob
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config, extractor
+sys.stdout.reconfigure(line_buffering=True)
+print("[02h] Scrape hotplug.d events")
+package_dir = os.path.join(config.WORKDIR, "repo-openwrt", "package")
+if not os.path.isdir(package_dir):
+    print(f"[02h] SKIP: repository not found at {package_dir}")
+    sys.exit(0)
+hotplug_files = []
+for root, dirs, files in os.walk(package_dir):
+    if "etc" in dirs:
+        etc_hotplug_dir = os.path.join(root, "etc", "hotplug.d")
+        if os.path.isdir(etc_hotplug_dir):
+            for subroot, _, fs in os.walk(etc_hotplug_dir):
+                for f in fs:
+                    full_path = os.path.join(subroot, f)
+                    if os.path.isfile(full_path):
+                        hotplug_files.append((f, full_path, subroot))
+if not hotplug_files:
+    print("[02h] FAIL: No hotplug event scripts found")
+    sys.exit(1)
+ts = datetime.datetime.now(datetime.UTC).isoformat()
+saved = 0
+total_lines = 0
+content_lines = []
+content_lines.append("# OpenWrt Core Hotplug Events\n")
+content_lines.append("> **Extracted from:** default `etc/hotplug.d/` scripts across the OpenWrt repository\n")
+content_lines.append("> **Note for LLMs:** Developers building apps use these scripts as templates. Analyze the `$ACTION`, `$INTERFACE`, and subsystem blocks to understand exactly which environment variables OpenWrt injects during hotplug events.\n\n---\n")
+for f, fpath, subroot in sorted(hotplug_files):
+    try:
+        with open(fpath, "r", encoding="utf-8", errors="replace") as file:
+            content = file.read().strip()
+        if not content:
+            continue
+        rel_path = os.path.relpath(fpath, os.path.join(config.WORKDIR, "repo-openwrt", "package")).replace("\\", "/")
+        event_type = os.path.basename(subroot)
+        content_lines.append(f"## Event Category: `{event_type}` — File: `{rel_path}`\n")
+        content_lines.append(extractor.wrap_code_block("Shell Script", content, "bash"))
+        content_lines.append("\n---\n")
+        saved += 1
+        total_lines += content.count("\n") + 1
+    except Exception as e:
+        print(f"[02h] WARN: Could not process {fpath}: {e}")
+slug = "netifd-hotplug-events"
+metadata = {
+    "extractor": "02h-scrape-hotplug-events.py",
+    "origin_type": "hotplug_event",
+    "module": "openwrt-hotplug",
+    "slug": slug,
+    "original_url": None,
+    "language": "bash",
+    "upstream_path": "package/**/etc/hotplug.d/*",
+    "fetch_status": "success",
+    "extraction_timestamp": ts
+}
+extractor.write_l1_markdown("openwrt-hotplug", "hotplug_event", slug, "\n".join(content_lines), metadata)
+print(f"[02h] Complete: Wrote {slug} ({saved} scripts, {total_lines} lines)")
+if saved == 0:
+    print("[02h] FAIL: Zero output files generated. Exiting with error.")
+    sys.exit(1)
+================================================================================
+FILE: openwrt-docs4ai-03-normalize-semantic.py
+================================================================================
+"""
+Purpose: Parallel L2 Semantic Normalization & Staging Promotion.
+Phase: Process
+"""
+import os
+import re
+import json
+import yaml
+import glob
+import datetime
+import sys
+import shutil
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+try:
+    import tiktoken
+    encoder = tiktoken.get_encoding("cl100k_base")
+    def count_tokens(text):
+        return len(encoder.encode(text))
+except ImportError:
+    print("[03] WARN: tiktoken missing, falling back to word count * 1.35")
+    def count_tokens(text):
+        return int(len(text.split()) * 1.35)
+COMMON_WORDS = {
+    "name", "type", "value", "event", "data", "code", "info", "list",
+    "item", "node", "text", "form", "page", "time", "date", "user",
+    "host", "port", "path", "file", "mode", "status", "error", "result",
+    "state", "flags", "index", "count", "length", "size", "version",
+    "base", "init", "load", "open", "read", "write", "close", "send",
+    "recv", "bind", "call", "stop", "start", "reset", "clear", "check",
+    "parse", "fetch", "apply", "remove", "create", "update", "delete",
+    "source", "target", "output", "input", "params", "options", "config",
+    "return", "object", "string", "number", "boolean", "array", "table",
+    "class", "method", "property", "function", "callback", "promise",
+    "procd"
+}
+def is_code_symbol(name):
+    if name.lower() in COMMON_WORDS: return False
+    if len(name) < 4: return False
+    if re.match(r'^[a-z][a-zA-Z0-9]+$', name) and any(c.isupper() for c in name): return True
+    if ("." in name or "_" in name) and len(name) >= 5: return True
+    if re.match(r'^[A-Z]{3,10}$', name): return True
+    return False
+def pass_1_normalize_all(ts_now):
+    print("[03] Pass 1: YAML Schema Injection & Link Registry Build")
+    cross_link_registry = {"pipeline_date": ts_now, "symbols": {}}
+    l2_files = []
+    COMMITS = {
+        "openwrt-core": os.environ.get("OPENWRT_COMMIT", "unknown"),
+        "openwrt-hotplug": os.environ.get("OPENWRT_COMMIT", "unknown"),
+        "procd": os.environ.get("OPENWRT_COMMIT", "unknown"),
+        "uci": os.environ.get("OPENWRT_COMMIT", "unknown"),
+        "wiki": "N/A",
+        "luci": os.environ.get("LUCI_COMMIT", "unknown"),
+        "luci-examples": os.environ.get("LUCI_COMMIT", "unknown"),
+        "ucode": os.environ.get("UCODE_COMMIT", "unknown"),
+    }
+    for root, _, files in os.walk(L1_DIR):
+        for f in files:
+            if not f.endswith(".md"): continue
+            md_path = os.path.join(root, f)
+            meta_path = os.path.splitext(md_path)[0] + ".meta.json"
+            with open(md_path, "r", encoding="utf-8") as file:
+                content = file.read()
+            if not os.path.isfile(meta_path):
+                print(f"[03] FAIL: Missing meta file: {meta_path}"); sys.exit(1)
+            with open(meta_path, "r", encoding="utf-8") as file:
+                meta = json.load(file)
+            module, o_type = meta.get("module", "unknown"), meta.get("origin_type", "unknown")
+            slug = meta.get("slug", os.path.splitext(f)[0])
+            title_m = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
+            title = title_m.group(1).strip() if title_m else slug
+            if module == "procd" and "init" in title.lower():
+                mermaid_tmpl = os.path.join(os.path.dirname(__file__), "..", "..", "templates", "mermaid", "procd-init-sequence.md")
+                if os.path.isfile(mermaid_tmpl):
+                    with open(mermaid_tmpl, "r", encoding="utf-8") as tmpl_f:
+                        content = content.replace("---\n\n", "---\n\n" + tmpl_f.read().strip() + "\n\n", 1)
+            l1_rel = os.path.relpath(md_path, WORKDIR).replace("\\", "/")
+            y_meta = {
+                "title": title, "module": module, "origin_type": o_type,
+                "token_count": count_tokens(content), "version": COMMITS.get(module, "unknown"),
+                "source_file": l1_rel, "last_pipeline_run": ts_now
+            }
+            for k in ["upstream_path", "language", "description"]:
+                if meta.get(k): y_meta[k] = meta[k]
+            full_l2 = "---\n" + yaml.dump(y_meta, sort_keys=False) + "---\n" + content
+            out_file = os.path.join(L2_DIR, module, f)
+            os.makedirs(os.path.dirname(out_file), exist_ok=True)
+            with open(out_file, "w", encoding="utf-8", newline="\n") as out:
+                out.write(full_l2)
+            l2_files.append({"path": out_file, "module": module, "root_rel": f"{module}/{f}", "l1_rel": l1_rel})
+            for m in re.finditer(r'^#{2,4}\s+[`"]?([A-Za-z][A-Za-z0-9_.]+(?:\(.*\))?)[`"]?', content, re.MULTILINE):
+                raw_node = m.group(1)
+                symbol = re.split(r'\(', raw_node)[0].strip()
+                if not is_code_symbol(symbol): continue
+                is_dep = False
+                dep_window = content[m.end():m.end()+1000]
+                if re.search(r'\*\*[Dd]eprecated\*\*', dep_window):
+                    is_dep = True
+                sig = raw_node if "(" in raw_node else f"{symbol}()"
+                payload = {
+                    "signature": sig, "file": l1_rel, 
+                    "relative_target": f"../{module}/{f}", 
+                    "returns": "any", "parameters": [],
+                    "deprecated": is_dep
+                }
+                if symbol not in cross_link_registry["symbols"]:
+                    cross_link_registry["symbols"][symbol] = payload
+                elif any(x in l1_rel for x in ["ucode", "luci"]): # API docs (L2/L3) win conflicts
+                    cross_link_registry["symbols"][symbol] = payload
+    reg_path = os.path.join(WORKDIR, "cross-link-registry.json")
+    with open(reg_path, "w", encoding="utf-8") as rf:
+        json.dump(cross_link_registry, rf, indent=2)
+    return l2_files, cross_link_registry, reg_path
+def pass_2_link_all(l2_files, registry):
+    print("[03] Pass 2: Injecting Cross-Links")
+    sorted_syms = sorted(registry["symbols"].items(), key=lambda x: -len(x[0]))
+    patterns = [(s, m["relative_target"], re.compile(rf'\b{re.escape(s)}\b(?:\(\))?')) for s, m in sorted_syms]
+    for info in l2_files:
+        with open(info["path"], "r", encoding="utf-8") as f: content = f.read()
+        prot = set()
+        for m in re.finditer(r'```.*?```|~~~.*?---|^\s*#+ .*$', content, re.DOTALL | re.MULTILINE):
+            prot.update(range(m.start(), m.end()))
+        for m in re.finditer(r'`[^`\n]+`|\[[^\]]+\]\([^)]+\)', content):
+            prot.update(range(m.start(), m.end()))
+        spans = []
+        for sym, target, pat in patterns:
+            if target.endswith(info["root_rel"]): continue
+            for m in pat.finditer(content):
+                if not any(i in prot for i in range(m.start(), m.end())):
+                    if not any(s <= m.start() < e for s, e, _ in spans):
+                        spans.append((m.start(), m.end(), f"[{m.group(0)}]({target})"))
+        if spans:
+            spans.sort(key=lambda x: x[0])
+            new_c, last = [], 0
+            for s, e, rep in spans:
+                new_c.append(content[last:s]); new_c.append(rep); last = e
+            new_c.append(content[last:])
+            with open(info["path"], "w", encoding="utf-8", newline="\n") as f:
+                f.write("".join(new_c))
+def pass_3_deprecation_warnings(l2_files, registry):
+    print("[03] Pass 3: Injecting Deprecation Warnings")
+    deprecated_symbols = {s: m for s, m in registry["symbols"].items() if m.get("deprecated")}
+    if not deprecated_symbols: return
+    for info in l2_files:
+        if info["module"] != "wiki": continue # Warnings priority for wiki usage
+        with open(info["path"], "r", encoding="utf-8") as f: content = f.read()
+        warnings = []
+        for sym, meta in deprecated_symbols.items():
+            link_pat = rf'\[.*?\]\(\.\.\/{re.escape(meta["relative_target"].lstrip("./"))}\)'
+            if re.search(link_pat, content):
+                warnings.append(f"- `{sym}` (see [{sym}]({meta['relative_target']}))")
+        if warnings:
+            callout = "\n> [!WARNING]\n"
+            callout += "> This page references deprecated symbols from the official API documentation:\n"
+            for w in warnings: callout += f"> {w}\n"
+            callout += "\n"
+            if content.startswith("---"):
+                end_fm = content.find("---\n", 3)
+                if end_fm != -1:
+                    content = content[:end_fm+4] + callout + content[end_fm+4:]
+            else:
+                content = callout + content
+            with open(info["path"], "w", encoding="utf-8", newline="\n") as f:
+                f.write(content)
+def promote_to_staging(registry_path):
+    print("[03] Promoting to staging OUTDIR")
+    dst_root = config.OUTDIR
+    os.makedirs(dst_root, exist_ok=True)
+    for d in [("L1-raw", L1_DIR), ("L2-semantic", L2_DIR)]:
+        dst = os.path.join(dst_root, d[0])
+        if os.path.exists(dst): shutil.rmtree(dst)
+        shutil.copytree(d[1], dst)
+    for f in [registry_path, os.path.join(WORKDIR, "repo-manifest.json")]:
+        if os.path.isfile(f): shutil.copy2(f, os.path.join(dst_root, os.path.basename(f)))
+if __name__ == "__main__":
+    WORKDIR, L1_DIR, L2_DIR = config.WORKDIR, config.L1_RAW_WORKDIR, config.L2_SEMANTIC_WORKDIR
+    if not os.path.isdir(L1_DIR):
+        print(f"[03] FAIL: L1 input directory not found: {L1_DIR}"); sys.exit(1)
+    TS = datetime.datetime.now(datetime.UTC).isoformat()
+    l2_list, reg, r_path = pass_1_normalize_all(TS)
+    pass_2_link_all(l2_list, reg)
+    pass_3_deprecation_warnings(l2_list, reg)
+    promote_to_staging(r_path)
+    print("[03] Complete.")
+================================================================================
+FILE: openwrt-docs4ai-04-generate-ai-summaries.py
+================================================================================
+"""
+Purpose: Generate AI summaries for API documentation files using AI.
+Phase: AI Enrichment (Optional)
+"""
+import os
+import re
+import glob
+import time
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+OUTDIR = config.OUTDIR
+SKIP_AI = os.environ.get("SKIP_AI", "true").lower() == "true"
+MAX_FILES = int(os.environ.get("MAX_AI_FILES", "40"))
+if SKIP_AI:
+    print("[04] SKIP: AI summarization disabled (SKIP_AI=true)")
+    sys.exit(0)
+print("[04] Generate AI summaries for API documentation")
+try:
+    import requests
+except ImportError:
+    print("[04] FAIL: 'requests' package not installed")
+    sys.exit(1)
+import os
+import re
+import glob
+import time
+import sys
+import json
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+OUTDIR = config.OUTDIR
+SKIP_AI = os.environ.get("SKIP_AI", "true").lower() == "true"
+MAX_FILES = int(os.environ.get("MAX_AI_FILES", "40"))
+CACHE_PATH = os.environ.get("AI_CACHE_PATH", os.path.join(os.path.dirname(__file__), "..", "..", "ai-summaries-cache.json"))
+ai_cache = {}
+if os.path.exists(CACHE_PATH):
+    try:
+        with open(CACHE_PATH, "r", encoding="utf-8") as f:
+            ai_cache = json.load(f)
+        print(f"[04] Loaded AI Cache: {len(ai_cache)} entries")
+    except Exception as e:
+        print(f"[04] WARN: Could not load AI Cache ({e})")
+if SKIP_AI:
+    print("[04] SKIP: AI summarization disabled (SKIP_AI=true)")
+    sys.exit(0)
+print("[04] Generate AI summaries (Cache-First Mode)")
+try:
+    import requests
+except ImportError:
+    print("[04] FAIL: 'requests' package not installed")
+    sys.exit(1)
+TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("LOCAL_DEV_TOKEN")
+if not TOKEN:
+    print("[04] SKIP: No API token (GITHUB_TOKEN or LOCAL_DEV_TOKEN not set)")
+    sys.exit(0)
+API_URL = "https://models.inference.ai.azure.com/chat/completions"
+MODEL = "gpt-4o-mini"
+SYSTEM_PROMPT = """You are a technical documentation assistant for OpenWrt — a Linux-based
+operating system for embedded network devices. You write clear, accurate,
+developer-focused descriptions.
+Given an API/module doc as context, produce a JSON object with:
+1. "summary": 2-4 sentences describing purpose and key functions.
+2. "when_to_use": 1-2 sentence OpenWrt-specific use case.
+3. "related_topics": list of 2-6 exact symbol names.
+Follow spelling/naming in the text exactly. Summarize technical purpose precisely."""
+def summarize(content, fname):
+    user_msg = f"Summarize this OpenWrt API module documentation:\n\n{content[:4000]}"
+    headers = {
+        "Authorization": f"Bearer {TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_msg}
+        ],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.3,
+        "max_tokens": 500
+    }
+    for attempt in range(3):
+        try:
+            resp = requests.post(API_URL, json=payload, headers=headers, timeout=30)
+            if resp.status_code == 429:
+                retry_after = int(resp.headers.get("Retry-After", 30))
+                print(f"[04] Rate-limited. Waiting {retry_after}s...")
+                time.sleep(retry_after)
+                continue
+            if resp.status_code in [401, 403] or "no quota" in resp.text.lower() or "limit reached" in resp.text.lower():
+                print(f"[04] API quota limit reached or Unauthorized (Status {resp.status_code}). Skipping Further API calls for this run.")
+                return "STOP" # Signal to stop trying for this run
+            resp.raise_for_status()
+            data = resp.json()
+            raw_res = json.loads(data["choices"][0]["message"]["content"])
+            if "summary" in raw_res: raw_res["summary"] = raw_res["summary"].replace("\n", " ").strip()
+            if "when_to_use" in raw_res: raw_res["when_to_use"] = raw_res["when_to_use"].replace("\n", " ").strip()
+            return raw_res
+        except Exception as e:
+            print(f"[04] WARN: API error for {fname} (attempt {attempt + 1}): {e}")
+            time.sleep(5)
+    return None
+l2_dir = config.L2_SEMANTIC_WORKDIR
+l1_raw_dir = config.L1_RAW_WORKDIR # We need hashes from L1 meta
+for module in ["ucode", "luci", "procd", "uci"]:
+    m_dir = os.path.join(l2_dir, module)
+    if os.path.isdir(m_dir):
+        for f in os.listdir(m_dir):
+            if f.endswith(".md"):
+                targets.append(os.path.join(m_dir, f))
+to_process = []
+for fpath in targets:
+    try:
+        with open(fpath, encoding="utf-8") as f:
+            content = f.read()
+        if "ai_summary:" in content:
+            continue
+        to_process.append(fpath)
+    except Exception:
+        continue
+print(f"[04] {len(to_process)} files need summaries (Cap: {MAX_FILES}, Token Budget: ${config.LLM_BUDGET_LIMIT})")
+summarized = 0
+cached = 0
+cache_updated = False
+for fpath in to_process[:MAX_FILES]:
+    fname = os.path.basename(fpath)
+    mod_name = os.path.basename(os.path.dirname(fpath))
+    content_hash = "unknown"
+    meta_path = os.path.join(l1_raw_dir, mod_name, fname.replace(".md", ".meta.json"))
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path, "r", encoding="utf-8") as fm:
+                meta = json.load(fm)
+                content_hash = meta.get("content_hash", "unknown")
+        except: pass
+    res = None
+    if content_hash in ai_cache and content_hash != "unknown":
+        res = ai_cache[content_hash]
+        cached += 1
+    else:
+        with open(fpath, encoding="utf-8") as f:
+            content = f.read()
+        res = summarize(content, fname)
+        if res == "STOP":
+            print("[04] Hard API failure (quota/auth). Stopping API requests for this run.")
+            break 
+        if res:
+            if content_hash != "unknown":
+                ai_cache[content_hash] = res
+                cache_updated = True
+            summarized += 1
+            time.sleep(1) # Gentle pacing
+        else:
+            print(f"[04] FAIL: {fname} — no summary generated")
+            continue
+    with open(fpath, encoding="utf-8") as f:
+        content = f.read()
+    fm_match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n?(.*)', content, re.DOTALL)
+    if fm_match and res:
+        fm_text = fm_match.group(1).strip()
+        body_text = fm_match.group(2)
+        new_lines = [fm_text]
+        new_lines.append(f'ai_summary: "{res.get("summary", "").replace("\"", "\\\"")}"')
+        new_lines.append(f'ai_when_to_use: "{res.get("when_to_use", "").replace("\"", "\\\"")}"')
+        topics = res.get("related_topics", [])
+        topics_str = ", ".join([f'"{t}"' for t in topics])
+        new_lines.append(f'ai_related_topics: [{topics_str}]')
+        new_content = f"---\n" + "\n".join(new_lines) + f"\n---\n{body_text}"
+        with open(fpath, "w", encoding="utf-8", newline="\n") as f:
+            f.write(new_content)
+        if (summarized + cached) % 10 == 0:
+            print(f"[04] Progress: {summarized + cached}/{len(to_process)}")
+if cache_updated:
+    try:
+        with open(CACHE_PATH, "w", encoding="utf-8") as f:
+            json.dump(ai_cache, f, indent=2)
+        print(f"[04] Cache updated ({len(ai_cache)} total entries)")
+    except Exception as e:
+        print(f"[04] ERR: Could not save cache: {e}")
+print(f"[04] Complete: {summarized} generated, {cached} reused from cache.")
+================================================================================
+FILE: openwrt-docs4ai-05-assemble-references.py
+================================================================================
+"""
+Purpose: Assemble L4 monolithic references and L3 skeletons from L2 semantics.
+Phase: Assembly
+"""
+import os
+import glob
+import datetime
+import sys
+import re
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+try:
+    import yaml
+except ImportError:
+    print("[05] FAIL: 'pyyaml' package not installed")
+    sys.exit(1)
+OUTDIR = config.OUTDIR
+L2_DIR = os.path.join(OUTDIR, "L2-semantic")
+if not os.path.isdir(L2_DIR):
+    print(f"[05] FAIL: L2 semantic directory not found: {L2_DIR}")
+    sys.exit(1)
+TS = datetime.datetime.now(datetime.UTC).isoformat()
+print("[05] Assemble L4 monolithic files and L3 skeletons")
+modules = [d for d in os.listdir(L2_DIR) if os.path.isdir(os.path.join(L2_DIR, d))]
+if not modules:
+    print("[05] FAIL: No modules found in L2 semantic directory.")
+    sys.exit(1)
+warn_count = 0
+outputs_generated = 0
+for module in sorted(modules):
+    mod_dir = os.path.join(L2_DIR, module)
+    md_files = sorted(glob.glob(os.path.join(mod_dir, "*.md")))
+    if not md_files:
+        continue
+    print(f"[05] Processing module: {module} ({len(md_files)} files)")
+    out_mod_dir = os.path.join(OUTDIR, module)
+    os.makedirs(out_mod_dir, exist_ok=True)
+    l4_path = os.path.join(out_mod_dir, f"{module}-complete-reference.md")
+    l3_skeleton_path = os.path.join(out_mod_dir, f"{module}-skeleton.md")
+    total_tokens = 0
+    concatenated_bodies = []
+    skeleton_lines = []
+    for fpath in md_files:
+        try:
+            with open(fpath, encoding="utf-8") as f:
+                content = f.read().strip()
+        except Exception as e:
+            print(f"[05] WARN: Could not read {fpath}: {e}")
+            continue
+        fm_match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n?(.*)', content, re.DOTALL)
+        if not fm_match:
+            print(f"[05] WARN: Invalid L2 schema in {fpath}")
+            continue
+        fm_text = fm_match.group(1)
+        body_text = fm_match.group(2).strip()
+        try:
+            fm = yaml.safe_load(fm_text) or {}
+        except Exception as e:
+            print(f"[05] WARN: YAML parse error in {fpath}: {e}")
+            continue
+        total_tokens += fm.get("token_count", 0)
+        concatenated_bodies.append(body_text)
+        concatenated_bodies.append("\n\n---\n\n")
+        if fm.get("ai_summary"):
+            skeleton_lines.append(f"> **Summary:** {fm['ai_summary']}")
+        if fm.get("ai_when_to_use"):
+            skeleton_lines.append(f"> **Use Case:** {fm['ai_when_to_use']}")
+        for line in body_text.splitlines():
+            if line.startswith("#"):
+                skeleton_lines.append(line)
+            elif re.match(r'^[-*]\s+[`*_a-zA-Z0-9]', line):
+                if "(" in line and ")" in line and len(line) < 150:
+                    sig = re.split(r'[:|—\-]\s', line, maxsplit=1)[0].strip()
+                    skeleton_lines.append(sig)
+        skeleton_lines.append("") # Spacer between files in skeleton
+    if total_tokens > 100000:
+        print(f"[05] WARN: {module} monolith exceeds 100k tokens ({total_tokens})")
+        warn_count += 1
+    with open(l4_path, "w", encoding="utf-8", newline="\n") as l4:
+        l4.write("---\n")
+        l4.write(f'module: "{module}"\n')
+        l4.write(f'total_token_count: {total_tokens}\n')
+        l4.write(f'section_count: {len(md_files)}\n')
+        l4.write(f'is_monolithic: true\n')
+        l4.write(f'generated: "{TS}"\n')
+        l4.write("---\n\n")
+        l4.write(f"# {module} Complete Reference\n\n")
+        l4.write(f"> **Contains:** {len(md_files)} documents concatenated\n")
+        l4.write(f"> **Tokens:** ~{total_tokens} (cl100k_base)\n\n---\n\n")
+        l4.write("".join(concatenated_bodies))
+    outputs_generated += 1
+    with open(l3_skeleton_path, "w", encoding="utf-8", newline="\n") as l3:
+        l3.write(f"# {module} (Skeleton Semantic Map)\n\n")
+        l3.write(f"> **Contains:** Headers and function signatures for {module}.\n")
+        l3.write(f"> **Generated:** {TS}\n\n---\n\n")
+        l3.write("\n".join(skeleton_lines).strip())
+        l3.write("\n")
+    outputs_generated += 1
+    print(f"[05] OK: {module} L4 ({total_tokens} tokens) and L3 skeleton")
+print(f"[05] Complete: {outputs_generated} artifacts generated.")
+if warn_count > 0:
+    print(f"[05] Process finished with {warn_count} size warnings.")
+================================================================================
+FILE: openwrt-docs4ai-06a-generate-llms-txt.py
+================================================================================
+"""
+Purpose: Generates the L3 navigational maps (llms.txt and llms-full.txt).
+Phase: Aggregation / Indexing
+"""
+import os
+import re
+import glob
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+try:
+    import yaml
+except ImportError:
+    print("[06a] FAIL: 'pyyaml' package not installed")
+    sys.exit(1)
+OUTDIR = config.OUTDIR
+L2_DIR = os.path.join(OUTDIR, "L2-semantic")
+if not os.path.isdir(L2_DIR):
+    print(f"[06a] FAIL: L2 directory not found: {L2_DIR}")
+    sys.exit(1)
+versions = [
+    f"openwrt/openwrt@{os.environ.get('OPENWRT_COMMIT', 'unknown')}",
+    f"openwrt/luci@{os.environ.get('LUCI_COMMIT', 'unknown')}"
+]
+version_str = ", ".join(versions)
+global_tokens = 0
+global_files = []
+module_registry = {}
+CATEGORIES = {
+    "Core Daemons": ["procd", "uci", "openwrt-hotplug"],
+    "Scripting & Logic": ["ucode", "luci"],
+    "Ecosystem": ["openwrt-core", "luci-examples"],
+    "Manuals": ["wiki"]
+}
+print("[06a] Generating L3 Navigational Maps (llms.txt)")
+for module in sorted(os.listdir(L2_DIR)):
+    mod_dir = os.path.join(L2_DIR, module)
+    if not os.path.isdir(mod_dir):
+        continue
+    mod_files = []
+    mod_tokens = 0
+    mod_desc = module
+    for fpath in sorted(glob.glob(os.path.join(mod_dir, "*.md"))):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                content = f.read()
+            fm_match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n?(.*)', content, re.DOTALL)
+            if not fm_match:
+                print(f"[06a] WARN: Invalid L2 schema in {fpath}")
+                continue
+            fm_text = fm_match.group(1)
+            fm = yaml.safe_load(fm_text) or {}
+            tokens = fm.get("token_count", 0)
+            desc = fm.get("ai_summary") or fm.get("description", "No description")
+            global_tokens += tokens
+            mod_tokens += tokens
+            rel_path = f"{module}/{os.path.basename(fpath)}"
+            record = {
+                "rel_path": rel_path,
+                "tokens": tokens,
+                "desc": desc
+            }
+            mod_files.append(record)
+            global_files.append(record)
+            if mod_desc == module and desc != "No description":
+                mod_desc = desc
+        except Exception as e:
+            print(f"[06a] WARN: Skipping {fpath}: {e}")
+    if not mod_files:
+        continue
+    out_mod_dir = os.path.join(OUTDIR, module)
+    os.makedirs(out_mod_dir, exist_ok=True)
+    with open(os.path.join(out_mod_dir, "llms.txt"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(f"# {module} module\n")
+        f.write(f"> **Total Context:** ~{mod_tokens} tokens\n\n")
+        for rec in mod_files:
+            target = f"./{os.path.basename(rec['rel_path'])}"
+            f.write(f"- [{os.path.basename(rec['rel_path'])}]({target}) ({rec['tokens']} tokens) - {rec['desc']}\n")
+    module_registry[module] = {
+        "tokens": mod_tokens,
+        "desc": mod_desc,
+        "path": f"./{module}/llms.txt"
+    }
+print(f"[06a] Indexed {len(global_files)} files totaling ~{global_tokens} tokens.")
+with open(os.path.join(OUTDIR, "llms.txt"), "w", encoding="utf-8", newline="\n") as f:
+    f.write("# openwrt-docs4ai - LLM Routing Index\n")
+    f.write("> For a flat file listing, see [llms-full.txt](./llms-full.txt)\n\n")
+    f.write(f"> **Version:** {version_str}\n")
+    f.write(f"> **Total Context Available:** ~{global_tokens} tokens\n\n")
+    for cat_name, mod_list in CATEGORIES.items():
+        found = [m for m in mod_list if m in module_registry]
+        if found:
+            f.write(f"## {cat_name}\n")
+            for m in found:
+                reg = module_registry[m]
+                f.write(f"- [{m}]({reg['path']}): {reg['desc']} (~{reg['tokens']} tokens)\n")
+            f.write("\n")
+    uncat = [m for m in module_registry.keys() if not any(m in cat_list for cat_list in CATEGORIES.values())]
+    if uncat:
+        f.write("## Other Components\n")
+        for m in sorted(uncat):
+            reg = module_registry[m]
+            f.write(f"- [{m}]({reg['path']}): {reg['desc']} (~{reg['tokens']} tokens)\n")
+        f.write("\n")
+    f.write("## Complete Aggregation\n")
+    f.write("If your context window permits, you may fetch the flat URL index:\n")
+    f.write("- [llms-full.txt](./llms-full.txt)\n")
+with open(os.path.join(OUTDIR, "llms-full.txt"), "w", encoding="utf-8", newline="\n") as f:
+    f.write("# openwrt-docs4ai - Complete Flat Catalog\n")
+    f.write(f"> **Total Context:** ~{global_tokens} tokens\n\n")
+    for rec in sorted(global_files, key=lambda x: x["rel_path"]):
+        f.write(f"- [{rec['rel_path']}](./{rec['rel_path']}) ({rec['tokens']} tokens) - {rec['desc']}\n")
+print("[06a] Complete: Generated llms.txt, llms-full.txt, and module-level indexes.")
+================================================================================
+FILE: openwrt-docs4ai-06b-generate-agents-md.py
+================================================================================
+"""
+Purpose: Generates the repository interaction map (AGENTS.md) and human README.md.
+Phase: Indexing
+"""
+import os
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+OUTDIR = config.OUTDIR
+TS = datetime.datetime.now(datetime.UTC).isoformat()
+print("[06b] Generating AGENTS.md and README.md")
+os.makedirs(OUTDIR, exist_ok=True)
+agents_content = """# AGENTS.md — AI Agent Instructions for openwrt-docs4ai
+- `llms.txt` — Start here. Hierarchical index linking to each target subsystem.
+- `llms-full.txt` — Flat listing of every document with token counts.
+- `[module]/*-complete-reference.md` — Monolithic L4 file best ingested if context size permits.
+- `[module]/*-skeleton.md` — Structural API outlines serving as navigational aids.
+- `[module]/*.d.ts` — TypeScript definitions for IDEs and static analysis.
+- All token counts use `cl100k_base` encoding.
+- Cross-references use relative Markdown links.
+- Files strictly adhere to the v12 Schema Definitions.
+1. **Entry Point:** Always begin navigation at `llms.txt`. Do not guess paths.
+2. **Context Budgets:** Respect your context window limits. Prefer `*-skeleton.md` files for structural understanding before fetching monolithic references.
+3. **No Hallucination:** DO NOT hallucinate API parameters or functions outside of what is defined in the `*-skeleton.md` indexes or the text bodies.
+4. **Wiki Scraping:** DO NOT blindly scrape the live OpenWrt wiki. Use these pre-processed, deduplicated documents instead to save tokens and avoid 404s.
+"""
+"""
+with open(os.path.join(OUTDIR, "AGENTS.md"), "w", encoding="utf-8", newline="\n") as f:
+    f.write(agents_content)
+with open(os.path.join(OUTDIR, "README.md"), "w", encoding="utf-8", newline="\n") as f:
+    f.write(readme_content)
+print("[06b] Complete.")
+================================================================================
+FILE: openwrt-docs4ai-06c-generate-ide-schemas.py
+================================================================================
+"""
+Purpose: Generates TypeScript declaration files (.d.ts) for ucode.
+Phase: Indexing
+"""
+import os
+import json
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+OUTDIR = config.OUTDIR
+REGISTRY_PATH = os.path.join(OUTDIR, "cross-link-registry.json")
+print("[06c] Generating ucode.d.ts IDE schemas")
+if not os.path.isfile(REGISTRY_PATH):
+    print(f"[06c] FAIL: cross-link-registry.json not found at {REGISTRY_PATH}")
+    sys.exit(1)
+try:
+    with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
+        registry = json.load(f)
+except Exception as e:
+    print(f"[06c] FAIL: Could not parse registry: {e}")
+    sys.exit(1)
+ucode_symbols = {}
+for sym, meta in registry.get("symbols", {}).items():
+    if "/ucode/" in meta.get("relative_target", ""):
+        ucode_symbols[sym] = meta
+if not ucode_symbols:
+    print("[06c] INFO: No ucode symbols found in registry. Skipping .d.ts generation.")
+    sys.exit(0)
+modules = {}
+for sym, meta in ucode_symbols.items():
+    if "." in sym:
+        mod_name, func_name = sym.split(".", 1)
+    else:
+        mod_name = "global"
+        func_name = sym
+    if mod_name not in modules:
+        modules[mod_name] = []
+    modules[mod_name].append({
+        "name": func_name,
+        "sig": meta.get("signature", f"{func_name}()"),
+        "returns": meta.get("returns", "any"),
+        "desc": meta.get("ai_summary") or meta.get("description")
+    })
+dts_lines = [
+    "/**",
+    " * AUTOGENERATED VIA openwrt-docs4ai",
+    " * Target: Language Server Protocol (LSP) IDE Autocomplete",
+    " */",
+    ""
+]
+for mod_name, funcs in sorted(modules.items()):
+    if mod_name == "global":
+        for f in sorted(funcs, key=lambda x: x["name"]):
+            dts_lines.append(f"declare function {f['name']}(...args: any[]): {f['returns']};")
+    else:
+        dts_lines.append(f'declare module "{mod_name}" {{')
+        for f in sorted(funcs, key=lambda x: x["name"]):
+            sig = f['sig']
+            if "(" in sig and ")" in sig:
+                params_str = sig.split("(", 1)[1].rsplit(")", 1)[0]
+                if params_str.strip():
+                    params = []
+                    current = []
+                    bracket_level = 0
+                    for char in params_str:
+                        if char == "," and bracket_level == 0:
+                            params.append("".join(current).strip())
+                            current = []
+                        else:
+                            if char in "[({": bracket_level += 1
+                            if char in "])}": bracket_level -= 1
+                            current.append(char)
+                    params.append("".join(current).strip())
+                    ts_params = []
+                    for p in params:
+                        p_name = p.split("=")[0].strip()
+                        ts_params.append(f"{p_name}: any")
+                    sig_ts = f"{f['name']}({', '.join(ts_params)})"
+                else:
+                    sig_ts = f"{f['name']}()"
+            else:
+                sig_ts = f"export function {f['name']}(...args: any[]): {f['returns']};"
+            if not sig_ts.startswith("export function"):
+                sig_ts = f"export function {sig_ts};"
+            if f.get("desc"):
+                dts_lines.append("    /**")
+                dts_lines.append(f"     * {f['desc']}")
+                dts_lines.append("     */")
+            dts_lines.append(f"    {sig_ts}")
+        dts_lines.append("}")
+    dts_lines.append("")
+out_dir = os.path.join(OUTDIR, "ucode")
+os.makedirs(out_dir, exist_ok=True)
+out_path = os.path.join(out_dir, "ucode.d.ts")
+with open(out_path, "w", encoding="utf-8", newline="\n") as f:
+    f.write("\n".join(dts_lines))
+print(f"[06c] OK: {out_path} ({len(ucode_symbols)} symbols)")
+================================================================================
+FILE: openwrt-docs4ai-06d-generate-changelog.py
+================================================================================
+"""
+Purpose: Generates telemetry tracking API drift (changelog.json).
+Phase: Telemetry
+"""
+import os
+import json
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+OUTDIR = config.OUTDIR
+REGISTRY_PATH = os.path.join(OUTDIR, "cross-link-registry.json")
+BASELINE_DIR = os.path.join(os.getcwd(), "baseline") # Logic for baseline source is underspecified in v12, assuming local 'baseline/' dir
+BASELINE_PATH = os.path.join(BASELINE_DIR, "signature-inventory.json")
+print("[06d] Generating L5 Changelog and Telemetry")
+if not os.path.isfile(REGISTRY_PATH):
+    print(f"[06d] FAIL: cross-link-registry.json not found at {REGISTRY_PATH}")
+    sys.exit(1)
+try:
+    with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
+        registry = json.load(f)
+except Exception as e:
+    print(f"[06d] FAIL: Could not parse registry: {e}")
+    sys.exit(1)
+current_inventory = {sym: meta.get("signature") for sym, meta in registry.get("symbols", {}).items()}
+baseline_inventory = {}
+if os.path.isfile(BASELINE_PATH):
+    try:
+        with open(BASELINE_PATH, "r", encoding="utf-8") as f:
+            baseline_inventory = json.load(f).get("signatures", {})
+        print(f"[06d] Loaded baseline with {len(baseline_inventory)} signatures.")
+    except Exception as e:
+        print(f"[06d] WARN: Could not parse baseline inventory: {e}")
+else:
+    print("[06d] INFO: No baseline inventory found. This is likely the first run.")
+added = []
+removed = []
+changed = []
+for sym, sig in current_inventory.items():
+    if sym not in baseline_inventory:
+        added.append({"symbol": sym, "signature": sig})
+    elif baseline_inventory[sym] != sig:
+        changed.append({
+            "symbol": sym,
+            "old": baseline_inventory[sym],
+            "new": sig
+        })
+for sym in baseline_inventory:
+    if sym not in current_inventory:
+        removed.append({"symbol": sym, "signature": baseline_inventory[sym]})
+changelog = {
+    "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
+    "summary": {
+        "added": len(added),
+        "removed": len(removed),
+        "changed": len(changed)
+    },
+    "details": {
+        "added": added,
+        "removed": removed,
+        "changed": changed
+    }
+}
+with open(os.path.join(OUTDIR, "changelog.json"), "w", encoding="utf-8", newline="\n") as f:
+    json.dump(changelog, f, indent=2)
+changes_md = [
+    "# openwrt-docs4ai API Displacement Log",
+    f"**Run Date:** {datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d %H:%M UTC')}",
+    "",
+    "## Summary",
+    f"- **Added:** {len(added)}",
+    f"- **Removed:** {len(removed)}",
+    f"- **Changed:** {len(changed)}",
+    ""
+]
+if added:
+    changes_md.append("## Added Symbols")
+    for item in sorted(added, key=lambda x: x["symbol"]):
+        changes_md.append(f"- `{item['symbol']}` : `{item['signature']}`")
+    changes_md.append("")
+if removed:
+    changes_md.append("## Removed Symbols")
+    for item in sorted(removed, key=lambda x: x["symbol"]):
+        changes_md.append(f"- `{item['symbol']}`")
+    changes_md.append("")
+if changed:
+    changes_md.append("## Modified Signatures")
+    for item in sorted(changed, key=lambda x: x["symbol"]):
+        changes_md.append(f"- `{item['symbol']}`")
+        changes_md.append(f"  - **Was:** `{item['old']}`")
+        changes_md.append(f"  - **Now:** `{item['new']}`")
+    changes_md.append("")
+with open(os.path.join(OUTDIR, "CHANGES.md"), "w", encoding="utf-8", newline="\n") as f:
+    f.write("\n".join(changes_md))
+inventory_payload = {
+    "generated": datetime.datetime.now(datetime.UTC).isoformat(),
+    "signatures": current_inventory
+}
+with open(os.path.join(OUTDIR, "signature-inventory.json"), "w", encoding="utf-8", newline="\n") as f:
+    json.dump(inventory_payload, f, indent=2)
+print(f"[06d] OK: changelog.json, CHANGES.md, signature-inventory.json")
+================================================================================
+FILE: openwrt-docs4ai-07-generate-index-html.py
+================================================================================
+"""
+Purpose: Generates the web landing page (index.html).
+Phase: Presentation
+"""
+import os
+import re
+import datetime
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+OUTDIR = config.OUTDIR
+LLMS_TXT = os.path.join(OUTDIR, "llms.txt")
+TS = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
+print("[07] Generating index.html web landing page")
+if not os.path.isfile(LLMS_TXT):
+    print(f"[07] FAIL: llms.txt not found at {LLMS_TXT}")
+    sys.exit(1)
+try:
+    with open(LLMS_TXT, "r", encoding="utf-8") as f:
+        llms_content = f.read()
+except Exception as e:
+    print(f"[07] FAIL: Could not read llms.txt: {e}")
+    sys.exit(1)
+sections = re.findall(r'## (.*?)\n((?:- \[.*?\]\(.*?\):.*?\n)+)', llms_content)
+html_list = []
+for title, items in sections:
+    html_list.append(f"<h2>{title}</h2>")
+    html_list.append("<ul>")
+    for item in items.strip().split("\n"):
+        m = re.match(r'- \[(.*?)\]\((.*?)\): (.*)', item)
+        if m:
+            name, link, desc_token = m.groups()
+            html_list.append(f'  <li><a href="{link}">{name}</a>: {desc_token}</li>')
+    html_list.append("</ul>")
+html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>openwrt-docs4ai API Documentation</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
+        h1 {{ border-bottom: 2px solid #eee; padding-bottom: 10px; }}
+        h2 {{ margin-top: 30px; color: #0366d6; }}
+        ul {{ list-style-type: none; padding: 0; }}
+        li {{ margin-bottom: 8px; padding: 8px; border-radius: 4px; background: #f6f8fa; }}
+        a {{ color: #0366d6; text-decoration: none; font-weight: bold; }}
+        a:hover {{ text-decoration: underline; }}
+        .meta {{ font-size: 0.85em; color: #666; margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; }}
+    </style>
+</head>
+<body>
+    <h1>openwrt-docs4ai Navigation</h1>
+    <p>This repository provides LLM-optimized documentation for OpenWrt. Select a module below to view its context or jump to the <a href="llms.txt">AI-optimized index (llms.txt)</a>.</p>
+    {"".join(html_list)}
+    <div class="meta">
+        Generated: {TS}<br>
+        Pipeline Version: v12<br>
+        <a href="https://github.com/openwrt/openwrt-condensed-docs">Source Repository</a>
+    </div>
+</body>
+</html>
+"""
+================================================================================
+FILE: openwrt-docs4ai-08-validate.py
+================================================================================
+"""
+Purpose: Strict CI/CD gatekeeper validating all documentation layers.
+Phase: Validation
+"""
+import os
+import re
+import yaml
+import glob
+import sys
+import subprocess
+import tempfile
+import shutil
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from lib import config
+sys.stdout.reconfigure(line_buffering=True)
+OUTDIR = os.environ.get("OUTDIR", config.OUTDIR)
+VALIDATE_MODE = os.environ.get("VALIDATE_MODE", "hard").lower()
+if "--warn-only" in sys.argv:
+    VALIDATE_MODE = "soft"
+print(f"[08] Security & Quality Validation ({OUTDIR}) [Mode: {VALIDATE_MODE}]")
+hard_failures = []
+soft_warnings = []
+def hard_fail(msg):
+    hard_failures.append(msg)
+    print(f"[08] FAIL: {msg}")
+def soft_warn(msg):
+    soft_warnings.append(msg)
+    print(f"[08] WARN: {msg}")
+CORE_FILES = ["llms.txt", "llms-full.txt", "AGENTS.md", "README.md", "index.html"]
+for f in CORE_FILES:
+    if not os.path.isfile(os.path.join(OUTDIR, f)):
+        hard_fail(f"Missing core L3 file: {f}")
+import json
+registry_path = os.path.join(OUTDIR, "cross-link-registry.json")
+if os.path.isfile(registry_path):
+    try:
+        with open(registry_path, "r", encoding="utf-8") as f:
+            reg = json.load(f)
+        if "symbols" not in reg or "pipeline_date" not in reg:
+            hard_fail("cross-link-registry.json missing core fields ('symbols', 'pipeline_date')")
+    except Exception as e:
+        hard_fail(f"Could not parse cross-link-registry.json: {e}")
+HTML_ERROR_MARKERS = [
+    "<!DOCTYPE", "<html", "404 Not Found", "Access Denied", "captcha",
+    "cloudflare", "captcha-delivery", "Just a moment...", "Checking your browser",
+    "Rate limit exceeded", "Service Temporarily Unavailable"
+]
+MAX_FILE_SIZE_MB = 2.0
+all_md = glob.glob(os.path.join(OUTDIR, "**", "*.md"), recursive=True)
+checked_count = 0
+for fpath in all_md:
+    rel = os.path.relpath(fpath, OUTDIR)
+    checked_count += 1
+    f_size = os.path.getsize(fpath)
+    if f_size == 0:
+        hard_fail(f"0-byte file detected: {rel}")
+        continue
+    size_mb = f_size / (1024 * 1024)
+    if size_mb > MAX_FILE_SIZE_MB:
+        hard_fail(f"Oversized file ({size_mb:.1f}MB): {rel}")
+        continue
+    try:
+        with open(fpath, "r", encoding="utf-8") as f:
+            content = f.read()
+    except UnicodeDecodeError:
+        hard_fail(f"Non-UTF-8 content: {rel}")
+        continue
+    first_500 = content[:500]
+    for marker in HTML_ERROR_MARKERS:
+        if marker in first_500:
+            hard_fail(f"HTML error/leak detected ({marker}): {rel}")
+            break
+    if "L2-semantic" in rel:
+        if not content.startswith("---"):
+            hard_fail(f"Missing YAML frontmatter in L2: {rel}")
+        else:
+            try:
+                parts = content.split("---", 2)
+                if len(parts) >= 3:
+                    yaml_data = yaml.safe_load(parts[1])
+                    required = ["title", "module", "origin_type", "token_count", "version"]
+                    for field in required:
+                        if field not in yaml_data:
+                            hard_fail(f"L2 YAML missing required field '{field}': {rel}")
+            except Exception as e:
+                hard_fail(f"Malformed YAML in L2: {rel} ({e})")
+for fpath in all_md:
+    if "L2-semantic" not in fpath:
+        continue
+    rel_dir = os.path.dirname(fpath)
+    with open(fpath, "r", encoding="utf-8") as f:
+        content = f.read()
+    links = re.findall(r'\[.*?\]\(((?!https?:\/\/|mailto:|[a-z0-9]+:).*?\.md)\)', content)
+    for link in links:
+        target_path = os.path.normpath(os.path.join(rel_dir, link))
+        if not os.path.isfile(target_path):
+            hard_fail(f"Broken relative link in {os.path.relpath(fpath, OUTDIR)}: {link}")
+JS_BINARY = shutil.which("node")
+UCODE_BINARY = shutil.which("ucode")
+def check_ast(code, lang, rel_path):
+    if lang == "javascript" and JS_BINARY:
+        with tempfile.NamedTemporaryFile(suffix=".js", delete=False, mode="w") as tmp:
+            tmp.write(code)
+            tmp_path = tmp.name
+        res = subprocess.run([JS_BINARY, "--check", tmp_path], capture_output=True, text=True)
+        os.unlink(tmp_path)
+        if res.returncode != 0:
+            soft_warn(f"JS Syntax Error in {rel_path}: {res.stderr.strip()}")
+    elif lang == "ucode" and UCODE_BINARY:
+        with tempfile.NamedTemporaryFile(suffix=".uc", delete=False, mode="w") as tmp:
+            tmp.write(code)
+            tmp_path = tmp.name
+        res = subprocess.run([UCODE_BINARY, "-c", tmp_path], capture_output=True, text=True)
+        os.unlink(tmp_path)
+        if res.returncode != 0:
+            soft_warn(f"uCode Syntax Error in {rel_path}: {res.stderr.strip()}")
+if JS_BINARY or UCODE_BINARY:
+    example_files = glob.glob(os.path.join(OUTDIR, "L1-raw", "luci-examples", "*.md"))
+    for fpath in example_files:
+        rel = os.path.relpath(fpath, OUTDIR)
+        with open(fpath, "r", encoding="utf-8") as f:
+            content = f.read()
+        blocks = re.findall(r'```(javascript|ucode)\n(.*?)\n```', content, re.DOTALL)
+        for lang, code in blocks:
+            check_ast(code, lang, rel)
+print(f"\n[08] ----------------------------------------------")
+print(f"[08] Validation Results")
+print(f"[08]   Files Checked: {checked_count}")
+print(f"[08]   Hard Failures: {len(hard_failures)}")
+print(f"[08]   Soft Warnings: {len(soft_warnings)}")
+print(f"[08] ----------------------------------------------")
+if hard_failures:
+    print("\n[08] BLOCKING FAILURES:")
+    for f in hard_failures:
+        print(f"  X {f}")
+    if VALIDATE_MODE == "hard":
+        sys.exit(1)
+    else:
+        print("[08] INFO: Continuing despite failures due to VALIDATE_MODE=soft")
+if soft_warnings:
+    print("\n[08] NON-BLOCKING WARNINGS:")
+    for w in soft_warnings:
+        print(f"  ! {w}")
+print("\n[08] Validation pass complete.")
+sys.exit(0)
