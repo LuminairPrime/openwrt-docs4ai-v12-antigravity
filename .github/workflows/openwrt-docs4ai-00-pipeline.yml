@@ -94,7 +94,9 @@ jobs:
         if: matrix.script == '02a-scrape-wiki.py'
         uses: actions/cache@v4
         with:
-          path: ${{ env.WORKDIR }}/.cache
+          path: |
+            ${{ env.WORKDIR }}/.cache
+            ${{ env.WORKDIR }}/L1-raw/wiki
           key: wiki-cache-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             wiki-cache-${{ runner.os }}-

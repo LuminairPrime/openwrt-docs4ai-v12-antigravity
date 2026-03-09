@@ -60,12 +60,9 @@ CACHE_DIR = os.path.join(config.WORKDIR, ".cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 CACHE_FILE = os.path.join(CACHE_DIR, "wiki-lastmod.json")
 
-def load_cache():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, 'r') as f:
-            try:
-                return json.load(f)
-            except:
+            except (json.JSONDecodeError, ValueError):
+                return {}
+            except Exception:
                 return {}
     return {}
 
@@ -173,12 +170,17 @@ for path in sorted(discovered_pages):
         failed += 1
         continue
 
+    # FIX BUG-017: Hardened HTML leak detection
+    # Must have structural tags (<!DOCTYPE or <html) AND an error signature
+    has_structural = "<!DOCTYPE" in raw_content or "<html" in raw_content
     html_error_signatures = [
-        "404 Not Found", "Cloudflare", "Access Denied", "<!DOCTYPE", "<html", 
+        "404 Not Found", "Cloudflare", "Access Denied", 
         "Just a moment...", "Checking your browser", "Service Temporarily Unavailable",
         "Rate limit exceeded", "captcha", "This topic does not exist"
     ]
-    if any(sig in raw_content for sig in html_error_signatures) or not raw_content.strip():
+    has_signature = any(sig in raw_content for sig in html_error_signatures)
+    
+    if (has_structural and has_signature) or not raw_content.strip():
         print(f"[02a] WARN: HTML error signature or ghost page detected for {path}. Skipping.")
         failed += 1
         continue
