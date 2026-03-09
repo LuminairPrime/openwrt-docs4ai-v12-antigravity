@@ -36,7 +36,8 @@ if not os.path.isdir(L2_DIR):
 # Grab version info
 versions = [
     f"openwrt/openwrt@{os.environ.get('OPENWRT_COMMIT', 'unknown')}",
-    f"openwrt/luci@{os.environ.get('LUCI_COMMIT', 'unknown')}"
+    f"openwrt/luci@{os.environ.get('LUCI_COMMIT', 'unknown')}",
+    f"jow-/ucode@{os.environ.get('UCODE_COMMIT', 'unknown')}"
 ]
 version_str = ", ".join(versions)
 
@@ -87,7 +88,8 @@ for module in sorted(os.listdir(L2_DIR)):
             global_tokens += tokens
             mod_tokens += tokens
             
-            rel_path = f"{module}/{os.path.basename(fpath)}"
+            # FIX BUG-014: Correct relative path from root to L2 file
+            rel_path = f"L2-semantic/{module}/{os.path.basename(fpath)}"
             
             record = {
                 "rel_path": rel_path,
@@ -115,7 +117,8 @@ for module in sorted(os.listdir(L2_DIR)):
         f.write(f"# {module} module\n")
         f.write(f"> **Total Context:** ~{mod_tokens} tokens\n\n")
         for rec in mod_files:
-            target = f"./{os.path.basename(rec['rel_path'])}"
+            # FIX BUG-014: Correct relative path from module/llms.txt to L2-semantic/{module}/
+            target = f"../L2-semantic/{module}/{os.path.basename(rec['rel_path'])}"
             f.write(f"- [{os.path.basename(rec['rel_path'])}]({target}) ({rec['tokens']} tokens) - {rec['desc']}\n")
             
     module_registry[module] = {
@@ -123,6 +126,24 @@ for module in sorted(os.listdir(L2_DIR)):
         "desc": mod_desc,
         "path": f"./{module}/llms.txt"
     }
+    
+    # FIX BUG-031: Index Monolithic and Skeleton files in global_files (L3/L4)
+    out_mod_dir = os.path.join(OUTDIR, module)
+    l4_name = f"{module}-complete-reference.md"
+    l3_name = f"{module}-skeleton.md"
+    
+    if os.path.isfile(os.path.join(out_mod_dir, l4_name)):
+        global_files.append({
+            "rel_path": f"{module}/{l4_name}",
+            "tokens": mod_tokens, # Close enough
+            "desc": f"Complete monolithic reference for {module}"
+        })
+    if os.path.isfile(os.path.join(out_mod_dir, l3_name)):
+        global_files.append({
+            "rel_path": f"{module}/{l3_name}",
+            "tokens": int(mod_tokens * 0.1), # Heuristic estimation
+            "desc": f"Structural skeleton/map for {module}"
+        })
 
 print(f"[06a] Indexed {len(global_files)} files totaling ~{global_tokens} tokens.")
 

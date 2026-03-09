@@ -135,6 +135,7 @@ if not discovered_pages:
 saved = 0
 skipped_old = 0
 skipped_unchanged = 0
+skipped_short = 0 # FIX BUG-032
 failed = 0
 
 for path in sorted(discovered_pages):
@@ -145,7 +146,7 @@ for path in sorted(discovered_pages):
     url = f"https://openwrt.org{path}"
     slug = path_to_filename(path)
 
-    time.sleep(DELAY)
+    # time.sleep(DELAY) # BUG-039: Removed first delay
     last_mod = fetch_page_lastmod(url)
 
     if last_mod and last_mod < CUTOFF and path not in MANDATORY_PAGES:
@@ -192,6 +193,11 @@ for path in sorted(discovered_pages):
             encoding="utf-8", errors="replace", timeout=30
         )
         md = result.stdout or ""
+        # FIX BUG-040: Check pandoc return code
+        if result.returncode != 0:
+            print(f"[02a] FAIL: pandoc failed for {path} (Exit {result.returncode})")
+            failed += 1
+            continue
     except Exception as e:
         print(f"[02a] FAIL: pandoc error for {path} ({e})")
         failed += 1
@@ -199,6 +205,7 @@ for path in sorted(discovered_pages):
 
     md = re.sub(r"\n{3,}", "\n\n", md).strip()
     if len(md) < 200:
+        skipped_short += 1 # FIX BUG-032
         continue
 
     title_m = re.search(r"^#+ (.+)$", md, re.MULTILINE)
@@ -226,7 +233,7 @@ for path in sorted(discovered_pages):
     print(f"[02a] OK: {slug} [{last_mod_str}] -- {title[:55]}")
 
 save_cache(cache)
-print(f"[02a] Complete: {saved} fetched, {skipped_unchanged} unchanged, {skipped_old} too old, {failed} failed.")
+print(f"[02a] Complete: {saved} fetched, {skipped_unchanged} unchanged, {skipped_old} too old, {skipped_short} too short, {failed} failed.")
 if saved == 0 and skipped_unchanged == 0:
     print("[02a] FAIL: Zero output files generated. Exiting with error.")
     sys.exit(1)

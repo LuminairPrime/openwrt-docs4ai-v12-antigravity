@@ -54,7 +54,7 @@ from lib import config
 sys.stdout.reconfigure(line_buffering=True)
 
 OUTDIR = config.OUTDIR
-SKIP_AI = os.environ.get("SKIP_AI", "true").lower() == "true"
+SKIP_AI = os.environ.get("SKIP_AI", "false").lower() == "true" # BUG-019: Default to false
 MAX_FILES = int(os.environ.get("MAX_AI_FILES", "40"))
 
 if SKIP_AI:
@@ -110,7 +110,7 @@ def summarize(content, fname):
 
     for attempt in range(3):
         try:
-            resp = requests.post(API_URL, json=payload, headers=headers, timeout=30)
+            resp = requests.post(API_URL, json=payload, headers=headers, timeout=60) # Increased timeout
             if resp.status_code == 429:
                 retry_after = int(resp.headers.get("Retry-After", 30))
                 print(f"[04] Rate-limited. Waiting {retry_after}s...")
@@ -159,7 +159,7 @@ for fpath in targets:
     except Exception:
         continue
 
-print(f"[04] {len(to_process)} files need summaries (Cap: {MAX_FILES}, Token Budget: ${config.LLM_BUDGET_LIMIT})")
+print(f"[04] {len(to_process)} files need summaries (Cap: {MAX_FILES})") # BUG-044: Removed confusing budget ref
 
 summarized = 0
 cached = 0
