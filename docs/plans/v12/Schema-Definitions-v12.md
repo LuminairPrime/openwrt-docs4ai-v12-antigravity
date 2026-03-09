@@ -41,7 +41,7 @@ The pipeline guarantees that by the time data cascades to the next layer, it com
 
 ### Layer 1 (L1): The Normalized Payload (The Extracts)
 *   **Format:** Standardized Markdown (`.md`).
-*   **Directory:** Generated in `$WORKDIR/.L1-raw/{module_name}/`, then archived to `$OUTDIR/.L1-raw/`.
+*   **Directory:** Generated in `$WORKDIR/L1-raw/{module_name}/`, then archived to `$OUTDIR/L1-raw/`.
 *   **Naming Rule:** `{origin_type}-{slug}.md` (e.g., `api-fs-module.md` or `config-network.md`).
 *   **Schema Rule:** Pure informational content stripped of source-domain noise. No YAML frontmatter. No cross-links. 
 *   **Size Thresholds:** L1 files exceeding 50,000 tokens should trigger a soft warning during validation. Files exceeding 100,000 tokens should be flagged for manual review or algorithm splitting.
@@ -86,7 +86,7 @@ return L.Class.extend({
 
 ### Layer 2 (L2): The Enriched Domain (The Semantic Mesh)
 *   **Format:** Markdown with rigid YAML Frontmatter (`.md`). Intermediate JSON (`cross-link-registry.json`).
-*   **Directory:** Generated in `$WORKDIR/.L2-semantic/{module_name}/`, then archived to `$OUTDIR/.L2-semantic/`.
+*   **Directory:** Generated in `$WORKDIR/L2-semantic/{module_name}/`, then archived to `$OUTDIR/L2-semantic/`.
 *   **Schema Rule:** Every file, regardless of L0 origin, contains an identical baseline YAML metadata block (with explicit optional AI extension fields appended conditionally later). Cross-references are injected mathematically as relative Markdown links.
 *   **Cross-Link Safety:** The linker MUST only link fully-qualified symbols (e.g., `fs.open()`), never bare words. The linker MUST NEVER inject links inside fenced code blocks or inline \`code spans\`.
 
@@ -101,10 +101,13 @@ module: "ucode"                       # REQUIRED
 origin_type: "c_source"               # REQUIRED (from Enum)
 token_count: 840                      # REQUIRED
 version: "e87be9d"                    # REQUIRED
-source_file: ".L1-raw/ucode/api-fs-module.md" # RECOMMENDED (pipeline L1 traceability)
+source_file: "L1-raw/ucode/api-fs-module.md" # RECOMMENDED (pipeline L1 traceability)
 upstream_path: "lib/fs.c"             # RECOMMENDED (raw analyst original code)
 language: "c"                         # RECOMMENDED (for .d.ts gen)
-description: "File system operations" # RECOMMENDED (for llms-full.txt)
+ai_summary: "Native filesystem access module for ucode. Implements robust, low-level POSIX-style operations including atomic file writes, directory traversal, file stat, and symbolic link management." # PROFESSIONAL REQUIREMENT
+ai_when_to_use: "Use for all ucode-based filesystem interactions on OpenWrt, especially when atomicity or precise permission control is required."
+ai_related_topics: ["fs.readfile", "fs.writefile", "fs.stat"]
+description: "File system operations" # Fallback for legacy indexing
 last_pipeline_run: "2026-03-07T12:00:00Z" # RECOMMENDED (freshness indicator)
 ---
 # ucode fs module
@@ -118,7 +121,7 @@ The `fs` module provides file system operations. See also [uloop.timer()](../ulo
   "symbols": {
     "fs.open": { 
       "signature": "fs.open(path, flags)", 
-      "file": ".L1-raw/ucode/api-fs-module.md", 
+      "file": "L1-raw/ucode/api-fs-module.md", 
       "returns": "number",
       "parameters": [
         {"name": "path", "type": "string"},
@@ -299,8 +302,8 @@ The `uloop` module provides the event loop implementation.
   "pipeline_date": "2026-03-07T12:00:00Z",
   "modules": {
     "ucode": {
-      "fs.open": { "signature": "fs.open(path, flags)", "returns": "number", "file": ".L1-raw/ucode/api-fs-module.md" },
-      "fs.read": { "signature": "fs.read(fd, len)", "returns": "string", "file": ".L1-raw/ucode/api-fs-module.md" }
+      "fs.open": { "signature": "fs.open(path, flags)", "returns": "number", "file": "L1-raw/ucode/api-fs-module.md" },
+      "fs.read": { "signature": "fs.read(fd, len)", "returns": "string", "file": "L1-raw/ucode/api-fs-module.md" }
     }
   }
 }
@@ -331,8 +334,8 @@ The `uloop` module provides the event loop implementation.
 ## 4. Archiving & Artifact Release Strategy
 
 1.  **GitHub Releases (ZIP files):**
-    *   `openwrt-docs4ai-L1-raw.zip` (Contents of `.L1-raw/`)
-    *   `openwrt-docs4ai-L2-semantic.zip` (Contents of `.L2-semantic/`)
+    *   `openwrt-docs4ai-L1-raw.zip` (Contents of `L1-raw/`)
+    *   `openwrt-docs4ai-L2-semantic.zip` (Contents of `L2-semantic/`)
     *   `signature-inventory.json` (Baseline for the next pipeline run)
 2.  **GitHub Pages (Live Hosting):**
     *   Deploys only **L3**, **L4**, and **L5**. (The navigational maps, the monoliths, and the changes).

@@ -25,7 +25,7 @@ The pipeline scripts will be aggressively refactored to align with the explicit 
 
 ### 2.1 Standardizing the Extractors (L1 Target)
 - **Target Scripts:** `02a` through `02h` (The Scraper Suite).
-- **Implementation:** Strip all YAML frontmatter injection from extractors. The scripts fetch data, write to `$WORKDIR/.L1-raw/`, and emit a companion `.meta.json` sidebar containing origin context.
+- **Implementation:** Strip all YAML frontmatter injection from extractors. The scripts fetch data, write to `$WORKDIR/L1-raw/`, and emit a companion `.meta.json` sidebar containing origin context.
 - **Content Integrity:** Every L1 file MUST have a `content_hash` (truncated SHA256) calculated during the write process and stored in its `.meta.json`.
 - **Wiki Rate Limiting & Sniper Targets:** The wiki scraper (`02a`) MUST enforce a hard 1.5-second delay to defend against global bot rate-limits. Additionally, `02a` MUST maintain an internal `MANDATORY_PAGES` list (e.g., `/docs/techref/ubus`). These "sniper" targets MUST always be attempted and MUST bypass any age-based cutoff logic (`CUTOFF`) to ensure critical API context is never lost during pruning cycles.
 - **DokuWiki Ghost Pages:** Scrapers targeting DokuWiki MUST check for the "This topic does not exist" string in raw exports to catch 200 OK responses for non-existent pages.
@@ -39,7 +39,7 @@ The pipeline scripts will be aggressively refactored to align with the explicit 
 - **Modular Internal Structure:** The script MUST be partitioned into discrete, testable functions for (1) `pass_1_normalize_all`, (2) `pass_2_link_all`, and (3) `promote_to_staging`.
 - **Reproducible Determinism:** Iterate over modules and files in sorted alphabetical order. Output YAML keys in identical deterministic sequences via a robust YAML serializer (`pyyaml`). 
 - **Performance Constraints:** All regex patterns used for symbol replacement MUST be pre-compiled *once* outside the file processing loops.
-- **Implementation (Pass 1 - Stamping):** Ingest `.L1-raw/` and `.meta.json` files. Calculate tokens for the Markdown *body only*. Apply the **L2 Semantic Schema**. Extract signatures to a JSON registry (`cross-link-registry.json`). 
+- **Implementation (Pass 1 - Stamping):** Ingest `L1-raw/` and `.meta.json` files. Calculate tokens for the Markdown *body only*. Apply the **L2 Semantic Schema**. Extract signatures to a JSON registry (`cross-link-registry.json`). 
 - **Pass 1 Failure Boundary:** If the corresponding `.meta.json` is missing or malformed, `03-normalize-semantic.py` MUST trigger a fatal error and exit non-zero immediately.
 - **Implementation (Pass 3 - Deprecation):** Scan `ucode` and `luci` API docs for symbols followed by "Deprecated" markers. Tag these in the registry. For wiki pages referencing these symbols, inject a `[!WARNING]` callout to alert the agent/user of upcoming API breakage.
 - **Implementation (Promotion):** Once the three passes are clean, atomically copy the stage layers from `WORKDIR` to `OUTDIR`. Clear existing `OUTDIR` staging subdirectories first to ensure build purity.
@@ -66,7 +66,7 @@ The pipeline scripts will be aggressively refactored to align with the explicit 
 
 ### 2.3 Formalizing the Indexes (L3 & L5 Targets)
 - **Target Scripts:** `06a` through `06d` (Parallel Generators), `07` (Sequential HTML generator).
-- **Implementation:** The index generators validate and aggregate YAML metadata from the `.L2-semantic/` directory to build the `llms.txt` maps, `.d.ts` schemas, and HTML indexes into the root `$OUTDIR`.
+- **Implementation:** The index generators validate and aggregate YAML metadata from the `L2-semantic/` directory to build the `llms.txt` maps, `.d.ts` schemas, and HTML indexes into the root `$OUTDIR`.
 - **IDE TypeScript Generics:** Extract function definitions via `cross-link-registry.json` (authoritative inventory list), parsing parameter types from the associated L2 Markdown headings. For v12, `.d.ts` generation is strictly scoped to `ucode` module APIs only (`$OUTDIR/ucode/ucode.d.ts`); LuCI JS is deferred. The pipeline MUST map types as follows: `string`->`string`, `int`/`double`->`number`, `bool`->`boolean`, `array`->`any[]`, `object`->`Record<string, any>`, `resource`->`object`, `null`->`null`, `unknown`->`any`.
 - **L5 Telemetry Expansion:** Output both the `CHANGES.md` human diff and the `changelog.json` schema. Baseline retrieval fallback chain: (1) try `github-release` with token, (2) if token empty/API fails, check for local `signature-inventory.json` in the committed workspace, (3) operate in "no baseline" mode. Log which path was taken.
 
@@ -89,11 +89,13 @@ These features ensure that autonomous agents can grok the repository instantly w
 ## 4. Pipeline Execution & Delivery Updates
 
 ### 4.1 Artifact Splitting
-- Modify `openwrt-docs4ai-00-pipeline.yml` to bundle `.L1-raw/` and `.L2-semantic/` as downloadable `.zip` release artifacts attached to the monthly run.
+- Modify `openwrt-docs4ai-00-pipeline.yml` to bundle `L1-raw/` and `L2-semantic/` as downloadable `.zip` release artifacts attached to the monthly run.
 - GitHub Pages will exclusively host the L3, L4, and L5 layers as the "human and agent front-door."
 
 ### 4.2 Incremental Cost Reduction
 - **Wiki Scraping Cache (`If-Modified-Since`):** Modify `02a-scrape-wiki.py` to store and check local HTTP `Last-Modified` metadata logic in `.cache/wiki-lastmod.json`, persisting across CI runs via `actions/cache`.
+- **AI Summary Caching (`content_hash`):** Script `04` MUST utilize `ai-summaries-cache.json`. Before calling the LLM, the script MUST calculate the `content_hash` of the L1 source. If the hash exists in the cache, the summary is reused instantly. This reduces processing time from minutes to seconds.
+- **Graceful API Failure (Hard Halt):** If the AI API returns a **401 (Unauthorized)** or **403 (Quota Exceeded)**, the script MUST immediately return a `STOP` signal. The processing loop MUST break, and the pipeline MUST proceed with any cached summaries. Redundant retries on a dead API are prohibited.
 - **Concurrency & Push Triggers:** Enforce workflow concurrency to cancel in-progress runs on branch pushes using `concurrency: { group: docs-pipeline-${{ github.ref }}, cancel-in-progress: true }`. Restrict `push` triggers to `.github/scripts/**`, template folders, and `.yaml` workflow files.
 - **Diff Commits:** Execute a diff comparison mapping of the generated output vs existing branch output. If no diff exists, the pipeline simply skips committing instead of creating an empty bump commit.
 

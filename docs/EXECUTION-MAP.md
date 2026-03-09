@@ -2,8 +2,8 @@
 
 ## Layers and Artifacts
 - **L0 (Raw Source)**: `tmp/repo-*/` (Untouched upstream clones)
-- **L1 (Normalized Payload)**: `tmp/.L1-raw/{module}/` -> `openwrt-condensed-docs/.L1-raw/{module}/` (Pure `.md` files)
-- **L2 (Enriched Domain)**: `tmp/.L2-semantic/{module}/` -> `openwrt-condensed-docs/.L2-semantic/{module}/` (Markdown + YAML Frontmatter)
+- **L1 (Normalized Payload)**: `tmp/L1-raw/{module}/` -> `openwrt-condensed-docs/L1-raw/{module}/` (Pure `.md` files)
+- **L2 (Enriched Domain)**: `tmp/L2-semantic/{module}/` -> `openwrt-condensed-docs/L2-semantic/{module}/` (Markdown + YAML Frontmatter)
 - **L3 (Navigational Maps)**: `openwrt-condensed-docs/` (`llms.txt`, `llms-full.txt`, `AGENTS.md`, `README.md`, `index.html`, `ucode.d.ts`, `*-skeleton.md`)
 - **L4 (Assembled Monoliths)**: `openwrt-condensed-docs/{module}/{module}-complete-reference.md`
 - **L5 (Telemetry)**: `openwrt-condensed-docs/` (`CHANGES.md`, `changelog.json`)
@@ -27,10 +27,10 @@
 
 ## Script Handoffs & Dependencies
 - `01-clone-repos.py` -> Clones to L0 (`tmp/repo-*/`) and generates `tmp/repo-manifest.json`
-- `02a`-`02h` -> Reads L0, writes to L1 (`tmp/.L1-raw/{module}/`) with `.meta.json` sidecars mapping schema fields
-- `03-normalize-semantic.py` -> Reads L1 and `meta.json`, writes to L2 (`tmp/.L2-semantic/{module}/`) & generates `tmp/cross-link-registry.json`
-- (Promotion Phase) -> Copies `tmp/.L1-raw` and `tmp/.L2-semantic` to `openwrt-condensed-docs/` along with `repo-manifest.json` and `cross-link-registry.json`
-- `04-generate-ai-summaries.py` (Optional) -> Mutates `openwrt-condensed-docs/.L2-semantic/` in-place
+- `02a`-`02h` -> Reads L0, writes to L1 (`tmp/L1-raw/{module}/`) with `.meta.json` sidecars mapping schema fields
+- `03-normalize-semantic.py` -> Reads L1 and `meta.json`, writes to L2 (`tmp/L2-semantic/{module}/`) & generates `tmp/cross-link-registry.json`
+- (Promotion Phase) -> Copies `tmp/L1-raw` and `tmp/L2-semantic` to `openwrt-condensed-docs/` along with `repo-manifest.json` and `cross-link-registry.json`
+- `04-generate-ai-summaries.py` (Optional) -> Mutates `openwrt-condensed-docs/L2-semantic/` in-place
 - `05-assemble-references.py` -> Reads L2, generates L3 skeletons and L4 monoliths
 - `06a-generate-llms-txt.py` -> Reads L2, generates `llms.txt` and `llms-full.txt`
 - `06b-generate-agents-md.py` -> Generates `AGENTS.md` and root `README.md`
