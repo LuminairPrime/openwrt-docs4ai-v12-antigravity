@@ -137,7 +137,21 @@ for module in sorted(modules):
         l4.write(f"> **Contains:** {len(md_files)} documents concatenated\n")
         l4.write(f"> **Tokens:** ~{total_tokens} (cl100k_base)\n\n---\n\n")
         
-        l4.write("".join(concatenated_bodies))
+        # FIX BUG-015: Rewrite relative links in L4 monoliths
+        # links like [text](../luci/api.md) -> [text](../L2-semantic/luci/api.md)
+        body_with_fixed_links = re.sub(
+            r'\[(.*?)\]\(\.\./((?!L2-semantic)[^/)]+/.*?\.md)\)',
+            r'[\1](../L2-semantic/\2)',
+            body_text
+        )
+        # links like [text](./api.md) -> [text](../L2-semantic/{module}/api.md)
+        body_with_fixed_links = re.sub(
+            r'\[(.*?)\]\(\./(.*?\.md)\)',
+            f'[\\1](../L2-semantic/{module}/\\2)',
+            body_with_fixed_links
+        )
+        
+        l4.write(body_with_fixed_links)
         
     outputs_generated += 1
         
@@ -155,5 +169,9 @@ for module in sorted(modules):
     print(f"[05] OK: {module} L4 ({total_tokens} tokens) and L3 skeleton")
 
 print(f"[05] Complete: {outputs_generated} artifacts generated.")
+if outputs_generated == 0:
+    print("[05] FAIL: Zero outputs generated.")
+    sys.exit(1)
+
 if warn_count > 0:
     print(f"[05] Process finished with {warn_count} size warnings.")

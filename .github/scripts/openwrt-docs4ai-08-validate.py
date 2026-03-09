@@ -97,12 +97,13 @@ for fpath in all_md:
         hard_fail(f"Non-UTF-8 content: {rel}")
         continue
 
-    # Check for HTML leak in prose
-    first_500 = content[:500]
-    for marker in HTML_ERROR_MARKERS:
-        if marker in first_500:
-            hard_fail(f"HTML error/leak detected ({marker}): {rel}")
-            break
+    # FIX BUG-017: Check for HTML leak with structural requirement
+    has_structural = "<!DOCTYPE" in content or "<html" in content
+    if has_structural:
+        for marker in HTML_ERROR_MARKERS:
+            if marker in content[:500]:
+                hard_fail(f"HTML error/leak detected ({marker}): {rel}")
+                break
 
     # L2 YAML Validation
     if "L2-semantic" in rel:
@@ -131,13 +132,25 @@ for fpath in all_md:
     with open(fpath, "r", encoding="utf-8") as f:
         content = f.read()
     
-    # Find relative markdown links: [text](path/file.md)
-    # This catches ../, ./ and sibling links (no prefix) while ignoring http, mailto, etc.
     links = re.findall(r'\[.*?\]\(((?!https?:\/\/|mailto:|[a-z0-9]+:).*?\.md)\)', content)
     for link in links:
         target_path = os.path.normpath(os.path.join(rel_dir, link))
         if not os.path.isfile(target_path):
             hard_fail(f"Broken relative link in {os.path.relpath(fpath, OUTDIR)}: {link}")
+
+# ============================================================
+# Check 3.5: Index Reconciliation (BUG-008)
+# ============================================================
+full_txt_path = os.path.join(OUTDIR, "llms-full.txt")
+if os.path.isfile(full_txt_path):
+    with open(full_txt_path, "r", encoding="utf-8") as f:
+        full_index = f.read()
+    
+    for fpath in all_md:
+        if "L2-semantic" not in fpath: continue
+        fname = os.path.basename(fpath)
+        if fname not in full_index:
+            soft_warn(f"L2 file missing from llms-full.txt index: {fname}")
 
 # ============================================================
 # Check 4: AST Validation (Soft)
@@ -163,18 +176,19 @@ def check_ast(code, lang, rel_path):
         if res.returncode != 0:
             soft_warn(f"uCode Syntax Error in {rel_path}: {res.stderr.strip()}")
 
-# Only check small snippets in L1-raw/luci-examples/
+# FIX BUG-023: Check all generated files for syntax errors (Soft)
 if JS_BINARY or UCODE_BINARY:
-    example_files = glob.glob(os.path.join(OUTDIR, "L1-raw", "luci-examples", "*.md"))
-    for fpath in example_files:
+    for fpath in all_md:
         rel = os.path.relpath(fpath, OUTDIR)
         with open(fpath, "r", encoding="utf-8") as f:
             content = f.read()
         
         # Extract code blocks
-        blocks = re.findall(r'```(javascript|ucode)\n(.*?)\n```', content, re.DOTALL)
+        blocks = re.findall(r'```(javascript|ucode|js|uc)\n(.*?)\n```', content, re.DOTALL)
         for lang, code in blocks:
-            check_ast(code, lang, rel)
+            # Normalize lang names
+            l = "javascript" if lang in ["js", "javascript"] else "ucode"
+            check_ast(code, l, rel)
 
 # ============================================================
 # Summary

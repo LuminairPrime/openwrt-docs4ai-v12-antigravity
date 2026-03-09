@@ -23,6 +23,7 @@ sys.stdout.reconfigure(line_buffering=True)
 WORKDIR = os.environ.get("WORKDIR", os.path.join(os.getcwd(), "tmp"))
 SKIP_BUILDROOT = os.environ.get("SKIP_BUILDROOT", "false").lower() == "true"
 GITHUB_ENV = os.environ.get("GITHUB_ENV")
+MANIFEST_PATH = os.path.join(WORKDIR, "repo-manifest.json")
 
 os.makedirs(WORKDIR, exist_ok=True)
 
@@ -101,7 +102,16 @@ if not SKIP_BUILDROOT:
         ]
     )
     set_env("OPENWRT_COMMIT", openwrt_commit)
-else:
-    print("[01] SKIP: OpenWrt buildroot clone (SKIP_BUILDROOT=true)")
+# Generate repo-manifest.json (BUG-035)
+manifest = {
+    "ucode": ucode_commit,
+    "luci": luci_commit,
+    "openwrt": openwrt_commit if not SKIP_BUILDROOT else "skipped",
+    "timestamp": datetime.datetime.now(datetime.UTC).isoformat()
+}
+import json
+with open(MANIFEST_PATH, "w", encoding="utf-8") as f:
+    json.dump(manifest, f, indent=2)
+print(f"[01] OK: Manifest written to {MANIFEST_PATH}")
 
 print("[01] Phase 1 complete.")
