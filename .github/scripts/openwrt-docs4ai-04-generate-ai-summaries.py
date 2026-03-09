@@ -152,9 +152,9 @@ def summarize(content, fname):
                 print(f"[04] Rate-limited. Waiting {retry_after}s...")
                 time.sleep(retry_after)
                 continue
-            if resp.status_code == 403 or "no quota" in resp.text.lower() or "limit reached" in resp.text.lower():
-                print(f"[04] API quota limit reached. Response: {resp.text}")
-                return None
+            if resp.status_code in [401, 403] or "no quota" in resp.text.lower() or "limit reached" in resp.text.lower():
+                print(f"[04] API quota limit reached or Unauthorized (Status {resp.status_code}). Skipping Further API calls for this run.")
+                return "STOP" # Signal to stop trying for this run
             resp.raise_for_status()
             data = resp.json()
             raw_res = json.loads(data["choices"][0]["message"]["content"])
@@ -218,6 +218,9 @@ for fpath in to_process[:MAX_FILES]:
         with open(fpath, encoding="utf-8") as f:
             content = f.read()
         res = summarize(content, fname)
+        if res == "STOP":
+            print("[04] Hard API failure (quota/auth). Stopping API requests for this run.")
+            break 
         if res:
             if content_hash != "unknown":
                 ai_cache[content_hash] = res
