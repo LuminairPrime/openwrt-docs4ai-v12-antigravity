@@ -19,12 +19,7 @@ from lib import config, extractor
 
 sys.stdout.reconfigure(line_buffering=True)
 
-SKIP_BUILDROOT = os.environ.get("SKIP_BUILDROOT", "false").lower() == "true"
-
-if SKIP_BUILDROOT:
-    print("[02e] SKIP: Example extraction (SKIP_BUILDROOT=true)")
-    sys.exit(0)
-
+# Removed SKIP_BUILDROOT gate (BUG-020)
 print("[02e] Extract curated LuCI application examples")
 
 SRC = os.path.join(config.WORKDIR, "repo-luci", "applications")

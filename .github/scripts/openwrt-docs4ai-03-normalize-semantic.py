@@ -48,6 +48,9 @@ COMMON_WORDS = {
     "procd"
 }
 
+# procd is NOT common (BUG-041)
+COMMON_WORDS.discard("procd")
+
 def is_code_symbol(name):
     if name.lower() in COMMON_WORDS: return False
     if len(name) < 4: return False
@@ -160,7 +163,7 @@ def pass_2_link_all(l2_files, registry):
         
         # Protection: Skip blocks, code, links, frontmatter, and HEADERS (new)
         prot = set()
-        for m in re.finditer(r'```.*?```|~~~.*?---|^\s*#+ .*$', content, re.DOTALL | re.MULTILINE):
+        for m in re.finditer(r'```.*?```|~~~.*?~~~|^\s*#+ .*$', content, re.DOTALL | re.MULTILINE):
             prot.update(range(m.start(), m.end()))
         for m in re.finditer(r'`[^`\n]+`|\[[^\]]+\]\([^)]+\)', content):
             prot.update(range(m.start(), m.end()))
