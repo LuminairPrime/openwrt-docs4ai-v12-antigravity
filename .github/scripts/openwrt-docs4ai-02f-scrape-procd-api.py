@@ -33,16 +33,17 @@ except Exception as e:
     print(f"[02f] FAIL: Could not read {procd_sh_path}: {e}")
     sys.exit(1)
 
-# Extract the header block comments
+# FIX BUG-024: Scan entire file for comment blocks (not just header)
 doc_lines = []
 for line in lines:
-    if line.startswith("#"):
-        doc_lines.append(line.lstrip("#").strip())
-    elif not line.strip():
-        # Keep going through empty lines until it stops being comments
-        continue
-    else:
-        break # stopped being comments
+    if line.strip().startswith("#"):
+        # Keep it if it looks like documentation (more than 3 chars)
+        cleaned = line.strip().lstrip("# ").strip()
+        if cleaned:
+            doc_lines.append(cleaned)
+    elif doc_lines and not line.strip():
+        # Keep empty lines between comment blocks
+        doc_lines.append("")
 
 markdown_content = "\n".join(doc_lines).strip()
 if not markdown_content:

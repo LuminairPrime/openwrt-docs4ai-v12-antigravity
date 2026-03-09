@@ -13,6 +13,7 @@ import os
 import re
 import datetime
 import sys
+import html # FIX BUG-030
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from lib import config
@@ -51,9 +52,13 @@ for title, items in sections:
         m = re.match(r'- \[(.*?)\]\((.*?)\): (.*)', item)
         if m:
             name, link, desc_token = m.groups()
+            # FIX BUG-030: Escape HTML content
+            safe_name = html.escape(name)
+            safe_desc = html.escape(desc_token)
+            
             # Link to the module's HTML folder or monolith if we had a better mapper, 
             # for now link to the .md context or the module sub-index.
-            html_list.append(f'  <li><a href="{link}">{name}</a>: {desc_token}</li>')
+            html_list.append(f'  <li><a href="{link}">{safe_name}</a>: {safe_desc}</li>')
     html_list.append("</ul>")
 
 # Construct final HTML

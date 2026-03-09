@@ -77,6 +77,17 @@ def extract_makefile_meta(path):
             desc = re.sub(r"\s+", " ", d.group(1).replace("\\\n", " ")).strip()
             if desc:
                 fields.setdefault("DESCRIPTION", desc[:500])
+
+    # FIX BUG-013: Support for 'define Package/foo/description' blocks
+    desc_block_m = re.search(
+        r'define Package/[^/]+/description\s*\n(.*?)^endef',
+        text, re.MULTILINE | re.DOTALL
+    )
+    if desc_block_m:
+        desc = re.sub(r"\s+", " ", desc_block_m.group(1).replace("\\\n", " ")).strip()
+        if desc:
+            fields.setdefault("DESCRIPTION", desc[:1000]) # Descriptions can be longer
+            
     return fields
 
 
