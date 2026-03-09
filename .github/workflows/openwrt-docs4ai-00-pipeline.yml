@@ -116,6 +116,7 @@ jobs:
           name: L1-${{ matrix.script }}
           path: ${{ env.WORKDIR }}/L1-raw/
           retention-days: 1
+          if-no-files-found: ignore
 
   # ── Phase 3-5: Normalize, Assemble, Validate ─────────
   process:

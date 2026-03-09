@@ -101,6 +101,32 @@ changes_md = [
     ""
 ]
 
+# FIX BUG-046: Track module-level changes
+current_modules = set()
+for meta in registry.get("symbols", {}).values():
+    if "module" in meta: current_modules.add(meta["module"])
+
+# We don't have a module-level baseline in the signature inventory yet, 
+# but we can infer it from the symbols in the baseline.
+baseline_modules = set()
+for sym in baseline_inventory.keys():
+    if "." in sym: baseline_modules.add(sym.split(".")[0])
+
+added_mods = sorted(current_modules - baseline_modules)
+removed_mods = sorted(baseline_modules - current_modules)
+
+if added_mods:
+    changes_md.append("## New Modules")
+    for m in added_mods:
+        changes_md.append(f"- `[NEW] {m}`")
+    changes_md.append("")
+
+if removed_mods:
+    changes_md.append("## Removed Modules")
+    for m in removed_mods:
+        changes_md.append(f"- `[DEL] {m}`")
+    changes_md.append("")
+
 if added:
     changes_md.append("## Added Symbols")
     for item in sorted(added, key=lambda x: x["symbol"]):

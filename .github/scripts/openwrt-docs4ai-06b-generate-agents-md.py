@@ -19,9 +19,24 @@ from lib import config
 sys.stdout.reconfigure(line_buffering=True)
 
 OUTDIR = config.OUTDIR
+REGISTRY_PATH = os.path.join(OUTDIR, "cross-link-registry.json")
 TS = datetime.datetime.now(datetime.UTC).isoformat()
 
 print("[06b] Generating AGENTS.md and README.md")
+
+module_count = 0
+total_tokens = 0
+if os.path.isfile(REGISTRY_PATH):
+    try:
+        with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
+            registry = json.load(f)
+            total_tokens = sum(meta.get("token_count", 0) for meta in registry.get("symbols", {}).values())
+            # Count modules by checking L2 directory or registry symbols
+            modules = set()
+            for meta in registry.get("symbols", {}).values():
+                if "module" in meta: modules.add(meta["module"])
+            module_count = len(modules)
+    except: pass
 
 os.makedirs(OUTDIR, exist_ok=True)
 
